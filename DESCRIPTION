@@ -1,0 +1,36 @@
+Package: cvindia
+Type: Package
+Title: Analysis of Patient Flow in Hospitals
+Version: 0.0.1
+Author: Gabriel Burcea, Global Digital Health Unit, Public Health, Imperial College
+Maintainer: The package maintainer <yourself@somewhere.net>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.0.2
+Suggests: 
+    testthat,
+    knitr,
+    rmarkdown,
+    vdiffr
+Imports: 
+    tidyverse,
+    lubridate,
+    reshape2,
+    scales,
+    lazyeval,
+    qicharts2,
+    readr,
+    rlang,
+    purrr,
+    tidyr,
+    forcats,
+    ggplot2,
+    padr,
+    grid,
+    DescTools,
+    naniar,
+    ggpubr
+VignetteBuilder: knitr

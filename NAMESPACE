@@ -3,3 +3,4 @@
 export(count_mapp_country)
 export(country_map)
 export(firstup)
+export(simpleCap)

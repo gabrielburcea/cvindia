@@ -19,6 +19,3 @@ count_mapp_country(data, item = "world", plot_chart = TRUE)
 \description{
 count_map_country
 }
-\examples{
-data
-}

@@ -4,7 +4,6 @@
 .Ruserdata
 .cvindia.Rproj
 .RDataTmp
-
 /plots
-
 /data
+.DS_Store

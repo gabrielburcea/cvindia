@@ -23,3 +23,6 @@ country_map(country, start_date, end_date, plot_chart, which_country)
 \description{
 country_map
 }
+\examples{
+data
+}

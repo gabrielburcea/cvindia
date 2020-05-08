@@ -14,7 +14,8 @@ Suggests:
     testthat,
     knitr,
     rmarkdown,
-    vdiffr
+    vdiffr,
+    memisc
 Imports: 
     tidyverse,
     lubridate,

@@ -118,6 +118,13 @@ empty_as_na <- function(x) {
   ifelse(as.character(x) != "", x, NA)
 }
 
+
+
+
+
+
+
+
 # data <- data %>% 
 #   mutate_each(funs(empty_as_na))
 # 

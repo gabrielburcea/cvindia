@@ -9,7 +9,7 @@
 #' @return
 #' @export
 #'
-#' @examples
+#' @examples data
 country_map <- function(country, start_date, end_date, plot_chart, which_country){
   
  

@@ -8,9 +8,11 @@
 #'
 #' @return
 #' @export
+#' @importFrom magrittr %>%
 #'
-#' @examples data 
-count_plot_self_diagnosis <- function(data, start_date, end_date, plot = TRUE, title = "Test") {
+#' @examples
+count_plot_self_diagnosis <- function(data, start_date = as.Date("2020-01-01", format = "%Y-%m-%d"), end_date = as.Date("2020-01-01", format = "%Y-%m-%d"), 
+                                      plot_chart = TRUE, title = "Test") {
   
   
   #### Count self diagnosis ############
@@ -22,7 +24,7 @@ count_plot_self_diagnosis <- function(data, start_date, end_date, plot = TRUE, t
     dplyr::mutate(Frequency = Count/sum(Count))
   
     # Set the title
-  title_stub <- " Count of self diagnosis, SARS-COVID-19, "
+  title_stub <- ": Count of self diagnosis, SARS-COVID-19, "
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
   end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
   chart_title <- paste0(title, title_stub, start_date_title, " to ", end_date_title)              
@@ -41,20 +43,23 @@ count_plot_self_diagnosis <- function(data, start_date, end_date, plot = TRUE, t
   count_self_diagnosis  <- count_self_diagnosis  %>%
     dplyr::mutate(Group = factor(Group,levels = c('None', 'Mild', 'Moderate','Severe')))
 
-  plot <- ggplot(data = count_self_diagnosis, aes(x = Group,y = Count, fill = Group)) +
-      geom_bar(stat = 'identity')+
-      labs(title = chart_title,
+  plot <- ggplot2::ggplot(data = count_self_diagnosis, ggplot2::aes(x = Group,y = Count, fill = Group)) +
+    ggplot2::geom_bar(stat = 'identity') +
+    ggplot2::labs(title = chart_title,
            subtitle = "source: GDHU unit, Public Health Department, Imperial College") +
-     scale_fill_brewer(palette = "Orange") +
-    theme_bw()
+    ggplot2::scale_fill_brewer(palette = "Oranges") +
+    ggplot2::theme_bw()
   
-  if(plot == TRUE){
+  if(plot_chart == TRUE){
     
     plot
   
   }else{
     
-    count_self_diagnosis
+    count_self_diagnosis <- count_self_diagnosis %>%
+      dplyr::select(Group, Count, Frequency) %>%
+      dplyr::arrange(desc(Count))
+  
   
   
   }

@@ -11,7 +11,12 @@
 count_mapp_country <- function(data, item = "world", plot_chart = TRUE) {
     
     
-    map_item <- map_data(item)
+   
+  
+    map_world <- read_csv("data/world_cities.csv") %>%
+      dplyr::rename(Location = location)
+    
+    data <- dplyr::full_join(data, map_world, by = c("Location"))
     
     ######### Count respondents per country for original dataset ###################################################
     count_respondents <- data %>%
@@ -98,7 +103,6 @@ count_mapp_country <- function(data, item = "world", plot_chart = TRUE) {
 }
   
 ### Counts of Respondents per country 
-
 
 
 ########################### Ge levels so that able to recode some countries into same ##########################

@@ -4,12 +4,14 @@
 #' @param item 
 #' @param plot_chart 
 #' @param title 
+#' @param start_date 
+#' @param end_date 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-count_mapp_world <- function(data, item = "world", plot_chart = TRUE, title = "Worl Map") {
+count_mapp_world <- function(data, item = "world",start_date = "2020-04-09", end_date = "2020-05-09", plot_chart = TRUE, title = "Worl Map") {
     
 
     map_item <- map_data(item)
@@ -26,6 +28,15 @@ count_mapp_world <- function(data, item = "world", plot_chart = TRUE, title = "W
     
     count_map <- left_join(map_item, count_respondents, by = c('region' = 'Country'))
   
+    
+    
+    # Set the title
+    title_stub <- ": Count of respondent per country, SARS-COVID-19, "
+    start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+    end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+    chart_title <- paste0(title, title_stub, start_date_title, " to ", end_date_title)
+    title = "World Map"
+    
     ###################################################################
     map <- ggplot2::ggplot(data = count_map) +
       ggplot2::geom_polygon(aes(
@@ -54,8 +65,8 @@ count_mapp_world <- function(data, item = "world", plot_chart = TRUE, title = "W
   }else{
     
     count_map_distinct <- count_map %>% 
-      dplyr::select(region, Count, Ranking) %>%
-      dplyr::distinct(region, Count, Ranking) %>%
+      dplyr::select(region, Count, Frequency) %>%
+      dplyr::distinct(region, Count, Frequency) %>%
       dplyr::arrange(desc(Count)) %>%
       dplyr::top_n(10)
             

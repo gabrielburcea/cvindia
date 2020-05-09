@@ -2,7 +2,7 @@
 
 export(apply_cl_cm)
 export(cfg_write)
-export(count_mapp_country)
+export(count_mapp_world)
 export(count_plot_self_diagnosis)
 export(country_map)
 export(firstup)

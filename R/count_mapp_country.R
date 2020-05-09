@@ -1,85 +1,60 @@
-#' count_map_country
+#' count_mapp_world 
 #'
 #' @param data 
 #' @param item 
 #' @param plot_chart 
+#' @param title 
+#' @param start_date 
+#' @param end_date 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-count_mapp_country <- function(data, item = "world", plot_chart = TRUE) {
+count_mapp_world <- function(data, item = "world",start_date = "2020-04-09", end_date = "2020-05-09", plot_chart = TRUE, title = "Worl Map") {
     
+
+    map_item <- map_data(item)
     
-   
-  
-    map_world <- read_csv("data/world_cities.csv") %>%
-      dplyr::rename(Location = location)
-    
-    data <- dplyr::full_join(data, map_world, by = c("Location"))
-    
-    ######### Count respondents per country for original dataset ###################################################
     count_respondents <- data %>%
-      dplyr::select(ID, country) %>%
-      dplyr::group_by(country) %>%
+      dplyr::select(ID, Country) %>%
+      dplyr::group_by(Country) %>%
       dplyr::summarise(Count = n()) %>%
+      dplyr::mutate(Frequency = Count/sum(Count)) %>%
       dplyr::ungroup() %>%
-      dplyr::mutate(
-        Ranking = case_when(
-          Count == 0  | Count <= 100 ~ '0-100',
-          Count == 101 |
-            Count <= 300  ~ '101-300',
-          Count == 301 |
-            Count <= 600 ~ '301-600',
-          Count == 601 |
-            Count <= 1000 ~ '601-1000',
-          Count == 1001 |
-            Count <= 1500 ~ '1001-1500',
-          Count == 1501 |
-            Count <=  2000 ~ '1501-2000',
-          Count == 2001 |
-            Count <= 2500 ~ '2001-2500',
-          Count == 2501 |
-            Count <= 100000000 ~ '2501+'
-        )
-      ) %>%
-      
-      arrange(desc(Count))
+      dplyr::arrange(desc(Count))
     
     ######Join the count tibble to map_item
     
-    count_map <- left_join(map.world, count_respondents, by = c('region' = 'country'))
+    count_map <- left_join(map_item, count_respondents, by = c('region' = 'Country'))
+  
     
-    ###### Get the levels for setting the order of the legend #########
-    count_map$Ranking <- as.factor(count_map$Ranking)
     
-    levels(count_map$Ranking)
-    #Reverse the order as follow
-    count_map$Ranking <-
-      factor(
-        count_map$Ranking,
-        levels = c(
-          "0-100",
-          "101-300" ,
-          "301-600",
-          "601-1000",
-          "1001-1500",
-          "1501-2000",
-          "2501+"
-        )
-      )
+    # Set the title
+    title_stub <- ": Count of respondent per country, SARS-COVID-19, "
+    start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+    end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+    chart_title <- paste0(title, title_stub, start_date_title, " to ", end_date_title)
+    title = "World Map"
     
     ###################################################################
-    map <- ggplot2::ggplot() +
-      geom_polygon(data = count_map, aes(
+    map <- ggplot2::ggplot(data = count_map) +
+      ggplot2::geom_polygon(aes(
         x = long,
         y = lat,
         group = group,
-        fill = Ranking
+        fill = Count
       )) +
+     # ggplot2::geom_sf(aes(fill  = region, geometry = region)) +
+      scale_fill_gradient2_tableau(palette = "Orange-Blue Diverging")  +
       #scale_fill_gradient(low = "#132B43", high = "#56B1F7") +
-      labs(title = 'Count of respondent per country, SARS-COVID-19'
-           , subtitle = "source: GDHU unit, Public Health Department, Imperial College")
+      ggplot2::labs(title = chart_title,
+                    subtitle = "\nNote: Results may change due to ongoing refresh of data",
+                    y = "lat", x = "long", caption = "Source: GDHU, Public Health Department, Imperial College") +
+      ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 21, b = 0, l = 0)),
+                     plot.title = ggplot2::element_text(size = 12, face = "bold"),
+                     plot.subtitle = ggplot2::element_text(size = 10),
+                     legend.box = "horizontal")
     
     map
     
@@ -90,8 +65,8 @@ count_mapp_country <- function(data, item = "world", plot_chart = TRUE) {
   }else{
     
     count_map_distinct <- count_map %>% 
-      dplyr::select(region, Count, Ranking) %>%
-      dplyr::distinct(region, Count, Ranking) %>%
+      dplyr::select(region, Count, Frequency) %>%
+      dplyr::distinct(region, Count, Frequency) %>%
       dplyr::arrange(desc(Count)) %>%
       dplyr::top_n(10)
             

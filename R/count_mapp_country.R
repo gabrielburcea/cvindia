@@ -13,10 +13,10 @@ count_mapp_country <- function(data, item = "world", plot_chart = TRUE) {
     
    
   
-    map_world <- read_csv("data/world_cities.csv") %>%
-      dplyr::rename(Location = location)
+    map_world <- read_csv("mapping/world_cities.csv") %>%
     
-    data <- dplyr::full_join(data, map_world, by = c("Location"))
+    
+    data <- dplyr::left_join(data, map_world, by = c("Location"))
     
     ######### Count respondents per country for original dataset ###################################################
     count_respondents <- data %>%

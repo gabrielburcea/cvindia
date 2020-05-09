@@ -15,7 +15,8 @@ Suggests:
     knitr,
     rmarkdown,
     vdiffr,
-    memisc
+    memisc,
+    ggthemes
 Imports: 
     tidyverse,
     lubridate,

@@ -15,7 +15,7 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-04-0
                                             plot_chart = TRUE, title = "Testt") {
   
   
-  positive_tested_symptoms <- data %>% 
+  positive_tested_symptoms <- data_select %>% 
     dplyr::mutate(tested_positive = stringr::str_detect(tested_or_not, pattern = "Positive" )) %>%
     dplyr::filter(tested_positive == TRUE)
   
@@ -171,7 +171,7 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-04-0
                   Headache, 'Nasal Congestion', 'Nausea and Vomiting', 
                   'Shortness of Breath',Cough,'Muscle Ache') %>%
     dplyr::select(group, Event, Value)
-  
+ 
  
   title_stub_freq <- ": Symptom maping in SARS-COVID-19 positive tested patients, Frequency\n"
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
@@ -214,8 +214,11 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-04-0
                     Chills,'Sore Throat', Sputum, Diarrhoea, Fatigue, 
                     Headache, 'Nasal Congestion', 'Nausea and Vomiting', 
                     'Shortness of Breath',Cough,'Muscle Ache') %>%
-      dplyr::select(group, Event, Value)
-    melted_symptom_frequency
+      dplyr::select(group, Event, Value) %>%
+      dplyr::arrange(desc(Value)) %>%
+      dplyr::rename(Frequency = Value) %>%
+      dplyr::top_n(15)
+     melted_symptom_frequency
     
     symptom_numbers <- symptom_numbers %>%
       tidyr::gather(key = "Event",
@@ -226,6 +229,7 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-04-0
                     Count_sputum) %>%
       dplyr::select(group, Event, Value) %>%
       dplyr::arrange(desc(Value)) %>%
+      dplyr::rename(Count = Value) %>%
       dplyr::top_n(15)
     symptom_numbers
     

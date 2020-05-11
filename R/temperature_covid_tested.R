@@ -14,7 +14,7 @@ temparature_covid_tested <- function(data, start_date = as.Date("2020-01-01", fo
                                      plot_chart = TRUE) {
   
   
-  positive_tested_symptoms <-data %>% 
+  positive_tested_symptoms <- data_select %>% 
     dplyr::mutate(tested_positive = stringr::str_detect(tested_or_not, pattern = "Positive" )) %>%
     dplyr::filter(tested_positive == TRUE)
   
@@ -27,7 +27,8 @@ temparature_covid_tested <- function(data, start_date = as.Date("2020-01-01", fo
     dplyr::mutate('Temperature' = Count_temperature / sum(Count_temperature)*100) %>%
     dplyr::filter(Group != "No")
   
-  
+  start_date = as.Date("2020-04-09", format = "%Y-%m-%d") 
+  end_date = as.Date("2020-05-09", format = "%Y-%m-%d")
   
   title_stub_freq <- "Temperature in SARS-COVID-19 positive tested patients, Frequency\n"
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
@@ -37,17 +38,16 @@ temparature_covid_tested <- function(data, start_date = as.Date("2020-01-01", fo
   count_temperature$Group <- factor(count_temperature$Group)
   levels(count_temperature$Group)
   
-  melted_symptom_frequency$Group <- factor(melted_symptom_frequency$Group, 
+  count_temperature$Group <- factor(count_temperature$Group, 
                                            levels = c("37.5-38", "38.1-39", "39.1-41"), 
                                            labels = c("37.5-38", "38.1-39", "39.1-41"))
   
   
   
-  plot_test <- ggplot2::ggplot(melted_symptom_frequency, ggplot2::aes(x = Group, y = Temperature)) +
-    ggplot2::geom_col(ggplot2::aes(colour = Group)) +
+  plot_test <- ggplot2::ggplot(count_temperature, ggplot2::aes(x = Group, y = Temperature)) +
+    ggplot2::geom_bar(stat = 'identity', fill = "#FF6666") +
     ggplot2::coord_flip() + 
-    ggplot2::scale_fill_brewer(palette = 'Oranges') +
-    ggplot2::scale_y_continuous(expand = c(0,0)) +
+    #ggplot2::scale_fill_brewer(palette = "RdYIGn") +
     ggplot2::labs(title = chart_title_2,
                   subtitle = "\nNote: Results may change due to ongoing refresh of data",
                   x = "Symptoms manifestation in Covid Patients, tested positive", y = "Frequency", caption = "Source: GDHU, Public Health Department, Imperial College") +
@@ -64,10 +64,11 @@ temparature_covid_tested <- function(data, start_date = as.Date("2020-01-01", fo
     
   }else{
     
-    cough_muscle_shortness <- cough_muscle_shortness %>%
-      dplyr::select_all()
+    count_temperature <- count_temperature %>%
+      dplyr::select_all() %>%
+      dplyr::rename(Count = Count_temperature, Frequency = Temperature)
     
-    cough_muscle_shortness
+   knitr::kable(count_temperature)
   }
   
 }

@@ -26,3 +26,27 @@
 #                  temperature = 'Temperature',
 #                  self_diagnosis = 'Self Diagnosis',
 #                  tested_or_not = 'Reason For Helping')
+
+
+# dt_select <- dt_select %>%
+#   dplyr::mutate(Age_band = case_when(age == 0 ~ '0',
+#                                      age == 1 | age <= 4 ~ '1-4',
+#                                      age == 5 | age <= 9 ~ '5-9',
+#                                      age == 10 | age <= 14 ~ '10-14',
+#                                      age == 15 | age <= 19 ~ '15-19',
+#                                      age == 20 | age <= 24 ~ '20-24',
+#                                      age == 25 | age <= 29 ~ '25-29',
+#                                      age == 30 | age <= 34 ~ '30-34',
+#                                      age == 35 | age <= 39 ~ '35-39',
+#                                      age == 40 | age <= 44 ~ '40-44',
+#                                      age == 45 | age <= 49 ~ '45-49',
+#                                      age == 50 | age <= 54 ~ '50-54',
+#                                      age == 55 | age <= 59 ~ '55-59',
+#                                      age == 60 | age <= 64 ~ '60-64',
+#                                      age == 65 | age <= 69 ~ '65-69',
+#                                      age == 70 | age <= 74 ~ '70-74',
+#                                      age == 75 | age <= 79 ~ '75-79',
+#                                      age == 80 | age <= 84 ~ '80-84',
+#                                      age == 85 | age <= 89 ~ '85-89',
+#                                      age == 90 | age <= 94 ~ '90-94',
+#                                      age >= 95  ~ '95+'))

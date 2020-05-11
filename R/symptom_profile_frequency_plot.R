@@ -368,7 +368,7 @@ symptom_profile_count_plot <- function(data, start_date = as.Date("2020-01-01", 
                   'Shortness of Breath', 'Sore Throat', Sputum) %>%
     dplyr::select(group, Event, Value)
   
-  
+
   title_stub_count <- ": Symptom maping in SARS-COVID-19 positive tested patients,Count\n"
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
   end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
@@ -388,7 +388,7 @@ symptom_profile_count_plot <- function(data, start_date = as.Date("2020-01-01", 
     ggplot2::coord_flip() + 
     ggplot2::scale_fill_brewer(palette = 'Blues') +
     ggplot2::scale_y_continuous(expand = c(0,0)) +
-    ggplot2::labs(title = chart_title_2,
+    ggplot2::labs(title = chart_title_count,
                   subtitle = "\nNote: Results may change due to ongoing refresh of data",
                   y  = "Counts" , x = "Symptoms manifestation in Covid Patients tested positive", caption = "Source: GDHU, Public Health Department, Imperial College") +
     ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 21, b = 0, l = 0)),

@@ -1,0 +1,126 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+
+```{r setup, include=FALSE}
+data <- PivotMappe060520r
+
+library(magrittr)
+
+dt_select <- data %>%
+  dplyr::select(ID, Age, Gender, Location, Country, Chills, Cough, Diarrhoea, Fatigue, Headcahe, 'Healthcare Worker', 
+                'How Unwell', 'Long Standing Health Issues', 'Loss of smell and taste', 'Muscle Ache', 'Nasal Congestion',                  'Nausea and Vomiting', 'Number Of Days Symptoms Showing', 'Pregnant', 'Self Diagnosis', 'Shortness of Breath',                'Sore Throat', 'Sputum', 'Temperature') %>%
+  dplyr::rename( id = ID,
+                 age = Age,
+                 gender = Gender,
+                 location =  Location,
+                 country = Country,
+                 chills = Chills,
+                 diarrhoea = Diarrhoea,
+                 fatigue = Fatigue,
+                 headache = Headcahe,
+                 healthcare_worker = 'Healthcare Worker',
+                 how_unwell = 'How Unwell',
+                 long_standing_health = 'Long Standing Health Issues',
+                 loss_smell_taste = 'Loss of smell and taste',
+                 muscle_ache = 'Muscle Ache',
+                 nasal_congestion = 'Nasal Congestion',
+                 nausea_vomiting = 'Nausea and Vomiting',
+                 no_days_symptoms_show = 'Number Of Days Symptoms Showing',
+                 pregnant =  'Pregnant',
+                 shortness_breath = 'Shortness of Breath',
+                 sore_throat = 'Sore Throat',
+                 sputum = 'Sputum',
+                 temperature = 'Temperature',
+                 self_diagnosis = 'Self Diagnosis')
+```
+
+
+```{r respondents-per-country, include=FALSE, fig.height=5, fig.width=7, cache=TRUE}
+
+map_world <- cvindia::count_mapp_world(data = data, item = "world", start_date = "2020-04-09", end_date = "2020-05-09", plot_chart = TRUE, title= "World Map")
+
+map_world
+```
+
+
+```{r map_world_numbers, include=FALSE}
+map_world_numbers <- knitr::kable(cvindia::count_mapp_world(data = data, item = "world", start_date = "2020-04-09", end_date = "2020-05-09", plot_chart = FALSE, title= "World Map"))
+
+
+map_world_numbers
+```
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+```{r, symptoms_covid_in_resp, include = FALSE, fig.height=5, fig.width=7, cache=TRUE}
+symtoms_covid_in_resp <- symptom_profile_covid_tested(data = data_select, start_date = as.Date("2020-04-01", format = "%Y-%m-%d"), 
+                                           end_date = as.Date("2020-09-01", format = "%Y-%m-%d"),
+                                           plot_chart = TRUE)
+symtoms_covid_in_resp
+```
+
+
+
+```{r, symptom_profile_all_symptoms,  include = FALSE, fig.height=5, fig.width=7, cache=TRUE}
+all_syptpms_frequency <- symptom_profile_frequency_plot(data = data_select, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
+                                            end_date = as.Date("2020-05-09", format = "%Y-%m-%d"),
+                                            plot_chart = TRUE, title = "Test")
+
+all_syptpms_frequency
+
+```
+
+
+```{r, symptom_profile_all_symptoms_numbers,  include = FALSE,}
+all_syptpms_numbers <- symptom_profile_frequency_plot(data = data_select, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
+                                            end_date = as.Date("2020-05-09", format = "%Y-%m-%d"),
+                                            plot_chart = FALSE, title = "Test")
+
+knitr::kable(all_syptpms_numbers)
+
+```
+
+
+
+
+```{r, symptoms_covid_in_resp_numbers, include = FALSE, fig.height=5, fig.width=7, cache=TRUE}
+symptoms_covid_in_resp_numbers <- symptom_profile_covid_tested(data = data_select, start_date = as.Date("2020-04-01", format = "%Y-%m-%d"), 
+                                           end_date = as.Date("2020-09-01", format = "%Y-%m-%d"),
+                                           plot_chart = FALSE)
+
+symptoms_covid_in_resp_numbers <- knitr::kable(symptoms_covid_in_resp_numbers)
+symptoms_covid_in_resp_numbers
+```
+
+
+
+
+
+
+```{r self-diagnosis, echo=F, results='asis', fig.height=5, fig.width=7, cache=TRUE}
+cvindia::self_diagnosis_mild_mod_severe(data = data_select, start_date = as.Date("2020-04-09"), end_date = as.Date("2020-05-09"), 
+                                   plot_chart = TRUE, title = "Self Report")
+```
+
+
+```{r pressure, echo=FALSE}
+knitr::kable(self_reported <- cvindia::self_diagnosis_mild_mod_severe(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = FALSE, title = "Test"))
+
+```
+
+
+
+

@@ -190,7 +190,7 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-01-0
   
   
   plot_test <- ggplot2::ggplot(melted_symptom_frequency, ggplot2::aes(x = Event, Value, fill = group)) +
-    ggplot2::geom_col(aes(colour = group)) +
+    ggplot2::geom_col(ggplot2::aes(colour = group)) +
     ggplot2::coord_flip() + 
     ggplot2::scale_fill_brewer(palette = 'Blues') +
     ggplot2::scale_y_continuous(expand = c(0,0)) +
@@ -384,7 +384,7 @@ symptom_profile_count_plot <- function(data, start_date = as.Date("2020-01-01", 
   
   
   plot_test <- ggplot2::ggplot(melted_symptom_counts, ggplot2::aes(x = reorder(Event, -Value), Value, fill = group)) +
-    ggplot2::geom_col(aes(colour = group)) +
+    ggplot2::geom_col(ggplot2::aes(colour = group)) +
     ggplot2::coord_flip() + 
     ggplot2::scale_fill_brewer(palette = 'Blues') +
     ggplot2::scale_y_continuous(expand = c(0,0)) +

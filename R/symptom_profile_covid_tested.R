@@ -15,7 +15,7 @@ symptom_profile_covid_tested <- function(data, start_date = as.Date("2020-01-01"
                                            plot_chart = TRUE) {
   
   
-  positive_tested_symptoms <- data_select %>% 
+  positive_tested_symptoms <- data %>% 
     dplyr::mutate(tested_positive = stringr::str_detect(tested_or_not, pattern = "Positive" )) %>%
     dplyr::filter(tested_positive == TRUE)
   
@@ -67,9 +67,7 @@ symptom_profile_covid_tested <- function(data, start_date = as.Date("2020-01-01"
                   Cough,  'Muscle Ache',
                   'Shortness of Breath') %>%
     dplyr::select(Group, Event, Value)
-  
-  start_date <- as.Date("2020-04-09", format = "%Y-%m-%d")
-  end_date <- as.Date("2020-05-09", format = "%Y-%m-%d")
+
   
   title_stub_freq <- "Covid symptom maping in SARS-COVID-19 positive tested patients, Frequency\n"
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
@@ -80,8 +78,8 @@ symptom_profile_covid_tested <- function(data, start_date = as.Date("2020-01-01"
   levels(melted_symptom_frequency$Group)
   
   melted_symptom_frequency$Group <- factor(melted_symptom_frequency$Group, 
-                                           levels = c("Mild", "Moderate", "Severe", "No"), 
-                                           labels = c("Mild", "Moderate", "Severe", "No"))
+                                           levels = c("Mild", "Moderate", "Severe"), 
+                                           labels = c("Mild", "Moderate", "Severe"))
   
   
   
@@ -89,7 +87,7 @@ symptom_profile_covid_tested <- function(data, start_date = as.Date("2020-01-01"
     ggplot2::geom_col(ggplot2::aes(colour = Group)) +
     ggplot2::coord_flip() + 
     ggplot2::scale_fill_brewer(palette = 'Oranges') +
-    ggplot2::scale_y_continuous(expand = c(0,0)) +
+    #ggplot2::scale_y_continuous(expand = c(0,0)) +
     ggplot2::labs(title = chart_title_2,
                   subtitle = "\nNote: Results may change due to ongoing refresh of data",
                   x = "Symptoms manifestation in Covid Patients, tested positive", y = "Frequency", caption = "Source: GDHU, Public Health Department, Imperial College") +
@@ -115,6 +113,17 @@ symptom_profile_covid_tested <- function(data, start_date = as.Date("2020-01-01"
 }
 
 
+#' temperature_covid_tested
+#'
+#' @param data 
+#' @param start_date 
+#' @param end_date 
+#' @param plot_chart 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 temparature_covid_tested <- function(data, start_date = as.Date("2020-01-01", format = "%Y-%m-%d"), 
                                          end_date = as.Date("2020-02-01", format = "%Y-%m-%d"),
                                          plot_chart = TRUE) {
@@ -130,7 +139,8 @@ temparature_covid_tested <- function(data, start_date = as.Date("2020-01-01", fo
     dplyr::rename(Group = temperature) %>%
     dplyr::group_by(Group) %>%
     dplyr::summarise(Count_temperature = dplyr::n()) %>%
-    dplyr::mutate('Temperature' = Count_temperature / sum(Count_temperature)*100)
+    dplyr::mutate('Temperature' = Count_temperature / sum(Count_temperature)*100) %>%
+    dplyr::filter(Group != "No")
   
 
   
@@ -143,8 +153,8 @@ temparature_covid_tested <- function(data, start_date = as.Date("2020-01-01", fo
   levels(count_temperature$Group)
   
   melted_symptom_frequency$Group <- factor(melted_symptom_frequency$Group, 
-                                           levels = c("No", "37.5-38", "38.1-39", "39.1-41"), 
-                                           labels = c("No", "37.5-38", "38.1-39", "39.1-41"))
+                                           levels = c("37.5-38", "38.1-39", "39.1-41"), 
+                                           labels = c("37.5-38", "38.1-39", "39.1-41"))
   
   
   

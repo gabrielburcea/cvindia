@@ -10,8 +10,8 @@
 #' @export
 #'
 #' @examples
-symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-01-01", format = "%Y-%m-%d"), 
-                                            end_date = as.Date("2020-02-01", format = "%Y-%m-%d"),
+symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
+                                            end_date = as.Date("2020-05-09", format = "%Y-%m-%d"),
                                             plot_chart = TRUE, title = "Testt") {
   
   
@@ -108,8 +108,6 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-01-0
     dplyr::mutate('Shortness of Breath' = Count_shortness_breath / sum(Count_shortness_breath)*100)
   
   
-  
-  
   count_sore_throat <- positive_tested_symptoms %>%
     dplyr::select(id, tested_positive, sore_throat) %>%
     dplyr::rename(group = sore_throat) %>%
@@ -126,8 +124,7 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-01-0
     dplyr::summarise(Count_sputum = n()) %>%
     dplyr::mutate('Sputum' = Count_sputum  / sum(Count_sputum)*100)
   
-  
-  
+
   
   count_temperature <- positive_tested_symptoms %>%
     dplyr::select(id, tested_positive, temperature) %>%
@@ -163,15 +160,16 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-01-0
                                                                                 count_nause_vomiting, by = c('group'))
   
   
-  symptom_numbers <- ch_cho_diar_fatig_head_ache_cong_short_sore_sputum_nausea
+  symptom_numbers <- ch_cho_diar_fatig_head_ache_cong_short_sore_sputum_nausea %>%
+    dplyr::filter(group != 'No')
 
   
   melted_symptom_frequency <- symptom_numbers  %>%
     tidyr::gather(key = "Event",
                   value = "Value",
-                  Chills, Cough, Diarrhoea, Fatigue, 
-                  Headache, 'Muscle Ache', 'Nasal Congestion', 'Nausea and Vomiting', 
-                  'Shortness of Breath', 'Sore Throat', Sputum) %>%
+                  Chills,'Sore Throat', Sputum, Diarrhoea, Fatigue, 
+                  Headache, 'Nasal Congestion', 'Nausea and Vomiting', 
+                  'Shortness of Breath',Cough,'Muscle Ache') %>%
     dplyr::select(group, Event, Value)
   
  
@@ -184,8 +182,8 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-01-0
   levels(melted_symptom_frequency$group)
   
   melted_symptom_frequency$group <- factor(melted_symptom_frequency$group, 
-                                           levels = c("Mild", "Moderate", "Severe", "No"), 
-                                           labels = c("Mild", "Moderate", "Severe", "No"))
+                                           levels = c("Mild", "Moderate", "Severe"), 
+                                           labels = c("Mild", "Moderate", "Severe"))
     
   
   
@@ -193,7 +191,7 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-01-0
     ggplot2::geom_col(ggplot2::aes(colour = group)) +
     ggplot2::coord_flip() + 
     ggplot2::scale_fill_brewer(palette = 'Blues') +
-    ggplot2::scale_y_continuous(expand = c(0,0)) +
+    #ggplot2::scale_y_continuous(expand = c(0,0)) +
     ggplot2::labs(title = chart_title_2,
                   subtitle = "\nNote: Results may change due to ongoing refresh of data",
                   x = "Symptoms manifestation in Covid Patients, tested positive", y = "Frequency", caption = "Source: GDHU, Public Health Department, Imperial College") +
@@ -210,15 +208,30 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-01-0
     
   }else{
     
+    melted_symptom_frequency <- symptom_numbers  %>%
+      tidyr::gather(key = "Event",
+                    value = "Value",
+                    Chills,'Sore Throat', Sputum, Diarrhoea, Fatigue, 
+                    Headache, 'Nasal Congestion', 'Nausea and Vomiting', 
+                    'Shortness of Breath',Cough,'Muscle Ache') %>%
+      dplyr::select(group, Event, Value)
+    melted_symptom_frequency
+    
     symptom_numbers <- symptom_numbers %>%
-      dplyr::select_all()
+      tidyr::gather(key = "Event",
+                    value = "Value", 
+                    Count_chills, Count_cough, Count_diarrhoea,
+                    Count_fatigue, Count_headache, Count_muscle_ache, Count_nasal_congestion, 
+                    Count_nausea_vomiting, Count_shortness_breath, Count_sore_throat, Count_sore_throat, 
+                    Count_sputum) %>%
+      dplyr::select(group, Event, Value) %>%
+      dplyr::arrange(desc(Value)) %>%
+      dplyr::top_n(15)
+    symptom_numbers
     
   }
    
 }
-
-
-
 
 #' symptom_profile_count_plot
 #'
@@ -342,11 +355,11 @@ symptom_profile_count_plot <- function(data, start_date = as.Date("2020-01-01", 
   
   ch_cho_diar_fatig_head_n <- dplyr::left_join(ch_cho_diar_fatig_n, count_headache_n, by = c('group'))
   
-  ch_cho_diar_fatig_head_ache_n <- dplyr::left_join(ch_cho_diar_fatig_head_n, count_muscle_ache_n, by = c('group'))
+  ch_cho_diar_fatig_head_ache_n <- dplyr::left_join(ch_cho_diar_fatig_head_n,  by = c('group'))
   
   ch_cho_diar_fatig_head_ache_cong_n <- dplyr::left_join(ch_cho_diar_fatig_head_ache_n,  count_nasal_congestion_n,by = c('group'))
   
-  ch_cho_diar_fatig_head_ache_cong_short_n <- dplyr::left_join(ch_cho_diar_fatig_head_ache_cong_n, count_shortness_breath_n, by = c('group'))
+  ch_cho_diar_fatig_head_ache_cong_short_n <- dplyr::left_join(ch_cho_diar_fatig_head_ache_cong_n,  by = c('group'))
   
   ch_cho_diar_fatig_head_ache_cong_short_sore_n <- dplyr::left_join(ch_cho_diar_fatig_head_ache_cong_short_n, count_sore_throat_n, by = c('group'))
   
@@ -356,16 +369,17 @@ symptom_profile_count_plot <- function(data, start_date = as.Date("2020-01-01", 
   
   ch_cho_diar_fatig_head_ache_cong_short_sore_sputum_nausea_n <- dplyr::left_join(ch_cho_diar_fatig_head_ache_cong_short_sore_sputum_n, 
                                                                                 count_nause_vomiting_n, by = c('group'))
+
   
-  
-  symptom_numbers_n <- ch_cho_diar_fatig_head_ache_cong_short_sore_sputum_nausea_n
+  symptom_numbers_n <- ch_cho_diar_fatig_head_ache_cong_short_sore_sputum_nausea_n %>%
+    dplyr::filter(group != "No")
   
   melted_symptom_counts <- symptom_numbers_n  %>%
     tidyr::gather(key = "Event",
                   value = "Value",
-                  Chills, Cough,Diarrhoea, Fatigue, 
-                  Headache, 'Muscle Ache', 'Nasal Congestion', 'Nausea and Vomiting', 
-                  'Shortness of Breath', 'Sore Throat', Sputum) %>%
+                  Cough,'Shortness of Breath', 'Muscle Ache', Diarrhoea, Fatigue, 
+                  Headache,  'Nasal Congestion', 'Nausea and Vomiting', 
+                   'Sore Throat', Sputum, Chills) %>%
     dplyr::select(group, Event, Value)
   
 
@@ -378,8 +392,8 @@ symptom_profile_count_plot <- function(data, start_date = as.Date("2020-01-01", 
   levels(melted_symptom_counts$group)
   
   melted_symptom_counts$group <- factor(melted_symptom_counts$group, 
-                                           levels = c("Mild", "Moderate", "Severe", "No"), 
-                                           labels = c("Mild", "Moderate", "Severe", "No"))
+                                           levels = c("Mild", "Moderate", "Severe"), 
+                                           labels = c("Mild", "Moderate", "Severe"))
   
   
   
@@ -387,7 +401,7 @@ symptom_profile_count_plot <- function(data, start_date = as.Date("2020-01-01", 
     ggplot2::geom_col(ggplot2::aes(colour = group)) +
     ggplot2::coord_flip() + 
     ggplot2::scale_fill_brewer(palette = 'Blues') +
-    ggplot2::scale_y_continuous(expand = c(0,0)) +
+    #ggplot2::scale_y_continuous(expand = c(0,0)) +
     ggplot2::labs(title = chart_title_count,
                   subtitle = "\nNote: Results may change due to ongoing refresh of data",
                   y  = "Counts" , x = "Symptoms manifestation in Covid Patients tested positive", caption = "Source: GDHU, Public Health Department, Imperial College") +

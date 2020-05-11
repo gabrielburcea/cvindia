@@ -1,4 +1,4 @@
-#' count_map_world
+#' count_mapp_world
 #'
 #' @param data 
 #' @param item 
@@ -39,7 +39,7 @@ count_mapp_world <- function(data, item = "world",start_date = "2020-04-09", end
   
   ###################################################################
   map <- ggplot2::ggplot(data = count_map) +
-    ggplot2::geom_polygon(aes(
+    ggplot2::geom_polygon(ggplot2::aes(
       x = long,
       y = lat,
       group = group,

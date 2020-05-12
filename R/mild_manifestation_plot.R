@@ -15,7 +15,7 @@ symptom_profile_mild <- function(data, start_date = as.Date("2020-04-09", format
                                  plot_chart = TRUE) {
   
   
-  self_diagnosis_dt<- data %>% 
+  self_diagnosis_dt<- data_select %>% 
     dplyr::filter(self_diagnosis == 'Mild')
   
   count_chills <- self_diagnosis_dt %>%
@@ -158,9 +158,7 @@ symptom_profile_mild <- function(data, start_date = as.Date("2020-04-09", format
                   Headache, 'Nasal Congestion', 'Nausea and Vomiting', 
                   'Shortness of Breath',Cough,'Muscle Ache') %>%
     dplyr::select(group, Event, Value)
-  
-  start_date = as.Date("2020-04-09", format = "%Y-%m-%d")
-  end_date = as.Date("2020-05-09", format = "%Y-%m-%d")
+
   
   title_stub_freq <- "Mild manifestation of Covid mapped to different symptoms, Frequency\n"
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
@@ -207,7 +205,7 @@ symptom_profile_mild <- function(data, start_date = as.Date("2020-04-09", format
       dplyr::arrange(desc(Value)) %>%
       dplyr::rename(Frequency = Value) %>%
       dplyr::top_n(15)
-    melted_symptom_frequency
+    knitr::kable(melted_symptom_frequency)
     
     symptom_numbers <- symptom_numbers %>%
       tidyr::gather(key = "Event",
@@ -220,7 +218,7 @@ symptom_profile_mild <- function(data, start_date = as.Date("2020-04-09", format
       dplyr::arrange(desc(Value)) %>%
       dplyr::rename(Count = Value) %>%
       dplyr::top_n(15)
-    symptom_numbers
+    knitr::kable(symptom_numbers)
     
   }
   

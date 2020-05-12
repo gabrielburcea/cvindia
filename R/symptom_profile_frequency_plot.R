@@ -15,7 +15,7 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-04-0
                                             plot_chart = TRUE, title = "Testt") {
   
   
-  positive_tested_symptoms <- data_select %>% 
+  positive_tested_symptoms <- data %>% 
     dplyr::mutate(tested_positive = stringr::str_detect(tested_or_not, pattern = "Positive" )) %>%
     dplyr::filter(tested_positive == TRUE)
   
@@ -172,7 +172,8 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-04-0
                   'Shortness of Breath',Cough,'Muscle Ache') %>%
     dplyr::select(group, Event, Value)
  
- 
+  
+  
   title_stub_freq <- ": Symptom maping in SARS-COVID-19 positive tested patients, Frequency\n"
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
   end_date_title <- format(as.Date(end_date), format = "%d %B %Y")

@@ -12,10 +12,10 @@
 #' @examples
 symptom_profile_mild <- function(data, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
                                  end_date = as.Date("2020-05-09", format = "%Y-%m-%d"),
-                                 plot_chart = TRUE, title = "Testt") {
+                                 plot_chart = TRUE) {
   
   
-  self_diagnosis_dt<- data_select %>% 
+  self_diagnosis_dt<- data %>% 
     dplyr::filter(self_diagnosis == 'Mild')
   
   count_chills <- self_diagnosis_dt %>%
@@ -147,11 +147,11 @@ symptom_profile_mild <- function(data, start_date = as.Date("2020-04-09", format
                                                                                 count_nause_vomiting, by = c('group'))
   
   
-  #symptom_numbers <- ch_cho_diar_fatig_head_ache_cong_short_sore_sputum_nausea %>%
-    #dplyr::filter(group != 'No')
+  symptom_numbers <- ch_cho_diar_fatig_head_ache_cong_short_sore_sputum_nausea %>%
+    dplyr::filter(group != 'No')
   
   
-  melted_symptom_frequency <- ch_cho_diar_fatig_head_ache_cong_short_sore_sputum_nausea  %>%
+  melted_symptom_frequency <- symptom_numbers  %>%
     tidyr::gather(key = "Event",
                   value = "Value",
                   Chills,'Sore Throat', Sputum, Diarrhoea, Fatigue, 
@@ -159,11 +159,13 @@ symptom_profile_mild <- function(data, start_date = as.Date("2020-04-09", format
                   'Shortness of Breath',Cough,'Muscle Ache') %>%
     dplyr::select(group, Event, Value)
   
+  start_date = as.Date("2020-04-09", format = "%Y-%m-%d")
+  end_date = as.Date("2020-05-09", format = "%Y-%m-%d")
   
-  title_stub_freq <- ": Mild symptom different symptoms, Frequency\n"
+  title_stub_freq <- "Mild manifestation of Covid mapped to different symptoms, Frequency\n"
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
   end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
-  chart_title_2 <- paste0(title, title_stub_freq, start_date_title, " to ", end_date_title)
+  chart_title_2 <- paste0(title_stub_freq, start_date_title, " to ", end_date_title)
   
   melted_symptom_frequency$group <- factor(melted_symptom_frequency$group)
   levels(melted_symptom_frequency$group)
@@ -177,7 +179,7 @@ symptom_profile_mild <- function(data, start_date = as.Date("2020-04-09", format
   plot_test <- ggplot2::ggplot(melted_symptom_frequency, ggplot2::aes(x = Event, Value, fill = group)) +
     ggplot2::geom_col(ggplot2::aes(colour = group)) +
     ggplot2::coord_flip() + 
-    ggplot2::scale_fill_brewer(palette = 'Blues') +
+    ggplot2::scale_fill_brewer(palette = 'Greens') +
     #ggplot2::scale_y_continuous(expand = c(0,0)) +
     ggplot2::labs(title = chart_title_2,
                   subtitle = "\nNote: Results may change due to ongoing refresh of data",

@@ -14,7 +14,7 @@ severe_manifestation_plot <- function(data, start_date = as.Date("2020-04-09", f
                                  plot_chart = TRUE) {
   
   
-  self_diagnosis_dt<- data_select %>% 
+  self_diagnosis_dt<- data %>% 
     dplyr::filter(self_diagnosis == 'Severe')
   
   count_chills <- self_diagnosis_dt %>%

@@ -1,4 +1,4 @@
-#' moderate_manifestation_plot
+#' severe_manifestation_plot
 #'
 #' @param data 
 #' @param start_date 
@@ -9,13 +9,13 @@
 #' @export
 #'
 #' @examples
-moderate_manifestation_plot <- function(data, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
+severe_manifestation_plot <- function(data, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
                                  end_date = as.Date("2020-05-09", format = "%Y-%m-%d"),
                                  plot_chart = TRUE) {
   
   
   self_diagnosis_dt<- data_select %>% 
-    dplyr::filter(self_diagnosis == 'Moderate')
+    dplyr::filter(self_diagnosis == 'Severe')
   
   count_chills <- self_diagnosis_dt %>%
     dplyr::select(id, self_diagnosis, chills) %>%
@@ -159,7 +159,7 @@ moderate_manifestation_plot <- function(data, start_date = as.Date("2020-04-09",
     dplyr::select(group, Event, Value)
   
   
-  title_stub_freq <- "Moderate manifestation of Sars-Covid-19 mapped to different symptoms, Frequency\n"
+  title_stub_freq <- "Severe manifestation of Sars-Covid-19 mapped to different symptoms, Frequency\n"
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
   end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
   chart_title_2 <- paste0(title_stub_freq, start_date_title, " to ", end_date_title)
@@ -176,7 +176,7 @@ moderate_manifestation_plot <- function(data, start_date = as.Date("2020-04-09",
   plot_test <- ggplot2::ggplot(melted_symptom_frequency, ggplot2::aes(x = Event, Value, fill = group)) +
     ggplot2::geom_col(ggplot2::aes(colour = group)) +
     ggplot2::coord_flip() + 
-    ggplot2::scale_fill_brewer(palette = 'OrRd') +
+    ggplot2::scale_fill_brewer(palette = 'YlOrRd') +
     #ggplot2::scale_y_continuous(expand = c(0,0)) +
     ggplot2::labs(title = chart_title_2,
                   subtitle = "\nNote: Results may change due to ongoing refresh of data",

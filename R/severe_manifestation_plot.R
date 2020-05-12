@@ -10,8 +10,8 @@
 #'
 #' @examples
 severe_manifestation_plot <- function(data, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
-                                 end_date = as.Date("2020-05-09", format = "%Y-%m-%d"),
-                                 plot_chart = TRUE) {
+                                      end_date = as.Date("2020-05-09", format = "%Y-%m-%d"),
+                                      plot_chart = TRUE) {
   
   
   self_diagnosis_dt<- data %>% 

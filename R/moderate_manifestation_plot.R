@@ -14,7 +14,7 @@ moderate_manifestation_plot <- function(data, start_date = as.Date("2020-04-09",
                                         plot_chart = TRUE) {
   
   
-  self_diagnosis_dt<- data_select %>% 
+  self_diagnosis_dt<- data %>% 
     dplyr::filter(self_diagnosis == 'Moderate')
   
   count_chills <- self_diagnosis_dt %>%

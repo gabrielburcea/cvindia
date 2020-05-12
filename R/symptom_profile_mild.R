@@ -15,128 +15,115 @@ symptom_profile_mild <- function(data, start_date = as.Date("2020-04-09", format
                                  plot_chart = TRUE, title = "Testt") {
   
   
-  positive_tested_symptoms <- data_select %>% 
-    dplyr::mutate(tested_positive = stringr::str_detect(tested_or_not, pattern = "Positive" )) %>%
-    dplyr::filter(tested_positive == TRUE)
+  self_diagnosis_dt<- data_select %>% 
+    dplyr::filter(self_diagnosis == 'Mild')
   
-  count_chills <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, chills) %>%
+  count_chills <- self_diagnosis_dt %>%
+    dplyr::select(id, self_diagnosis, chills) %>%
     dplyr::rename(group = chills) %>%
     dplyr::group_by(group) %>%
-    dplyr::summarise(Count_chills = n()) %>%
+    dplyr::summarise(Count_chills = dplyr::n()) %>%
     dplyr::mutate(Chills = Count_chills / sum(Count_chills) *100)
   
-  
-  
-  count_cough <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, Cough) %>%
+  count_cough <- self_diagnosis_dt  %>%
+    dplyr::select(id, self_diagnosis, Cough) %>%
     dplyr::rename(group = Cough) %>%
     dplyr::group_by(group) %>%
-    dplyr::summarise(Count_cough = n()) %>%
+    dplyr::summarise(Count_cough = dplyr::n()) %>%
     dplyr::mutate(Cough = Count_cough / sum(Count_cough)*100)
+
   
-  
-  
-  count_diarrhoea <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, diarrhoea) %>%
+  count_diarrhoea <- self_diagnosis_dt %>%
+    dplyr::select(id, self_diagnosis, diarrhoea) %>%
     dplyr::rename(group = diarrhoea) %>%
     dplyr::group_by(group) %>%
-    dplyr::summarise(Count_diarrhoea = n()) %>%
+    dplyr::summarise(Count_diarrhoea = dplyr::n()) %>%
     dplyr::mutate(Diarrhoea = Count_diarrhoea / sum(Count_diarrhoea)*100)
   
-  
-  
-  count_fatigue <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, fatigue) %>%
+  count_fatigue <- self_diagnosis_dt  %>%
+    dplyr::select(id, self_diagnosis, fatigue) %>%
     dplyr::rename(group = fatigue) %>%
     dplyr::group_by(group) %>%
-    dplyr::summarise(Count_fatigue = n()) %>%
+    dplyr::summarise(Count_fatigue = dplyr::n()) %>%
     dplyr::mutate(Fatigue = Count_fatigue/sum(Count_fatigue)*100)
   
-  
-  
-  count_headache <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, headache) %>%
+
+  count_headache <- self_diagnosis_dt %>%
+    dplyr::select(id, self_diagnosis, headache) %>%
     dplyr::rename(group = headache) %>%
     dplyr::group_by(group) %>%
-    dplyr::summarise(Count_headache = n()) %>%
+    dplyr::summarise(Count_headache = dplyr::n()) %>%
     dplyr::mutate(Headache = Count_headache / sum(Count_headache)*100)
   
   
-  
-  count_muscle_ache <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, muscle_ache) %>%
+  count_muscle_ache <- self_diagnosis_dt %>%
+    dplyr::select(id, self_diagnosis, muscle_ache) %>%
     dplyr::rename(group = muscle_ache) %>%
     dplyr::group_by(group) %>%
-    dplyr::summarise(Count_muscle_ache = n()) %>%
+    dplyr::summarise(Count_muscle_ache = dplyr::n()) %>%
     dplyr::mutate('Muscle Ache' = Count_muscle_ache / sum(Count_muscle_ache)*100)
   
   
-  
-  count_nasal_congestion <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, nasal_congestion) %>%
+  count_nasal_congestion <- self_diagnosis_dt %>%
+    dplyr::select(id, self_diagnosis, nasal_congestion) %>%
     dplyr::rename(group = nasal_congestion) %>%
     dplyr::group_by(group) %>%
-    dplyr::summarise(Count_nasal_congestion = n()) %>%
+    dplyr::summarise(Count_nasal_congestion = dplyr::n()) %>%
     dplyr::mutate('Nasal Congestion' = Count_nasal_congestion / sum(Count_nasal_congestion)*100)
   
   
-  
-  count_nause_vomiting <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, nausea_vomiting) %>%
+  count_nause_vomiting <- self_diagnosis_dt %>%
+    dplyr::select(id, self_diagnosis, nausea_vomiting) %>%
     dplyr::rename(group = nausea_vomiting) %>%
     dplyr::group_by(group) %>%
-    dplyr::summarise(Count_nausea_vomiting = n()) %>%
+    dplyr::summarise(Count_nausea_vomiting = dplyr::n()) %>%
     dplyr::mutate('Nausea and Vomiting' = Count_nausea_vomiting / sum(Count_nausea_vomiting)*100)
   
-  
-  
-  count_self_diagnosis <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, self_diagnosis) %>%
+  count_self_diagnosis <- self_diagnosis_dt %>%
+    dplyr::select(id, self_diagnosis, self_diagnosis) %>%
     dplyr::rename(group = self_diagnosis) %>%
     dplyr::group_by(group) %>% 
-    dplyr::summarise(Count_self_diagnosis = n()) %>%
+    dplyr::summarise(Count_self_diagnosis = dplyr::n()) %>%
     dplyr::mutate('Self Diagnosis' = Count_self_diagnosis / sum(Count_self_diagnosis)*100)
   
   
   
-  count_shortness_breath <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, shortness_breath) %>%
+  count_shortness_breath <- self_diagnosis_dt %>%
+    dplyr::select(id, self_diagnosis, shortness_breath) %>%
     dplyr::rename(group = shortness_breath) %>%
     dplyr::group_by(group) %>%
-    dplyr::summarise(Count_shortness_breath = n()) %>%
+    dplyr::summarise(Count_shortness_breath = dplyr::n()) %>%
     dplyr::mutate('Shortness of Breath' = Count_shortness_breath / sum(Count_shortness_breath)*100)
   
   
-  count_sore_throat <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, sore_throat) %>%
+  count_sore_throat <- self_diagnosis_dt %>%
+    dplyr::select(id, self_diagnosis, sore_throat) %>%
     dplyr::rename(group = sore_throat) %>%
     dplyr::group_by(group) %>%
-    dplyr::summarise(Count_sore_throat= n()) %>%
+    dplyr::summarise(Count_sore_throat= dplyr::n()) %>%
     dplyr::mutate('Sore Throat' = Count_sore_throat / sum(Count_sore_throat)*100)
   
   
   
-  count_sputum <- positive_tested_symptoms  %>%
-    dplyr::select(id, tested_positive, sputum ) %>%
+  count_sputum <- self_diagnosis_dt  %>%
+    dplyr::select(id, self_diagnosis, sputum ) %>%
     dplyr::rename(group = sputum) %>%
     dplyr::group_by(group) %>%
-    dplyr::summarise(Count_sputum = n()) %>%
+    dplyr::summarise(Count_sputum = dplyr::n()) %>%
     dplyr::mutate('Sputum' = Count_sputum  / sum(Count_sputum)*100)
   
   
   
-  count_temperature <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, temperature) %>%
+  count_temperature <- self_diagnosis_dt %>%
+    dplyr::select(id, self_diagnosis, temperature) %>%
     dplyr::rename(group = temperature) %>%
     dplyr::group_by(group) %>%
-    dplyr::summarise(Count_temperature = n()) %>%
+    dplyr::summarise(Count_temperature = dplyr::n()) %>%
     dplyr::mutate('Temperature' = Count_temperature / sum(Count_temperature)*100)
   
   
   
   ch_cho <- dplyr::left_join(count_chills, count_cough,  by = c('group'))
-  
   
   ch_cho_diar <- dplyr::left_join(ch_cho, count_diarrhoea,  by = c('group'))
   
@@ -160,11 +147,11 @@ symptom_profile_mild <- function(data, start_date = as.Date("2020-04-09", format
                                                                                 count_nause_vomiting, by = c('group'))
   
   
-  symptom_numbers <- ch_cho_diar_fatig_head_ache_cong_short_sore_sputum_nausea %>%
-    dplyr::filter(group != 'No')
+  #symptom_numbers <- ch_cho_diar_fatig_head_ache_cong_short_sore_sputum_nausea %>%
+    #dplyr::filter(group != 'No')
   
   
-  melted_symptom_frequency <- symptom_numbers  %>%
+  melted_symptom_frequency <- ch_cho_diar_fatig_head_ache_cong_short_sore_sputum_nausea  %>%
     tidyr::gather(key = "Event",
                   value = "Value",
                   Chills,'Sore Throat', Sputum, Diarrhoea, Fatigue, 
@@ -173,7 +160,7 @@ symptom_profile_mild <- function(data, start_date = as.Date("2020-04-09", format
     dplyr::select(group, Event, Value)
   
   
-  title_stub_freq <- ": Symptom maping in SARS-COVID-19 positive tested patients, Frequency\n"
+  title_stub_freq <- ": Mild symptom different symptoms, Frequency\n"
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
   end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
   chart_title_2 <- paste0(title, title_stub_freq, start_date_title, " to ", end_date_title)

@@ -16,7 +16,8 @@ Suggests:
     rmarkdown,
     vdiffr,
     memisc,
-    ggthemes
+    ggthemes,
+    maps
 Imports: 
     tidyverse,
     lubridate,

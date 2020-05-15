@@ -193,9 +193,7 @@ moderate_manifestation_plot <- function(data, start_date = as.Date("2020-04-09",
   melted_symp_count
   
   number_joined <- left_join(melted_symp_count, melted_symptom_frequency,by = c('Event', 'Group'))
-  
-  start_date = as.Date("2020-04-09", format = "%Y-%m-%d") 
-  end_date = as.Date("2020-05-09", format = "%Y-%m-%d")
+
   
   title_stub_freq <- "Moderate manifestation of Covid mapped to different symptoms, Frequency\n"
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")

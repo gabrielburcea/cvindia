@@ -213,7 +213,7 @@ severe_manifestation_plot <- function(data, start_date = as.Date("2020-04-09", f
   plot_test <- ggplot2::ggplot(number_joined, ggplot2::aes(x = Event, Frequency, fill = Group)) +
     ggplot2::geom_col(ggplot2::aes(colour = Group)) +
     ggplot2::coord_flip() + 
-    ggplot2::scale_fill_brewer(palette = 'Oranges') +
+    ggplot2::scale_fill_brewer(palette = 'Reds') +
     #ggplot2::scale_y_continuous(expand = c(0,0)) +
     ggplot2::labs(title = chart_title_2,
                   subtitle = "\nNote: Results may change due to ongoing refresh of data",

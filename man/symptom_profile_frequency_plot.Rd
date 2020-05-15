@@ -8,8 +8,7 @@ symptom_profile_frequency_plot(
   data,
   start_date = as.Date("2020-04-09", format = "\%Y-\%m-\%d"),
   end_date = as.Date("2020-05-09", format = "\%Y-\%m-\%d"),
-  plot_chart = TRUE,
-  title = "Testt"
+  plot_chart = TRUE
 )
 }
 \arguments{

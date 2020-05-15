@@ -193,7 +193,7 @@ symptom_profile_mild <- function(data, start_date = as.Date("2020-04-09", format
       dplyr::arrange(desc(Count))
     melted_symp_count
   
-  number_joined <- left_join(melted_symp_count, melted_symptom_frequency,by = c('Event', 'Group'))
+  number_joined <- dplyr::left_join(melted_symp_count, melted_symptom_frequency,by = c('Event', 'Group'))
 
   
   

@@ -1,87 +1,209 @@
 ---
 title: "R Notebook"
 output:
+  pdf_document:
+    number_sections: yes
+    toc: yes
   html_document:
     df_print: paged
     toc: yes
-  html_notebook:
-    number_sections: yes
-    toc: yes
+code_folding: hide
 ---
-```{r respondents-per-country, include=FALSE, fig.height=5, fig.width=7, cache=TRUE}
 
-map_world <- cvindia::count_mapp_world(data = data, item = "world", start_date = "2020-04-09", end_date = "2020-05-09", plot_chart = TRUE, title= "World Map")
 
-map_world
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+
+library(magrittr)
 ```
 
 
-```{r map_world_numbers, include=FALSE}
-map_world_numbers <- knitr::kable(cvindia::count_mapp_world(data = data, item = "world", start_date = "2020-04-09", end_date = "2020-05-09", plot_chart = FALSE, title= "World Map"))
+
+Selecting data 
+
+```{r import-data, cache = TRUE, echo=TRUE}
+
+data_select <- readr::read_csv("D:/Rprojects/data/data_select_15052020.csv")
+
+data_map <- readr::read_csv("D:/Rprojects/data/PivotMappe060520r.csv")
 
 
-map_world_numbers
 ```
 
 
 
-```{r, symptoms_covid_in_resp, include = FALSE, fig.height=5, fig.width=7, cache=TRUE}
-symtoms_covid_in_resp <- symptom_profile_covid_tested(data = data_select, start_date = as.Date("2020-04-01", format = "%Y-%m-%d"), 
-                                           end_date = as.Date("2020-09-01", format = "%Y-%m-%d"),
-                                           plot_chart = TRUE)
+
+World Map
+```{r world-map, echo = F, results='asis', fig.height=5, fig.width=6, cache=TRUE}
+
+world_map <- cvindia::count_mapp_world(data = data_map, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
+                         end_date = as.Date("2020-05-09", format = "%Y-%m-%d" ), plot_chart = TRUE)
+
+world_map
+```
+
+
+Workd Map Numbers
+```{r world-map-numbers, echo = F,  results='asis',  fig.height=5, fig.width=9, cache=TRUE}
+
+world_map <- cvindia::count_mapp_world(data = data_map, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
+                         end_date = as.Date("2020-05-09", format = "%Y-%m-%d" ), plot_chart = FALSE)
+
+knitr::kable(world_map)
+
+```
+
+
+
+Symptom Profile covid 
+
+```{r symptoms_covid_in_resp, echo = F, results='asis',  fig.height=5, fig.width=9, cache=TRUE}
+symtoms_covid_in_resp <- cvindia::symptom_profile_covid_tested(data = data_select, start_date = as.Date("2020-04-01", format = "%Y-%m-%d"), 
+                                           end_date = as.Date("2020-09-01", format = "%Y-%m-%d"), plot_chart = TRUE)
 symtoms_covid_in_resp
 ```
 
 
+Frequency table
 
-```{r, symptom_profile_all_symptoms,  include = FALSE, fig.height=5, fig.width=7, cache=TRUE}
-all_syptpms_frequency <- symptom_profile_frequency_plot(data = data_select, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
+```{r symptom_profile_all_symptoms, echo = F, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+all_syptpms_frequency <- cvindia::symptom_profile_frequency_plot(data = data_select, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
                                             end_date = as.Date("2020-05-09", format = "%Y-%m-%d"),
-                                            plot_chart = TRUE, title = "Test")
+                                            plot_chart = TRUE)
 
 all_syptpms_frequency
 
 ```
 
 
-```{r, symptom_profile_all_symptoms_numbers,  include = FALSE,}
-all_syptpms_numbers <- symptom_profile_frequency_plot(data = data_select, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
+All Symptoms
+```{r symptom_profile_all_symptoms_numbers, echo= F, results='asis',   fig.height=5, fig.width=9, cache=TRUE}
+all_syptpms_numbers <- cvindia::symptom_profile_frequency_plot(data = data_select, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
                                             end_date = as.Date("2020-05-09", format = "%Y-%m-%d"),
-                                            plot_chart = FALSE, title = "Test")
+                                            plot_chart = FALSE)
 
-knitr::kable(all_syptpms_numbers)
+dplyr::top_n(all_syptpms_numbers, 10)
 
 ```
 
 
 
 
-```{r, symptoms_covid_in_resp_numbers, include = FALSE, fig.height=5, fig.width=7, cache=TRUE}
-symptoms_covid_in_resp_numbers <- symptom_profile_covid_tested(data = data_select, start_date = as.Date("2020-04-01", format = "%Y-%m-%d"), 
+```{r symptoms_covid_in_resp_numbers,echo=F, results='asis',  fig.height=5, fig.width=9, cache=TRUE}
+symptoms_covid_in_resp_numbers <- cvindia::symptom_profile_covid_tested(data = data_select, start_date = as.Date("2020-04-01", format = "%Y-%m-%d"), 
                                            end_date = as.Date("2020-09-01", format = "%Y-%m-%d"),
                                            plot_chart = FALSE)
 
-symptoms_covid_in_resp_numbers <- knitr::kable(symptoms_covid_in_resp_numbers)
-symptoms_covid_in_resp_numbers
-```
-
-
-
-
-
-
-```{r self-diagnosis, echo=F, results='asis', fig.height=5, fig.width=7, cache=TRUE}
-cvindia::self_diagnosis_mild_mod_severe(data = data_select, start_date = as.Date("2020-04-09"), end_date = as.Date("2020-05-09"), 
-                                   plot_chart = TRUE, title = "Self Report")
-```
-
-
-```{r mild_mod_severe, echo=FALSE}
-knitr::kable(self_reported <- cvindia::self_diagnosis_mild_mod_severe(data = data_select, start_date = as.Date("2020-04-09"), 
-                                                    end_date = as.Date("2020-05-09"), plot_chart = FALSE, title = "Test"))
+knitr::kable(symptoms_covid_in_resp_numbers)
 
 ```
 
 
+Diagnosis
+
+```{r self-diagnosis, echo=F, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+diagn_mild_mod_severe <- cvindia::self_diagnosis_mild_mod_severe(data = data_select, start_date = as.Date("2020-04-09"), end_date = as.Date("2020-05-09"), plot_chart = TRUE, title = "Self Report")
+
+diagn_mild_mod_severe
+```
+
+
+Self reporting
+```{r mild_mod_severe,  echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+self_reported <- cvindia::self_diagnosis_mild_mod_severe(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = FALSE, title = "Test")
+
+
+knitr::kable(self_reported)
+
+```
+
+```{r temperature, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+temperature <-  cvindia::temparature_covid_tested(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = TRUE)
+
+temperature
+```
+
+
+Mild Symptom 
+```{r mild_symptom, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+mild <- cvindia::symptom_profile_mild(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = TRUE)
+
+mild
+```
+
+
+Numbers
+```{r mild_symptom_numbers, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+mild <- cvindia::symptom_profile_mild(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = FALSE)
+
+mild
+```
+
+
+Moderate
+```{r moderate,echo=FALSE, results='asis', fig.height=5, fig.width=6, cache=TRUE }
+moderate <- cvindia::moderate_manifestation_plot(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = TRUE)
+
+moderate
+```
+
+
+
+```{r moderate-numbers,echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE }
+moderate <- cvindia::moderate_manifestation_plot(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = FALSE)
+
+moderate
+```
+
+
+
+Severe
+
+```{r severe, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+severe <- cvindia::severe_manifestation_plot(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = TRUE)
+
+severe
+```
+
+
+
+Numbers
+```{r severe-numbers, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+severe <- cvindia::severe_manifestation_plot(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = FALSE)
+
+severe
+```
+
+
+
+```{r self_diagnosis, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+self_diagnosis <- cvindia::self_diagnosis_mild_mod_severe(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = TRUE)
+
+self_diagnosis
+```
+
+
+
+```{r self_diagnosis_numbers, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+self_diagnosis <- cvindia::self_diagnosis_mild_mod_severe(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = FALSE)
+
+self_diagnosis
+```
 
 

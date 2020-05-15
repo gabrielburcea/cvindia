@@ -49,7 +49,7 @@ world_map
 ```
 
 
-Workd Map Numbers
+World Map Numbers
 ```{r world-map-numbers, echo = F,  results='asis',  fig.height=5, fig.width=9, cache=TRUE}
 
 world_map <- cvindia::count_mapp_world(data = data_map, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 

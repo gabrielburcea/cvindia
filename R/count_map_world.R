@@ -13,8 +13,16 @@
 #' @examples
 count_mapp_world <- function(data, item = "world",start_date = "2020-04-09", end_date = "2020-05-09", plot_chart = TRUE, title = "World Map") {
   
-  
+  item <-  "world"
   map_item <- ggplot2::map_data(item)
+  
+  as.factor(data$Country) %>% levels()
+  
+  data$country <- recode(data$Country, 'United States' = 'USA', 'United Kingdom' = 'UK', 'Great Britain' = 'UK')
+  
+  map.world <- map_data("world")
+  
+  as.factor(map.world$region) %>% levels()
   
   count_respondents <- data %>%
     dplyr::select(ID, Country) %>%
@@ -23,13 +31,10 @@ count_mapp_world <- function(data, item = "world",start_date = "2020-04-09", end
     dplyr::mutate(Frequency = Count/sum(Count)) %>%
     dplyr::ungroup() %>%
     dplyr::arrange(desc(Count))
+    
+
   
-  ######Join the count tibble to map_item
-  
-  count_map <- dplyr::left_join(map_item, count_respondents, by = c('region' = 'Country'))
-  
-  
-  
+  map.world_joined <- left_join(map.world, count_respondents, by = c('region' = 'Country'))
   # Set the title
   title_stub <- ": Count of respondent per country, SARS-COVID-19, "
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
@@ -37,8 +42,7 @@ count_mapp_world <- function(data, item = "world",start_date = "2020-04-09", end
   chart_title <- paste0(title, title_stub, start_date_title, " to ", end_date_title)
   title = "World Map"
   
-  ###################################################################
-  map <- ggplot2::ggplot(data = count_map) +
+  map <- ggplot2::ggplot(data = map.world_joined ) +
     ggplot2::geom_polygon(ggplot2::aes(
       x = long,
       y = lat,
@@ -58,27 +62,26 @@ count_mapp_world <- function(data, item = "world",start_date = "2020-04-09", end
   
   map
   
+  
+  
+  
   if(plot_chart ==TRUE){
     
     map
     
   }else{
     
-    count_map_distinct <- count_map %>% 
-      dplyr::select(region, Count, Frequency) %>%
-      dplyr::distinct(region, Count, Frequency) %>%
+    count_respondents <- data %>%
+      dplyr::select(ID, Country) %>%
+      dplyr::group_by(Country) %>%
+      dplyr::summarise(Count = n()) %>%
+      dplyr::mutate(Frequency = Count/sum(Count)) %>%
+      dplyr::ungroup() %>%
       dplyr::arrange(desc(Count)) %>%
       dplyr::top_n(10)
     
-    
-    count_map_distinct
+    count_respondents
     
   }
   
 }
-
-### Counts of Respondents per country 
-
-
-
-###############################################

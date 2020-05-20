@@ -12,11 +12,7 @@
 #' @examples
 map_mild_prof <- function(data, item = "world", start_date = as.Date("2020-04-01", format = "%Y-%m-%d"),
                          end_date = as.Date("2020-05-09", format = "%Y-%m-%d"), plot_chart = TRUE) {
-  
-  item <- "world"
-  start_date = as.Date("2020-04-01", format = "%Y-%m-%d")
-  end_date = as.Date("2020-05-09", format = "%Y-%m-%d")
-  
+
   
   map_item <- ggplot2::map_data(item) 
   data <- PivotMappe060520r
@@ -63,8 +59,15 @@ map_mild_prof <- function(data, item = "world", start_date = as.Date("2020-04-01
       group = group),
       color = "white", size = 0.1) +
     ggplot2::coord_equal() +
-    ggthemes::theme_map() +
-    viridis::scale_fill_viridis(option = "magma",  direction = -1) +
+    ggthemes::theme_clean() +
+    viridis::scale_fill_viridis(option = 'magma', direction = -1, 
+                                name = 'Count mild symptom', 
+                                guide = guide_colorbar(
+                                  direction = 'horizontal',
+                                  barheight = unit(1, units = 'mm'),
+                                  barwidth = unit(100, units = 'mm'), 
+                                  draw.ulim = F
+                                )) +
     # ggplot2::geom_sf(aes(fill  = region, geometry = region)) +
     #scale_fill_gradient(low = "#132B43", high = "#56B1F7") +
     ggplot2::labs(title = 'World Map: Symptom SARS-Covid-19 Mapping',
@@ -73,7 +76,7 @@ map_mild_prof <- function(data, item = "world", start_date = as.Date("2020-04-01
     ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 21, b = 0, l = 0)),
                    plot.title = ggplot2::element_text(size = 12, face = "bold"),
                    plot.subtitle = ggplot2::element_text(size = 10),
-                   legend.box = "horizontal")
+                   legend.position = "bottom")
   
   map_mild
 

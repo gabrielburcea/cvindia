@@ -17,8 +17,8 @@ data <- PivotMappe060520r
 
 
 data_select <- data %>%
-  dplyr::rename(tested_or_not = 'Reason For Helping') %>%
-  tidyr::separate('Long Standing Health Issues', c('Comorbidity_one', 'Comorbidity_two', 'Comorbidity_three', 'Comorbidity_four',
+  dplyr::rename(tested_or_not = 'Reason.For.Helping') %>%
+  tidyr::separate('Long.Standing.Health.Issues', c('Comorbidity_one', 'Comorbidity_two', 'Comorbidity_three', 'Comorbidity_four',
                                           'Comorbidity_five', 'Comorbidity_six', 'Comorbidity_seven', 'Comorbidity_eight', 
                                           'Comorbidity_nine'), sep = ",")
 
@@ -83,10 +83,11 @@ data_model <- data_rec  %>%
   dplyr::select(-None)
 
 data_final <- data_model %>%
-  dplyr::select(ID, Age, Gender, Country, 'Care Home Worker', Chills, Cough, Diarrhoea, Fatigue, Headcahe, 'Healthcare Worker', 'How Unwell',
-              'Loss of smell and taste', 'Muscle Ache', 'Nasal Congestion', 'Nausea and Vomiting', 
-              'Number Of Days Symptoms Showing', 'Self Diagnosis','Shortness of Breath',
-              'Sore Throat','Sputum', 'Temperature', 'Asthma (managed with an inhaler)', 'Diabetes Type 1 (controlled by insulin)', 
+  dplyr::select(ID, Age, Gender, Country, 'Care.Home.Worker', 'Chills', 'Cough', 'Diarrhoea', 'Fatigue', 'Headcahe', 'Healthcare.Worker', 
+                'How.Unwell',
+              'Loss.of.smell.and.taste', 'Muscle.Ache', 'Nasal.Congestion', 'Nausea.and.Vomiting', 
+              'Number.Of.Days.Symptoms.Showing', 'Self.Diagnosis','Shortness.of.Breath',
+              'Sore.Throat','Sputum', 'Temperature', 'Asthma (managed with an inhaler)', 'Diabetes Type 1 (controlled by insulin)', 
               'Diabetes Type 2', Obesity, 'High Blood Pressure (hypertension)', 
               'Long-Standing Heart Disease', 'Long-Standing Kidney Disease', 'Long-Standing Liver Disease', Covid_tested)
   
@@ -113,8 +114,9 @@ prop.table(table(dataTrain$Covid_tested))
 
 set.seed(22)
 
-smote_train <- SMOTE(Covid_tested ~., data = dataTrain, perc.over = 10, perc.under = 20)
+smote_train <- SMOTE(Covid_tested ~., data = as.data.frame(dataTrain), perc.over = 100, perc.under = 200)
 
+prop.table(table(smote_train$Covid_tested))
 
 fiveStats <- function(...) c(twoClassSummary(...), defaultSummary(...))
 

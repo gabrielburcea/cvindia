@@ -37,13 +37,7 @@ mild_comorbid_symptoms <- function(data, start_date = as.Date("2020-04-09", tz =
   
   gather_divided_mild <- gather_divided %>%
     dplyr::filter(Severity == "Mild")
-  
-  gather_divided_moderate <- gather_divided %>%
-    dplyr::filter(Severity == "Moderate")
-  
-  
-  gather_divided_severe <- gather_divided %>%
-    dplyr::filter(Severity == "Severe")
+
   
   # Set the title
   title_stub <- "Symptom profile accross comorbidities\n"

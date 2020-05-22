@@ -13,26 +13,19 @@
 map_moderate_prof <- function(data, item = "world", start_date = as.Date("2020-04-01", format = "%Y-%m-%d"),
                           end_date = as.Date("2020-05-09", format = "%Y-%m-%d"), plot_chart = TRUE) {
   
-  start_date = as.Date("2020-04-01", format = "%Y-%m-%d")
-  end_date = as.Date("2020-05-09", format = "%Y-%m-%d")
-  
   as.factor(data$Country) %>% levels()
   data$country <- recode(data$Country, 'United States' = 'USA', 'United Kingdom' = 'UK', 'Great Britain' = 'UK')
   
   
-  count_respondents <- data %>%
+  count_respondents_moderate <- data %>%
     dplyr::rename(Self_diagnosis = 'Self Diagnosis') %>%
-    dplyr::select(ID, Country, Self_diagnosis) %>%
-    dplyr::filter(Self_diagnosis != 'None') %>%
-    dplyr::group_by(Country, Self_diagnosis) %>%
+    dplyr::select(ID, country, Self_diagnosis) %>%
+    dplyr::filter(Self_diagnosis == 'Moderate') %>%
+    dplyr::group_by(country) %>%
     dplyr::summarise(Count = n()) %>%
-    dplyr::mutate(Frequency = Count/sum(Count)) %>%
+    dplyr::mutate(Frequency = Count/sum(Count) *100) %>%
     dplyr::arrange(desc(Count))
   
-  
-  count_respondents_moderate <- count_respondents %>%
-    dplyr::filter(Self_diagnosis == 'Moderate')
-    
   
   
   map.world_joined_moderate <- left_join(map_item, count_respondents_moderate, by = c('region' = 'Country'))

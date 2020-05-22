@@ -15,26 +15,20 @@ map_mild_prof <- function(data, item = "world", start_date = as.Date("2020-04-01
 
   
   map_item <- ggplot2::map_data(item) 
-  data <- PivotMappe060520r
+
   as.factor(data$Country) %>% levels()
   data$country <- recode(data$Country, 'United States' = 'USA', 'United Kingdom' = 'UK', 'Great Britain' = 'UK')
  
-  
-  count_respondents <- data %>%
+
+  count_respondents_mild  <- data %>%
     dplyr::rename(Self_diagnosis = 'Self Diagnosis') %>%
-    dplyr::select(ID, Country, Self_diagnosis) %>%
-    dplyr::filter(Self_diagnosis != 'None') %>%
-    dplyr::group_by(Country, Self_diagnosis) %>%
+    dplyr::select(ID, country, Self_diagnosis) %>%
+    dplyr::filter(Self_diagnosis == 'Mild') %>%
+    dplyr::group_by(country) %>%
     dplyr::summarise(Count = n()) %>%
-    dplyr::mutate(Frequency = Count/sum(Count), 
-                  #find center of each symptom manifestation part along the bar 
-                  Position = cumsum(Frequency) - 0.5*(Frequency)) %>% 
+    dplyr::mutate(Frequency = Count/sum(Count) *100) %>%
     dplyr::ungroup() %>%
     dplyr::arrange(desc(Count))
-  
-  
-  count_respondents_mild <- count_respondents %>%
-    dplyr::filter(Self_diagnosis == 'Mild')
     
    
   map.world_joined_mild <- left_join(map_item, count_respondents_mild, by = c('region' = 'Country'))

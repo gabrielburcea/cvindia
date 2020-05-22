@@ -20,21 +20,16 @@ map_severe_prof <- function(data, item = "world", start_date = as.Date("2020-04-
   data$country <- recode(data$Country, 'United States' = 'USA', 'United Kingdom' = 'UK', 'Great Britain' = 'UK')
   
   
-  count_respondents <- data %>%
+  count_respondents_severe <- data %>%
     dplyr::rename(Self_diagnosis = 'Self Diagnosis') %>%
-    dplyr::select(ID, Country, Self_diagnosis) %>%
-    dplyr::filter(Self_diagnosis != 'None') %>%
-    dplyr::group_by(Country, Self_diagnosis) %>%
+    dplyr::select(ID, country, Self_diagnosis) %>%
+    dplyr::filter(Self_diagnosis == 'Severe') %>%
+    dplyr::group_by(country) %>%
     dplyr::summarise(Count = n()) %>%
-    dplyr::mutate(Frequency = Count/sum(Count), 
-                  #find center of each symptom manifestation part along the bar 
-                  Position = cumsum(Frequency) - 0.5*(Frequency)) %>% 
+    dplyr::mutate(Frequency = Count/sum(Count) *100) %>%
     dplyr::ungroup() %>%
     dplyr::arrange(desc(Count))
-  
-  
-  count_respondents_severe <- count_respondents %>%
-    dplyr::filter(Self_diagnosis == 'Severe')
+
   
   
   map.world_joined_severe <- left_join(map_item, count_respondents_severe, by = c('region' = 'Country'))

@@ -2,7 +2,7 @@
 % Please edit documentation in R/map_severe_prof.R
 \name{map_severe_prof}
 \alias{map_severe_prof}
-\title{severe_Severe_prof}
+\title{map_severe_prof}
 \usage{
 map_severe_prof(
   data,
@@ -27,5 +27,5 @@ map_severe_prof(
 
 }
 \description{
-severe_Severe_prof
+map_severe_prof
 }

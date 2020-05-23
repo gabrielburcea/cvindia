@@ -1,4 +1,6 @@
-#### Loading libraries needed 
+########################################
+#### Loading libraries needed #########
+#######################################
 library(caret)
 library(corrplot)
 library(tidyverse)
@@ -13,15 +15,27 @@ library(leaps)
 library(MASS)
 library(rms)
 
-data <- PivotMappe060520r
+######################################
+########Reading the data ############
+#####################################
 
+data <- read.csv("~/Rprojects/data/PivotMappe060520r.csv", header = TRUE, sep = ",")
+
+######################################################################################################
+################ Get the LSHI into different columns as it contains more than 1 string per row #######
+######################################################################################################
 
 data_select <- data %>%
+  #### rename reason for helping as it contains whether respondents have been tested negative or positive
   dplyr::rename(tested_or_not = 'Reason.For.Helping') %>%
   tidyr::separate('Long.Standing.Health.Issues', c('Comorbidity_one', 'Comorbidity_two', 'Comorbidity_three', 'Comorbidity_four',
                                           'Comorbidity_five', 'Comorbidity_six', 'Comorbidity_seven', 'Comorbidity_eight', 
                                           'Comorbidity_nine'), sep = ",")
 
+
+##################################################################
+############### Rename the categories in different variables #####
+##################################################################
 level_key <-
   c(
     None = 'negative',
@@ -65,11 +79,148 @@ level_key <-
     'Tested Negative But Have Symptoms,Showing Symptoms But Not Tested,Curious'  = 'negative'
   )
 
+level_key_chills <- 
+  c( '1' = "Chills", 
+     '1' = "No",
+     '2' = "Mild", 
+      '3' = "Moderate", 
+      '4' = "Severe")
+
+level_key_cough <- 
+  c( '1' = "Cough", 
+     '1' = "No",
+     '2' = "Mild", 
+     '3' = "Moderate", 
+     '4' = "Severe")
+
+level_key_diarrhoea <- 
+  c( '1' = "No",
+     '2' = "Mild", 
+     '3' = "Moderate", 
+     '4' = "Severe")
+     
+level_key_fatigue <- 
+  c( '1' = "No",
+     '2' = "Mild", 
+     '3' = "Moderate", 
+     '4' = "Severe")
+
+
+level_key_headache <- 
+  c( '1' = "No",
+     '1' = "Headcahe",
+     '2' = "Mild", 
+     '3' = "Moderate", 
+     '4' = "Severe")
+
+level_key_loss_smell_taste <- 
+  c( '1' = "No",
+     '1' = "Loss of smell and taste", 
+     '2' = "Mild", 
+     '3' = "Moderate", 
+     '4' = "Severe")
+
+level_key_muschle_ache <- 
+  c( '1' = "No",
+     '1' = "Muscle Ache", 
+     '2' = "Mild", 
+     '3' = "Moderate", 
+     '4' = "Severe")
+
+level_key_nasal_congestion <-
+  c( '1' = "No",
+     '1' = "Nasal Congestion",
+     '2' = "Mild", 
+     '3' = "Moderate", 
+     '4' = "Severe")
+
+level_key_nausea_vomiting <- 
+  c( '1' = "No",
+     '1' = "Nausea and Vomiting",
+     '2' = "Mild", 
+     '3' = "Moderate", 
+     '4' = "Severe")
+
+level_key_self_diagnosis <- 
+  c( '1' = "None",
+     '2' = "Mild", 
+     '3' = "Moderate", 
+     '4' = "Severe")
+
+level_key_short_breath <- 
+  c( '1' = "No",
+     '1' = "Shortness of Breath",
+     '2' = "Mild", 
+     '3' = "Moderate", 
+     '4' = "Severe")
+
+level_key_sore_throat <- 
+  c( '1' = "No",
+     '1' = "Sore Throat",
+     '2' = "Mild", 
+     '3' = "Moderate", 
+     '4' = "Severe")
+
+level_key_sputum <- 
+  c( '1' = "No",
+     '1' = "Sputum", 
+     '2' = "Mild", 
+     '3' = "Moderate", 
+     '4' = "Severe")
+
+
+level_key_temperature <- 
+  c( "38.1-39" = '38.2-39', 
+     "38.1-39" = 'Temperature')
+
+level_key_care_home_worker <- 
+  c('1' = 'Yes',
+    '2' = 'No')
+
+level_key_gender <- 
+  c('1' = "Male", 
+    "2" = "Female")
+
+#################################################################################################
+##########Set the independent variables as factor and transform data into dataframe ############
+################################################################################################
+
 data_select$tested_or_not <- as.factor(data_select$tested_or_not)
 data_select <- as.data.frame(data_select)
 
+#################################################################################
+################# Recode the levels into the ones set up above ##################
+#################################################################################
+
+#################################################################################
+############Recoding into numerical values for categorical variables ############
+#################################################################################
 data_rec <- data_select %>% 
-  dplyr::mutate(Covid_tested = dplyr::recode(tested_or_not, !!!level_key))
+  dplyr::mutate(Covid_tested = dplyr::recode(tested_or_not, !!!level_key),
+                chills = forcats::fct_recode(Chills, !!!level_key_chills), 
+                cough = forcats::fct_recode(Cough, !!!level_key_cough),
+                diarrhoea = forcats::fct_recode(Diarrhoea, !!!level_key_diarrhoea),
+                fatigue = forcats::fct_recode(Fatigue, !!!level_key_fatigue),
+                headache = forcats::fct_recode(Headcahe, !!!level_key_headache),
+                loss_smell_taste = forcats::fct_recode(Loss.of.smell.and.taste, !!!level_key_loss_smell_taste),
+                muscle_ache = forcats::fct_recode(Muscle.Ache, !!!level_key_muschle_ache),
+                nasal_congestion = forcats::fct_recode(Nasal.Congestion, !!!level_key_nasal_congestion),
+                nausea_vomiting = forcats::fct_recode(Nausea.and.Vomiting, !!!level_key_nausea_vomiting),
+                self_diagnosis = forcats::fct_recode(Self.Diagnosis, !!!level_key_self_diagnosis),
+                shortness_breath = forcats::fct_recode(Shortness.of.Breath, !!!level_key_short_breath),
+                sore_throat = forcats::fct_recode(Sore.Throat, !!!level_key_sore_throat),
+                sputum = forcats::fct_recode(Sputum, !!!level_key_sputum),
+                temperature = forcats::fct_recode(Temperature, !!!level_key_temperature), 
+                care_home_worker = forcats::fct_recode(Care.Home.Worker, !!!level_key_care_home_worker), 
+                gender = forcats::fct_recode(Gender, !!!level_key_gender)) %>%
+  dplyr::select(ID, Country, gender, Age, Covid_tested,  chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, 
+                muscle_ache, nasal_congestion, nausea_vomiting, self_diagnosis, shortness_breath, sore_throat,
+                sputum, temperature, care_home_worker,  Comorbidity_one, Comorbidity_two, Comorbidity_three, Comorbidity_four,
+                Comorbidity_five, Comorbidity_six, Comorbidity_seven, Comorbidity_eight, Comorbidity_nine)
+
+############################################################################################################
+########### Get the categories = morbidities into columns and set them with 1 = FALSE AND 2 TRUE ###########
+###########in case the respondents have one of the comorbidities ###########################################
 
 data_model <- data_rec  %>%
   tidyr::pivot_longer(cols = starts_with('Comorbidity'), 
@@ -82,58 +233,9 @@ data_model <- data_rec  %>%
   tidyr::pivot_wider(id_cols = -c(Comorbidity, Condition), names_from = Comorbidity, values_from = Condition, values_fill = list(Condition = 1)) %>%
   dplyr::select(-None)
 
-data_final <- data_model %>%
-  dplyr::select(ID, Age, Gender, Country, 'Care.Home.Worker', 'Chills', 'Cough', 'Diarrhoea', 'Fatigue', 'Headcahe', 'Healthcare.Worker', 
-                'How.Unwell',
-              'Loss.of.smell.and.taste', 'Muscle.Ache', 'Nasal.Congestion', 'Nausea.and.Vomiting', 
-              'Number.Of.Days.Symptoms.Showing', 'Self.Diagnosis','Shortness.of.Breath',
-              'Sore.Throat','Sputum', 'Temperature', 'Asthma (managed with an inhaler)', 'Diabetes Type 1 (controlled by insulin)', 
-              'Diabetes Type 2', Obesity, 'High Blood Pressure (hypertension)', 
-              'Long-Standing Heart Disease', 'Long-Standing Kidney Disease', 'Long-Standing Liver Disease', Covid_tested)
-  
 
-### Dividing data into train and test
-#data_model <- read_csv("/Users/gabrielburcea/Rprojects/data/data_model.csv")
+#####################################
+data_final_numeric <- data_model
 
-#data_model <- as.data.frame(data_model)
-data_final$Covid_tested <- as.factor(data_final$Covid_tested)
-
-
-
-train <- createDataPartition(data_final$Covid_tested, p = 0.5, list = FALSE)
-dataTrain <- data_model[train,]
-dataTest <- data_model[-train,]
-
-dataTrain$ID <- NULL
-# classes_count <- dataTrain %>% 
-#   dplyr::group_by(tested_covid) %>%
-#   tally()
-
-
-prop.table(table(dataTrain$Covid_tested))
-
-set.seed(22)
-
-smote_train <- SMOTE(Covid_tested ~., data = as.data.frame(dataTrain), perc.over = 100, perc.under = 200)
-
-prop.table(table(smote_train$Covid_tested))
-
-fiveStats <- function(...) c(twoClassSummary(...), defaultSummary(...))
-
-
-ctrl <- trainControl(method = "repeatedcv",
-                     number = 10, 
-                     repeats = 5,
-                     classProbs = TRUE,
-                     allowParallel = TRUE, 
-                     summaryFunction = fiveStats,
-                     verboseIter = TRUE,
-                     sampling = smotest)
-
-
-lrFull <- train(data_100,
-                y = data_100$tested_covid, 
-                method = "glm", 
-                metric = "ROC", 
-                trControl = ctrl)
+#write.csv(data_final_numeric, file = "/Users/gabrielburcea/Rprojects/data/data_final_numeric.csv", row.names = FALSE)
 

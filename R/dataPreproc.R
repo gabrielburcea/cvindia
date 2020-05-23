@@ -39,7 +39,7 @@ data_rec <- data_select  %>%
   tidyr::drop_na('Comorbidity') %>%
   dplyr::select(-Comorbidity_count) %>%
   dplyr::distinct() %>%
-  dplyr::mutate(Condition = 2) %>%
+  dplyr::mutate(Condition = 1) %>%
   tidyr::pivot_wider(id_cols = -c(Comorbidity, Condition), names_from = Comorbidity, values_from = Condition, values_fill = list(Condition = 1)) %>%
   dplyr::select(-None)
 
@@ -91,6 +91,28 @@ data_model <- data_rec %>%
   dplyr::mutate(Covid_tested = dplyr::recode(tested_or_not, !!!level_key))
 
 
+data_model$self_diagnosis <- data_model$Self.Diagnosis
+data_model$shortness_breath <- data_model$Shortness.of.Breath
+data_model$sore_throat <- data_model$Sore.Throat
+data_model$sputum <- data_model$Sputum
+data_model$temperature  <- data_model$Temperature
+data_model$asthma   <- data_model$`Asthma (managed with an inhaler)`
+data_model$diabetes_type_two <- data_model$`Diabetes Type 2`
+data_model$obesity <- data_model$Obesity
+data_model$hypertension  <- data_model$`High Blood Pressure (hypertension)`
+data_model$heart_disease  <- data_model$`Long-Standing Heart Disease`
+data_model$kidney_disease <- data_model$`Long-Standing Kidney Disease`
+data_model$lung_condition <- data_model$`Long-Standing Lung Condition`
+data_model$liver_disease <- data_model$`Long-Standing Liver Disease`
+data_model$diabetes_type_one <- data_model$`Diabetes Type 1 (controlled by insulin)`
+data_model$care_home_worker <- data_model$Care.Home.Worker
+data_model$health_care_worker <- data_model$Healthcare.Worker
+data_model$how_unwell <- data_model$How.Unwell
+data_model$no_days_symptoms <- data_model$Number.Of.Days.Symptoms.Showing
+data_model$age <- data_model$Age
+data_model$country <- data_model$Country
+data_model$gender <- data_model$Gender
+
 data_model<- as.data.frame(data_model)
 data_model$Covid_tested <- as.factor(data_model$Covid_tested)
 
@@ -117,24 +139,3 @@ data_categorical <- data_model %>%
 write.csv(data_categorical, file = "/Users/gabrielburcea/Rprojects/data/data_categorical.csv", row.names = FALSE)
 
 
-data_model$self_diagnosis <- data_model$Self.Diagnosis
-data_model$shortness_breath <- data_model$Shortness.of.Breath
-data_model$sore_throat <- data_model$Sore.Throat
-data_model$sputum <- data_model$Sputum
-data_model$temperature  <- data_model$Temperature
-data_model$asthma   <- data_model$`Asthma (managed with an inhaler)`
-data_model$diabetes_type_two <- data_model$`Diabetes Type 2`
-data_model$obesity <- data_model$Obesity
-data_model$hypertension  <- data_model$`High Blood Pressure (hypertension)`
-data_model$heart_disease  <- data_model$`Long-Standing Heart Disease`
-data_model$kidney_disease <- data_model$`Long-Standing Kidney Disease`
-data_model$lung_condition <- data_model$`Long-Standing Lung Condition`
-data_model$liver_disease <- data_model$`Long-Standing Liver Disease`
-data_model$diabetes_type_one <- data_model$`Diabetes Type 1 (controlled by insulin)`
-data_model$care_home_worker <- data_model$Care.Home.Worker
-data_model$health_care_worker <- data_model$Healthcare.Worker
-data_model$how_unwell <- data_model$How.Unwell
-data_model$no_days_symptoms <- data_model$Number.Of.Days.Symptoms.Showing
-data_model$age <- data_model$Age
-data_model$country <- data_model$Country
-data_model$gender <- data_model$Gender

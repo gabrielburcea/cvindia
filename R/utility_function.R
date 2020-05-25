@@ -120,9 +120,30 @@ empty_as_na <- function(x) {
 
 
 
-
-
-
+# 
+# smotest <- list(name = "SMOTE with more neighbors!",
+#                 func = function (x, y) {
+#                   115
+#                   library(DMwR)
+#                   dat <- if (is.data.frame(x)) x else as.data.frame(x)
+#                   dat$.y <- y
+#                   dat <- SMOTE(.y ~ ., data = dat, k = 3, perc.over = 100, perc.under =
+#                                  200)
+#                   list(x = dat[, !grepl(".y", colnames(dat), fixed = TRUE)],
+#                        y = dat$.y) },
+#                 first = TRUE)
+# 
+# newRF <- caretFuncs
+# 
+# fiveStats <- function(...) c(twoClassSummary(...),
+#                              defaultSummary(...)) newRF$summary <- fiveStats
+# 
+# ctrl <- rfeControl(method = "repeatedcv", repeats = 3,
+#                    verbose = TRUE, functions = newRF)
+# 
+# ctrlInside1 <- trainControl(method = "repeatedcv", number = 2,
+#                             repeats = 2,
+#                             classProbs = TRUE, allowParallel = TRUE, summaryFunction = fiveStats, verboseIter = TRUE, sampling = smotest)
 
 
 # data <- data %>% 

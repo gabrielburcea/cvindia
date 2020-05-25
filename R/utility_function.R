@@ -121,7 +121,17 @@ empty_as_na <- function(x) {
 
 
 
-
+smotest <- list(name = "SMOTE with more neighbors!",
+                func = function (x, y) {
+                  115
+                  library(DMwR)
+                  dat <- if (is.data.frame(x)) x else as.data.frame(x)
+                  dat$.y <- y
+                  dat <- SMOTE(.y ~ ., data = dat, k = 3, perc.over = 100, perc.under =
+                                 200)
+                  list(x = dat[, !grepl(".y", colnames(dat), fixed = TRUE)],
+                       y = dat$.y) },
+                first = TRUE)
 
 
 

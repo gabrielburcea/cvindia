@@ -1,4 +1,4 @@
-#' comorbidities_covsympt
+#' comorbidities_symptoms
 #'
 #' @param data 
 #' @param start_date 
@@ -9,8 +9,8 @@
 #' @export
 #'
 #' @examples
-comorbidities_covsympt <- function(data, start_date = as.Date("2020-04-09", tz = "Europe/London"),
-                     end_date = as.Date("2020-05-06",tz = "Europe/London"), plot_chart = TRUE){
+comorbidities_symptoms <- function(data, start_date = as.Date("2020-04-09", tz = "Europe/London"),
+                                   end_date = as.Date("2020-05-06",tz = "Europe/London"), plot_chart = TRUE){
   
   
   comorb_divided <- data %>%
@@ -33,30 +33,45 @@ comorbidities_covsympt <- function(data, start_date = as.Date("2020-04-09", tz =
     dplyr::mutate(Percentage=Count/sum(Count) *100) %>%
     dplyr::filter(Symptom != 'Temperature')
   
+  start_date <- as.Date("2020-04-09", tz = "Europe/London")
+  end_date <- as.Date("2020-05-06",tz = "Europe/London")
   
   
-  # Set the title
-  title_stub <- "Comorbidities and Covid symptoms\n"
+  title_stub <- "Comorbidities across symptoms\n"
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
   end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
   chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
   
   
-  plot_comorb_cov_sympt <- ggplot2::ggplot( gather_divided_asthma, ggplot2::aes(x = reorder(Symptom, -Count), Count, fill = Severity)) +
-    ggplot2::geom_col(ggplot2::aes(colour = Severity)) +
-    ggplot2::coord_flip() + 
-    ggplot2::scale_fill_brewer(palette = 'Blues')  +
-    ggplot2::theme_bw() +
-    ggplot2::labs(title = chart_title,
-                  subtitle = "Counts of patients with comorbidities accross covid symptoms",
-                  y = "Counts", x = "Symptoms", caption = "Source: Your.md Dataset, Global Digital Health") +
-    ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 21, b = 0, l = 0)),
-                   plot.title = ggplot2::element_text(size = 10, face = "bold"),
-                   plot.subtitle = ggplot2::element_text(size = 9),
-                   legend.position = "bottom", legend.box = "horizontal",
-                   axis.text.x = ggplot2::element_text(angle = 55, hjust = 1))
+  
+  plot_comorb_cov_sympt <-
+    ggplot2::ggplot(gather_divided, aes(x = reorder(Morbidity,-Count), Count, fill = Symptom)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_x_discrete(limits = unique(gather_divided$Morbidity)) +
+    ggplot2::theme(legend.position = "bottom") +
+    ggplot2::guides(fill = guide_legend(nrow = 3)) +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      legend.position = "bottom",
+      legend.box = "horizontal",
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
   
   plot_comorb_cov_sympt
+  
   
   if(plot_chart == TRUE){
     
@@ -64,12 +79,10 @@ comorbidities_covsympt <- function(data, start_date = as.Date("2020-04-09", tz =
     
   }else{
     
-    gather_divided_numbers <- gather_divided %>%
+    plot_comorb_cov_sympt$data %>%
+      dplyr::select(Morbidity, Count, Percentage, Symptom) %>%
       dplyr::arrange(desc(Count)) %>%
       dplyr::top_n(20)
-    
-    gather_divided_numbers
   }
-  
   
 }

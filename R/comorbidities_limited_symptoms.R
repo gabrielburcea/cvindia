@@ -72,7 +72,7 @@ comorbidities_limited_symptoms <- function(data, start_date = as.Date("2020-04-0
   
   
   
-  if(plot_chart = TRUE){
+  if(plot_chart == TRUE){
     
     plot_comorb_cov_sympt
     

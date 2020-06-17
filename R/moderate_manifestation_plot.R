@@ -25,8 +25,8 @@ moderate_manifestation_plot <- function(data, start_date = as.Date("2020-04-09",
     dplyr::mutate(Chills = Count_chills / sum(Count_chills) *100)
   
   count_cough <- self_diagnosis_dt  %>%
-    dplyr::select(id, self_diagnosis, Cough) %>%
-    dplyr::rename(Group = Cough) %>%
+    dplyr::select(id, self_diagnosis, cough) %>%
+    dplyr::rename(Group = cough) %>%
     dplyr::group_by(Group) %>%
     dplyr::summarise(Count_cough = dplyr::n()) %>%
     dplyr::mutate(Cough = Count_cough / sum(Count_cough)*100)

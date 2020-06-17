@@ -33,8 +33,7 @@ comorbidities_symptoms <- function(data, start_date = as.Date("2020-04-09", tz =
     dplyr::mutate(Percentage=Count/sum(Count) *100) %>%
     dplyr::filter(Symptom != 'Temperature')
   
-  start_date <- as.Date("2020-04-09", tz = "Europe/London")
-  end_date <- as.Date("2020-05-06",tz = "Europe/London")
+
   
   
   title_stub <- "Comorbidities across symptoms\n"

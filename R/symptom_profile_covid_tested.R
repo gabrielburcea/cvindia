@@ -20,8 +20,8 @@ symptom_profile_covid_tested <- function(data, start_date = as.Date("2020-01-01"
     dplyr::filter(tested_positive == TRUE)
   
   count_cough <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, Cough) %>%
-    dplyr::rename(Group = Cough) %>%
+    dplyr::select(id, tested_positive, cough) %>%
+    dplyr::rename(Group = cough) %>%
     dplyr::group_by(Group) %>%
     dplyr::summarise(Count_cough = dplyr::n()) %>%
     dplyr::mutate(Cough = Count_cough / sum(Count_cough)*100) %>%

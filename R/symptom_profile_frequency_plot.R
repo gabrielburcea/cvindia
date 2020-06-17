@@ -29,8 +29,8 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-04-0
   
   
   count_cough <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, Cough) %>%
-    dplyr::rename(group = Cough) %>%
+    dplyr::select(id, tested_positive, cough) %>%
+    dplyr::rename(group = cough) %>%
     dplyr::group_by(group) %>%
     dplyr::summarise(Count_cough = dplyr::n()) %>%
     dplyr::mutate(Cough = Count_cough / sum(Count_cough)*100)

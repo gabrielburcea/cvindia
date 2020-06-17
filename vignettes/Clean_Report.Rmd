@@ -40,18 +40,18 @@ data_map <- readr::read_csv("D:/Rprojects/data/PivotMappe060520r.csv")
 
 ```{r world-map, echo = F, results='asis', fig.height=5, fig.width=6, cache=TRUE}
 
-world_map <- cvindia::count_mapp_world(data = data_map, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
-                         end_date = as.Date("2020-05-09", format = "%Y-%m-%d" ), plot_chart = TRUE)
-
-world_map
+# world_map <- cvindia::count_mapp_world(data = data_map, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
+#                          end_date = as.Date("2020-05-09", format = "%Y-%m-%d" ), plot_chart = TRUE)
+# 
+# world_map
 ```
 
 ```{r world-map-numbers, echo = F,  results='asis',  fig.height=5, fig.width=9, cache=TRUE}
 
-world_map <- cvindia::count_mapp_world(data = data_map, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
-                         end_date = as.Date("2020-05-09", format = "%Y-%m-%d" ), plot_chart = FALSE)
-
-knitr::kable(world_map)
+# world_map <- cvindia::count_mapp_world(data = data_map, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
+#                          end_date = as.Date("2020-05-09", format = "%Y-%m-%d" ), plot_chart = FALSE)
+# 
+# knitr::kable(world_map)
 
 ```
 

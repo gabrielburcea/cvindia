@@ -41,8 +41,11 @@ comorbidities_covsympt <- function(data, start_date = as.Date("2020-04-09", tz =
   end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
   chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
   
+  start_date <- as.Date("2020-04-09", tz = "Europe/London")
+  end_date <- as.Date("2020-05-06",tz = "Europe/London")
   
-  plot_comorb_cov_sympt <- ggplot2::ggplot( gather_divided_asthma, ggplot2::aes(x = reorder(Symptom, -Count), Count, fill = Severity)) +
+  
+  plot_comorb_cov_sympt <- ggplot2::ggplot( gather_divided, ggplot2::aes(x = reorder(Symptom), Count, fill = Severity)) +
     ggplot2::geom_col(ggplot2::aes(colour = Severity)) +
     ggplot2::coord_flip() + 
     ggplot2::scale_fill_brewer(palette = 'Blues')  +

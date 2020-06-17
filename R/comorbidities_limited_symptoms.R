@@ -70,7 +70,6 @@ comorbidities_limited_symptoms <- function(data, start_date = as.Date("2020-04-0
       axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
     )
   
-  plot_comorb_cov_sympt
   
   
   if(plot_chart = TRUE){
@@ -84,5 +83,6 @@ comorbidities_limited_symptoms <- function(data, start_date = as.Date("2020-04-0
       dplyr::arrange(desc(Count)) %>%
       dplyr::top_n(20)
   }
+  
   
 }

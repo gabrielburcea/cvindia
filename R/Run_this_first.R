@@ -95,6 +95,30 @@
 #                                      age >= 95  ~ '95+'))
 
 
+# data_rec <- read.csv("/Users/gabrielburcea/Rprojects/data/PivotMappe060520r.csv", header = TRUE, sep = ",")
+# 
+# 
+# 
+# data_select <- data_rec %>%
+#   #### rename reason for helping as it contains whether respondents have been tested negative or positive
+#   dplyr::rename(tested_or_not = 'Reason.For.Helping') %>%
+#   tidyr::separate('Long.Standing.Health.Issues', c('Comorbidity_one', 'Comorbidity_two', 'Comorbidity_three', 'Comorbidity_four',
+#                                                    'Comorbidity_five', 'Comorbidity_six', 'Comorbidity_seven', 'Comorbidity_eight', 
+#                                                    'Comorbidity_nine'), sep = ",")
+# 
+# data_rec <- data_select  %>%
+#   tidyr::pivot_longer(cols = starts_with('Comorbidity'), 
+#                       names_to = 'Comorbidity_count', 
+#                       values_to = 'Comorbidity') %>%
+#   tidyr::drop_na('Comorbidity') %>%
+#   dplyr::select(-Comorbidity_count) %>%
+#   dplyr::distinct() %>%
+#   dplyr::mutate(Condition = 'Yes') %>%
+#   tidyr::pivot_wider(id_cols = -c(Comorbidity, Condition), names_from = Comorbidity, values_from = Condition, values_fill = list(Condition = 'No')) %>%
+#   dplyr::select(-None)
+
+
+
 ########################################
 #### Loading libraries needed ##########
 ########################################
@@ -162,43 +186,172 @@
 # 
 # 
 # 
-# data <- read_csv("/Users/gabrielburcea/Rprojects/data/PivotMappe060520r.csv")
+# #################################################
+# ######### Get a numeric dataset #################
+# #################################################
+# level_key_chills <-
+#   c( 'Yes' = "Chills",
+#      'No' = "No",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
 # 
-# data_select <- data %>%
-#   dplyr::select(ID, Age, Gender, Location, Country, 'Date Completed', 'Care Home Worker', Chills, Cough, Diarrhoea, Fatigue, Headcahe, 'Healthcare Worker', 'How Unwell',
-#               'Long Standing Health Issues', 'Loss of smell and taste', 'Muscle Ache', 'Nasal Congestion', 'Nausea and Vomiting', 'Number Of Days Symptoms Showing',
-#               'Pregnant', 'Self Diagnosis', 'Shortness of Breath', 'Sore Throat','Reason For Helping', 'Sputum', 'Temperature') %>%
-#   dplyr::rename( id = ID,
-#                  age = Age,
-#                  gender = Gender,
-#                  location =  Location,
-#                  country = Country,
-#                  date_completed = 'Date Completed',
-#                  care_home_worker = 'Care Home Worker', 
-#                  chills = Chills,
-#                  cough = Cough,
-#                  diarrhoea = Diarrhoea,
-#                  fatigue = Fatigue,
-#                  headache = Headcahe,
-#                  healthcare_worker = 'Healthcare Worker',
-#                  how_unwell = 'How Unwell',
-#                  long_standing_health = 'Long Standing Health Issues',
-#                  loss_smell_taste = 'Loss of smell and taste',
-#                  muscle_ache = 'Muscle Ache',
-#                  nasal_congestion = 'Nasal Congestion',
-#                  nausea_vomiting = 'Nausea and Vomiting',
-#                  no_days_symptoms_show = 'Number Of Days Symptoms Showing',
-#                  pregnant =  'Pregnant',
-#                  shortness_breath = 'Shortness of Breath',
-#                  sore_throat = 'Sore Throat',
-#                  sputum = 'Sputum',
-#                  temperature = 'Temperature',
-#                  self_diagnosis = 'Self Diagnosis',
-#                  tested_or_not = 'Reason For Helping')
+# level_key_cough <-
+#   c( 'Yes' = "Cough",
+#      'No' = "No",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
+# 
+# level_key_diarrhoea <-
+#   c( 'No' = "No",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
+# 
+# level_key_fatigue <-
+#   c( 'No' = "No",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
+# 
+# 
+# level_key_headache <-
+#   c('No' = "No",
+#     'Yes' = "Mild",
+#     'Yes' = "Moderate",
+#     'Yes' = "Severe")
+# 
+# level_key_loss_smell_taste <-
+#   c( 'No' = "Loss of smell and taste",
+#      'No' = "No",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
+# 
+# level_key_muschle_ache <-
+#   c( 'No' = "No",
+#      'No' = "Muscle Ache",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
+# 
+# 
+# level_key_nasal_congestion <-
+#   c( 'No' = "No",
+#      'No' = "Nasal Congestion",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
+# 
+# level_key_nausea_vomiting <-
+#   c( 'No' = "No",
+#      'Yes' = "Nausea and Vomiting",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
+# 
+# level_key_self_diagnosis <-
+#   c( 'No' = "None",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
+# 
+# level_key_short_breath <-
+#   c( 'No' = "No",
+#      'No' = "Shortness of Breath",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
+# 
+# level_key_sore_throat <-
+#   c( 'No' = "No",
+#      'No' = "Sore Throat",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
+# 
+# 
+# level_key_sputum <-
+#   c( 'No' = "No",
+#      'No' = "Sputum",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
+# 
 # 
 # level_key_temperature <-
 #   c( "38.1-39" = '38.2-39',
 #      "38.1-39" = 'Temperature')
+# 
+# level_key_care_home_worker <-
+#   c('Yes' = 'Yes',
+#     'No' = 'No')
+# 
+# level_no_days_sympt_show <-
+#   c('21' = "More than 21")
+# 
+# 
+# data_model <- data_rec %>%
+#   dplyr::mutate(Covid_tested = dplyr::recode(tested_or_not, !!!level_key))
+# 
+# data_model$gender <- as.factor(data_model$Gender)
+# data_model$country <- as.factor(data_model$Country)
+# data_model$chills <- as.factor(data_model$Chills)
+# data_model$cough  <- as.factor(data_model$Cough)
+# data_model$diarrhoea  <- as.factor(data_model$Diarrhoea)
+# data_model$fatigue  <- as.factor(data_model$Fatigue)
+# data_model$headache   <- as.factor(data_model$Headcahe)
+# data_model$loss_smell_taste   <- as.factor(data_model$Loss.of.smell.and.taste)
+# data_model$muscle_ache  <- as.factor(data_model$Muscle.Ache)
+# data_model$nasal_congestion <- as.factor(data_model$Nasal.Congestion)
+# data_model$nausea_vomiting  <- as.factor(data_model$Nausea.and.Vomiting)
+# data_model$self_diagnosis <- as.factor(data_model$Self.Diagnosis)
+# data_model$shortness_breath <- as.factor(data_model$Shortness.of.Breath)
+# data_model$sore_throat <- as.factor(data_model$Sore.Throat)
+# data_model$sputum <- as.factor(data_model$Sputum)
+# data_model$temperature  <- as.factor(data_model$Temperature)
+# data_model$health_care_worker <- as.factor(data_model$Healthcare.Worker)
+# data_model$care_home_worker <- as.factor(data_model$Care.Home.Worker)
+# 
+# data_model$asthma   <- as.factor(data_model$`Asthma (managed with an inhaler)`)
+# data_model$diabetes_type_two <- as.factor(data_model$`Diabetes Type 2`)
+# data_model$obesity <- as.factor(data_model$Obesity)
+# data_model$hypertension  <- as.factor(data_model$`High Blood Pressure (hypertension)`)
+# data_model$heart_disease  <- as.factor(data_model$`Long-Standing Heart Disease`)
+# data_model$kidney_disease <- as.factor(data_model$`Long-Standing Kidney Disease`)
+# data_model$lung_condition <- as.factor(data_model$`Long-Standing Lung Condition`)
+# data_model$liver_disease <- as.factor(data_model$`Long-Standing Liver Disease`)
+# data_model$diabetes_type_one <- as.factor(data_model$`Diabetes Type 1 (controlled by insulin)`)
+# data_model$how_unwell <- as.factor(data_model$How.Unwell)
+# data_model$age <- as.factor(data_model$Age)
+# data_model$covid_tested <- as.factor(data_model$Covid_tested)
+# 
+# 
+# #### Refactor the levels ##################################################
+# data_selected <- data_model %>%
+#   dplyr::mutate(Covid_tested = dplyr::recode(tested_or_not, !!!level_key),
+#                 chills = forcats::fct_recode(Chills, !!!level_key_chills),
+#                 cough = forcats::fct_recode(Cough, !!!level_key_cough),
+#                 diarrhoea = forcats::fct_recode(Diarrhoea, !!!level_key_diarrhoea),
+#                 fatigue = forcats::fct_recode(Fatigue, !!!level_key_fatigue),
+#                 headache = forcats::fct_recode(Headcahe, !!!level_key_headache),
+#                 loss_smell_taste = forcats::fct_recode(Loss.of.smell.and.taste, !!!level_key_loss_smell_taste),
+#                 muscle_ache = forcats::fct_recode(Muscle.Ache, !!!level_key_muschle_ache),
+#                 nasal_congestion = forcats::fct_recode(Nasal.Congestion, !!!level_key_nasal_congestion),
+#                 nausea_vomiting = forcats::fct_recode(Nausea.and.Vomiting, !!!level_key_nausea_vomiting),
+#                 self_diagnosis = forcats::fct_recode(Self.Diagnosis, !!!level_key_self_diagnosis),
+#                 shortness_breath = forcats::fct_recode(Shortness.of.Breath, !!!level_key_short_breath),
+#                 sore_throat = forcats::fct_recode(Sore.Throat, !!!level_key_sore_throat),
+#                 sputum = forcats::fct_recode(Sputum, !!!level_key_sputum),
+#                 temperature = forcats::fct_recode(Temperature, !!!level_key_temperature),
+#                 care_home_worker = forcats::fct_recode(Care.Home.Worker, !!!level_key_care_home_worker), 
+#                 number_days_symptoms = forcats::fct_recode(Number.Of.Days.Symptoms.Showing, !!!level_no_days_sympt_show))
+# 
+# 
+# data_selected$number_days_symptoms <- as.numeric(data_selected$number_days_symptoms)
+
+
 # ######################################################################################################
 # ################ Get the LSHI into different columns as it contains more than 1 string per row #######
 # ######################################################################################################
@@ -206,12 +359,12 @@
 # data_piv <- data_select %>%
 #   #### rename reason for helping as it contains whether respondents have been tested negative or positive
 #   tidyr::separate('long_standing_health', c('Comorbidity_one', 'Comorbidity_two', 'Comorbidity_three', 'Comorbidity_four',
-#                                                    'Comorbidity_five', 'Comorbidity_six', 'Comorbidity_seven', 'Comorbidity_eight', 
+#                                                    'Comorbidity_five', 'Comorbidity_six', 'Comorbidity_seven', 'Comorbidity_eight',
 #                                                    'Comorbidity_nine'), sep = ",")
 # 
 # data_rec <- data_piv  %>%
-#   tidyr::pivot_longer(cols = starts_with('Comorbidity'), 
-#                       names_to = 'Comorbidity_count', 
+#   tidyr::pivot_longer(cols = starts_with('Comorbidity'),
+#                       names_to = 'Comorbidity_count',
 #                       values_to = 'Comorbidity') %>%
 #   tidyr::drop_na('Comorbidity') %>%
 #   dplyr::select(-Comorbidity_count) %>%
@@ -234,18 +387,18 @@
 # data_rec$covid_tested <- as.factor(data_rec$Covid_tested)
 # 
 # #### Refactor the levels ##################################################
-# data_selected <- data_rec %>%
-#   dplyr::mutate(covid_tested = dplyr::recode(tested_or_not, !!!level_key),
-#                 temperature = forcats::fct_recode(temperature, !!!level_key_temperature)) %>%
-#   dplyr::select(id,
+# data_sel<- data_selected %>%
+#   dplyr::rename(location = Location, date_completed = Date.Completed, pregnant = Pregnant) %>%
+#   dplyr::select(ID,
+#                 covid_tested,
 #                 tested_or_not,
 #                 age,
 #                 gender,
-#                 location,
 #                 country,
+#                 location, 
 #                 date_completed,
 #                 care_home_worker,
-#                 healthcare_worker,
+#                 health_care_worker,
 #                 how_unwell,
 #                 self_diagnosis,
 #                 chills,
@@ -258,7 +411,7 @@
 #                 muscle_ache,
 #                 nasal_congestion,
 #                 nausea_vomiting,
-#                 no_days_symptoms_show,
+#                 number_days_symptoms,
 #                 pregnant,
 #                 self_diagnosis,
 #                 shortness_breath,
@@ -276,5 +429,6 @@
 #                 hypertension,
 #                 kidney_disease)
 # 
-# write.csv(data_selected, file = "/Users/gabrielburcea/Rprojects/data/data_descr_15062020.csv", row.names = FALSE)
+# 
+# write.csv(data_sel, file = "/Users/gabrielburcea/Rprojects/data/data_descr_15062020.csv", row.names = FALSE)
 

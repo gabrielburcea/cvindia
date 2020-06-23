@@ -44,7 +44,13 @@ symptom_profile_covid_tested <- function(data, start_date = as.Date("2020-01-01"
     dplyr::mutate('Shortness of Breath' = Count_shortness_breath / sum(Count_shortness_breath)*100) %>%
     dplyr::filter(Group != 'No')
   
-
+  count_loss_smell_taste <- positive_tested_symptoms %>%
+    dplyr::select(id, tested_positive, loss_smell_taste) %>%
+    dplyr::rename(Group = loss_smell_taste) %>%
+    dplyr::group_by(Group) %>%
+    dplyr::summarise(Count_loss_smell_taste= dplyr::n()) %>%
+    dplyr::mutate('Loss of smell and taste' = Count_loss_smell_taste / sum(Count_loss_smell_taste)*100) %>%
+    dplyr::filter(Group != 'No')
   
   count_temperature <- positive_tested_symptoms %>%
     dplyr::select(id, tested_positive, temperature) %>%
@@ -59,13 +65,15 @@ symptom_profile_covid_tested <- function(data, start_date = as.Date("2020-01-01"
   
   cough_muscle_shortness <- dplyr::left_join(cough_muscle,count_shortness_breath,  by = c("Group"))
   
+  cough_muscle_short_loss_smell <- dplyr::left_join(cough_muscle_shortness, count_loss_smell_taste)
+  
 
   
-  melted_symptom_frequency <- cough_muscle_shortness %>%
+  melted_symptom_frequency <- cough_muscle_short_loss_smell %>%
     tidyr::gather(key = "Event",
                   value = "Value",
                   Cough,  'Muscle Ache',
-                  'Shortness of Breath') %>%
+                  'Shortness of Breath', 'Loss of smell and taste') %>%
     dplyr::select(Group, Event, Value)
 
   
@@ -104,10 +112,10 @@ symptom_profile_covid_tested <- function(data, start_date = as.Date("2020-01-01"
     
   }else{
     
-    cough_muscle_shortness <- cough_muscle_shortness %>%
+    cough_muscle_short_loss_smell <- cough_muscle_short_loss_smell %>%
       dplyr::select_all()
     
-    cough_muscle_shortness
+    cough_muscle_short_loss_smell
   }
   
 }

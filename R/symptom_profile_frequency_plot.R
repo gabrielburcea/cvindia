@@ -15,7 +15,7 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-04-0
                                             plot_chart = TRUE) {
   
   
-  positive_tested_symptoms <- data_select %>% 
+  positive_tested_symptoms <- data %>% 
     dplyr::mutate(tested_positive = stringr::str_detect(tested_or_not, pattern = "Positive" )) %>%
     dplyr::filter(tested_positive == TRUE)
   

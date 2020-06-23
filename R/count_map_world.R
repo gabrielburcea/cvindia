@@ -13,14 +13,14 @@
 #' @examples
 count_mapp_world <- function(data, item = "world",start_date = "2020-04-09", end_date = "2020-05-09", plot_chart = TRUE, title = "World Map") {
   
-  item <-  "world"
+
   map_item <- ggplot2::map_data(item)
   
   as.factor(data$Country) %>% levels()
   
   data$country <- recode(data$Country, 'United States' = 'USA', 'United Kingdom' = 'UK', 'Great Britain' = 'UK')
   
-  map.world <- map_data("world")
+ # map.world <- map_data("world")
   
   as.factor(map.world$region) %>% levels()
   

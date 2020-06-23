@@ -13,9 +13,9 @@ gender_distrib <- function(data, start_date = as.Date("2020-04-09", tz = "Europe
                           end_date = as.Date("2020-05-06",tz = "Europe/London"), plot_chart = TRUE){
   
   gender_tb <- data %>%
-    dplyr::select(ID, Gender) %>%
-    dplyr::group_by(Gender) %>%
-    tally() %>%
+    dplyr::select(id, gender) %>%
+    dplyr::group_by(gender) %>%
+    dplyr::tally() %>%
     dplyr::mutate(percent = n/sum(n))
   
 
@@ -24,8 +24,8 @@ gender_distrib <- function(data, start_date = as.Date("2020-04-09", tz = "Europe
   end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
   chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
   
-  bp <- ggplot2::ggplot(gender_tb, aes(x = "", y = percent, fill = Gender)) + 
-    geom_bar(width = 1, stat = "identity")
+  bp <- ggplot2::ggplot(gender_tb, ggplot2::aes(x = "", y = percent, fill = gender)) + 
+    ggplot2::geom_bar(width = 1, stat = "identity")
   
   gender_pie <- bp + ggplot2::coord_polar("y", start = 0) + 
     ggplot2::scale_fill_brewer(palette = "Blues") +

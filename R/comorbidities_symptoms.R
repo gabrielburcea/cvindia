@@ -44,12 +44,13 @@ comorbidities_symptoms <- function(data, start_date = as.Date("2020-04-09", tz =
   
   
   plot_comorb_cov_sympt <-
-    ggplot2::ggplot(gather_divided, aes(x = reorder(Morbidity,-Count), Count, fill = Symptom)) +
+    ggplot2::ggplot(gather_divided, ggplot2::aes(x = reorder(Morbidity,-Count), Count, fill = Symptom)) +
     ggplot2::coord_flip() +
     ggplot2::geom_bar(stat = "identity", position = "dodge") +
     ggplot2::scale_x_discrete(limits = unique(gather_divided$Morbidity)) +
     ggplot2::theme(legend.position = "bottom") +
-    ggplot2::guides(fill = guide_legend(nrow = 3)) +
+    ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
     ggplot2::labs( title = chart_title,
                    subtitle = "Counts of patients with comorbidities accross symptoms",
                    y = "Counts",

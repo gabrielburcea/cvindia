@@ -227,7 +227,7 @@ severe_manifestation_plot <- function(data, start_date = as.Date("2020-04-09", f
   
   if(plot_chart == TRUE){
     
-    plot_test
+    plotly::ggplotly(plot_test)
     
   }else{
     

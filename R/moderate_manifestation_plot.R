@@ -195,7 +195,7 @@ moderate_manifestation_plot <- function(data, start_date = as.Date("2020-04-09",
   number_joined <- dplyr::left_join(melted_symp_count, melted_symptom_frequency,by = c('Event', 'Group'))
 
   
-  title_stub_freq <- "Moderate manifestation of Covid mapped to different symptoms, Frequency\n"
+  title_stub_freq <- "SARS-Covid-19 Symptoms(moderate form),\n tested positive respondents,Frequency"
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
   end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
   chart_title_2 <- paste0(title_stub_freq, start_date_title, " to ", end_date_title)
@@ -216,17 +216,17 @@ moderate_manifestation_plot <- function(data, start_date = as.Date("2020-04-09",
     #ggplot2::scale_y_continuous(expand = c(0,0)) +
     ggplot2::labs(title = chart_title_2,
                   subtitle = "\nNote: Results may change due to ongoing refresh of data",
-                  x = "Symptoms manifestation in Covid Patients, tested positive", y = "Frequency", caption = "Source: GDHU, Public Health Department, Imperial College") +
-    ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 21, b = 0, l = 0)),
-                   plot.title = ggplot2::element_text(size = 12, face = "bold"),
-                   plot.subtitle = ggplot2::element_text(size = 10),
+                  x = "Symptoms", y = "Frequency", caption = "Source: Your.md") +
+    ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 5, b = 0, l = 0)),
+                   plot.title = ggplot2::element_text(size = 5, face = "bold"),
+                   plot.subtitle = ggplot2::element_text(size =3),
                    legend.position = "bottom" , legend.box = "horizontal") +
     ggplot2::theme_bw()
   
   
   if(plot_chart == TRUE){
     
-    plot_test
+    plotly::ggplotly(plot_test)
     
   }else{
     

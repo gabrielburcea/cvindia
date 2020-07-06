@@ -31,7 +31,8 @@ comorbidities_symptoms <- function(data, start_date = as.Date("2020-04-09", tz =
     dplyr::summarise(Count=n()) %>%
     dplyr::group_by(Morbidity) %>%
     dplyr::mutate(Percentage=Count/sum(Count) *100) %>%
-    dplyr::filter(Symptom != 'Temperature')
+    dplyr::filter(Symptom != 'Temperature') %>%
+    dplyr::arrange(desc(Count))
   
 
   
@@ -44,7 +45,7 @@ comorbidities_symptoms <- function(data, start_date = as.Date("2020-04-09", tz =
   
   
   plot_comorb_cov_sympt <-
-    ggplot2::ggplot(gather_divided, ggplot2::aes(x = reorder(Morbidity,-Count), Count, fill = Symptom)) +
+    ggplot2::ggplot(gather_divided, ggplot2::aes(x = Morbidity, Count, fill = Symptom)) +
     ggplot2::coord_flip() +
     ggplot2::geom_bar(stat = "identity", position = "dodge") +
     ggplot2::scale_x_discrete(limits = unique(gather_divided$Morbidity)) +
@@ -70,19 +71,19 @@ comorbidities_symptoms <- function(data, start_date = as.Date("2020-04-09", tz =
       axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
     )
   
-  plot_comorb_cov_sympt
-  
+
   
   if(plot_chart == TRUE){
     
-    plot_comorb_cov_sympt
+    plotly::ggplotly(plot_comorb_cov_sympt)
     
   }else{
     
     plot_comorb_cov_sympt$data %>%
-      dplyr::select(Morbidity, Count, Percentage, Symptom) %>%
-      dplyr::arrange(desc(Count)) %>%
-      dplyr::top_n(20)
+      dplyr::select(Morbidity, Count, Percentage, Symptom)
   }
   
 }
+
+
+

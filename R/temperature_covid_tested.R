@@ -60,7 +60,7 @@ temparature_covid_tested <- function(data, start_date = as.Date("2020-01-01", fo
   
   if(plot_chart == TRUE){
     
-    plot_test
+    plotly::ggplotly(plot_test)
     
   }else{
     
@@ -68,7 +68,7 @@ temparature_covid_tested <- function(data, start_date = as.Date("2020-01-01", fo
       dplyr::select_all() %>%
       dplyr::rename(Count = Count_temperature, Frequency = Temperature)
     
-   knitr::kable(count_temperature)
+   count_temperature
   }
   
 }

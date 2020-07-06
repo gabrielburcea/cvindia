@@ -77,7 +77,7 @@ symptom_profile_covid_tested <- function(data, start_date = as.Date("2020-01-01"
     dplyr::select(Group, Event, Value)
 
   
-  title_stub_freq <- "Covid symptom maping in SARS-COVID-19 positive tested patients, Frequency\n"
+  title_stub_freq <- "SARS-COVID-19 positive tested patients, Frequency\n"
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
   end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
   chart_title_2 <- paste0(title_stub_freq, start_date_title, " to ", end_date_title)
@@ -98,7 +98,7 @@ symptom_profile_covid_tested <- function(data, start_date = as.Date("2020-01-01"
     #ggplot2::scale_y_continuous(expand = c(0,0)) +
     ggplot2::labs(title = chart_title_2,
                   subtitle = "\nNote: Results may change due to ongoing refresh of data",
-                  x = "Symptoms manifestation in Covid Patients, tested positive", y = "Frequency", caption = "Source: GDHU, Public Health Department, Imperial College") +
+                  x = "Symptoms", y = "Frequency", caption = "Source: Your.md") +
     ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 21, b = 0, l = 0)),
                    plot.title = ggplot2::element_text(size = 12, face = "bold"),
                    plot.subtitle = ggplot2::element_text(size = 10),
@@ -108,7 +108,7 @@ symptom_profile_covid_tested <- function(data, start_date = as.Date("2020-01-01"
   
   if(plot_chart == TRUE){
     
-    plot_test
+   plotly::ggplotly(plot_test)
     
   }else{
     

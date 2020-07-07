@@ -3,13 +3,14 @@ title: "Covid-19 Symptom Mapping. Descriptive analytics and Logistic Regresssion
 output:
   word_document:
     toc: yes
-  pdf_document:
-    number_sections: yes
-    toc: yes
   html_document:
     df_print: paged
     toc: yes
+  pdf_document:
+    number_sections: yes
+    toc: yes
 code_folding: hide
+always_allow_html: true
 ---
 
 
@@ -73,7 +74,7 @@ Answering to first question:
 
 We choose to look at the most common symptoms according to UK guidelines in patients who reported that they had a Covid 19
 positive test. We look at these symptoms according to whether they were reported as mild/moderate/severe
-```{r symptoms_covid_in_resp, echo = F, results='asis',  fig.height=5, fig.width=9, cache=TRUE}
+```{r symptoms_covid_in_resp, echo = F, results='asis',  fig.height=2, fig.width=7, cache=TRUE}
 symtoms_covid_in_resp <- cvindia::symptom_profile_covid_tested(data = data_select, start_date = as.Date("2020-04-01", format = "%Y-%m-%d"), 
                                            end_date = as.Date("2020-09-01", format = "%Y-%m-%d"), plot_chart = TRUE)
 symtoms_covid_in_resp
@@ -91,7 +92,7 @@ knitr::kable(dplyr::top_n(sympt_cov_in_resp_n, 10))
 
 The next barchart takes into accound all other symptoms for the purpose of comparison. However, fatigue seems to have the highest countS, followed by the most common symptoms of Covid-19. 
 
-```{r symptom_profile_all_symptoms, echo = F, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+```{r symptom_profile_all_symptoms, echo = F, results='asis', fig.height=2, fig.width=7, cache=TRUE}
 all_syptpms_frequency <- cvindia::symptom_profile_frequency_plot(data = data_select, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
                                             end_date = as.Date("2020-05-09", format = "%Y-%m-%d"),
                                             plot_chart = TRUE)
@@ -102,7 +103,7 @@ all_syptpms_frequency
 
 Table bellow shows the first ten most occurring symptoms taking into account the level of severity. However, the most common symptoms expressed in level of severity are Cough as a mild for, shortness of breath, fatigue, muscle ache and headache, all in a mild form.
 
-```{r symptom_profile_all_symptoms_numbers, echo= F, results='asis',   fig.height=5, fig.width=9, cache=TRUE}
+```{r symptom_profile_all_symptoms_numbers, echo= F, results='asis',   fig.height=2, fig.width=9, cache=TRUE}
 all_syptpms_numbers <- cvindia::symptom_profile_frequency_plot(data = data_select, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
                                             end_date = as.Date("2020-05-09", format = "%Y-%m-%d"),
                                             plot_chart = FALSE)
@@ -142,7 +143,7 @@ knitr::kable(self_reported_n)
 
 Respondents who tested covid positive have reported the 37.5-38 temperature as the most frequent. 
 
-```{r temperature, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+```{r temperature, echo=FALSE, results='asis', fig.height=2, fig.width=7, cache=TRUE}
 temperature <-  cvindia::temparature_covid_tested(data = data_sel, start_date = as.Date("2020-04-09"), 
                                                     end_date = as.Date("2020-05-09"), plot_chart = TRUE)
 
@@ -162,7 +163,7 @@ temperature
 The bellow barchart maps the patients who claimed their symptoms were overall mild. What symptoms did they have? 
 The most prevalent symptoms are cough, fatigue, sore throat, sputum and muscle ache. 
 
-```{r mild_symptom, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+```{r mild_symptom, echo=FALSE, results='asis', fig.height=2, fig.width=7, cache=TRUE}
 mild <- cvindia::symptom_profile_mild(data = data_select, start_date = as.Date("2020-04-09"), 
                                                     end_date = as.Date("2020-05-09"), plot_chart = TRUE)
 
@@ -181,7 +182,7 @@ knitr::kable(dplyr::top_n(mild, 10))
 
 Bellow chart is mapping the patients claiming their symptoms were overall moderate. What symptoms did they have?
 
-```{r moderate,echo=FALSE, results='asis', fig.height=5, fig.width=6, cache=TRUE }
+```{r moderate,echo=FALSE, results='asis', fig.height=2, fig.width=5, cache=TRUE }
 moderate <- cvindia::moderate_manifestation_plot(data = data_select, start_date = as.Date("2020-04-09"), 
                                                     end_date = as.Date("2020-05-09"), plot_chart = TRUE)
 
@@ -236,17 +237,223 @@ comorb_cov_sympt <- cvindia::comorbidities_symptoms(data = data_select, start_da
 
 
 comorb_cov_sympt
+
 ```
 
 
 ```{r, comorb_cov_sympt_num, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
-
 comorb_cov_sympt_num <- cvindia::comorbidities_symptoms(data = data_select, start_date = as.Date("2020-04-09"), 
                                                     end_date = as.Date("2020-05-09"), plot_chart = FALSE)
 
 
-knitr::kable(dplyr::top_n(comorb_cov_sympt_num,10))
+comorb_cov_sympt_num
+
+
+#knitr::kable(dplyr::top_n(comorb_cov_sympt_num,10))
 ```
+
+
+```{r, comorb_cov_sympt_num, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+```
+
+```{r, hypertension, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+
+
+
+hypertension_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "High Blood Pressure (hypertension)") %>%
+  dplyr::arrange(desc(Count))
+
+
+start_date <- as.Date("2020-04-09")
+end_date <- as.Date("2020-05-09")
+
+title_stub <- "Hypertension across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+
+                  
+plot_hypertension_sympt <-
+    ggplot2::ggplot(hypertension_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(hypertension_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+  
+
+plotly::ggplotly(plot_hypertension_sympt)
+
+```
+
+
+```{r, obesity, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+obesity_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "Obesity") %>%
+  dplyr::arrange(desc(Count))
+
+
+title_stub <- "Obesity across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+plot_obesity_sympt <-
+    ggplot2::ggplot(obesity_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(obesity_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+  
+
+plotly::ggplotly(plot_obesity_sympt)
+
+```
+
+```{r, asthma, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+asthma_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "Asthma (managed with an inhaler)") %>%
+  dplyr::arrange(desc(Count))
+
+
+title_stub <- "Asthma across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+plot_asthma_sympt <-
+   ggplot2::ggplot(asthma_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(asthma_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+  
+
+plotly::ggplotly(plot_asthma_sympt)
+
+
+```
+
+
+```{r, lung, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE }
+lung_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "Long-Standing Lung Condition") %>%
+  dplyr::arrange(desc(Count))
+
+
+title_stub <- "Long-Standing Lung Condition across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+plot_lung_sympt <-
+    ggplot2::ggplot(lung_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(lung_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+
+
+plotly::ggplotly(plot_lung_sympt)
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
 
 
 
@@ -348,8 +555,9 @@ show_symp
 show_symp_num <- cvindia::show_symptoms_cov(data = data_categ_nosev , start_date = as.Date("2020-04-09", tz = "Europe/London"),
                               end_date = as.Date("2020-05-06",tz = "Europe/London"), plot_chart = FALSE)
 
-knitr::kable(dplyr::top_n(show_symp_num, 10))
+show_symp_num <- knitr::kable(dplyr::top_n(show_symp_num, 10))
 
+show_symp_num
 
 ```
 
@@ -428,9 +636,6 @@ data_categ_nosev$age_band <- as.factor(data_categ_nosev$age_band)
 data_categ_nosev$temperature <- as.factor(data_categ_nosev$temperature)
 #data_categ_nosev$covid_tested <- as.factor(data_categ_nose
 ```
-
-
-
 
 
 # Correlations 
@@ -516,6 +721,7 @@ library(tidyverse)
 library(rms)
 
 
+
 conflict_prefer("step", "stats")
 ```
 
@@ -523,11 +729,38 @@ conflict_prefer("step", "stats")
 
 
 ```{r}
-data_categ_nosev <- readr::read_csv("/Users/gabrielburcea/Rprojects/data/data_no_sev_stats.csv")
+data_categ_nosev <- readr::read_csv("/Users/gabrielburcea/Rprojects/stats_data_whole/data_categ_no_sev.csv")
 
+
+level_key_temperature <- 
+  c("38.1-39" = "38.2-39",
+    "38.1-39" = "Temperature",
+    '37' = 'No')
+
+data_categ_nosev <- readr::read_csv("/Users/gabrielburcea/Rprojects/stats_data_whole/data_categ_no_sev.csv")
+
+data_categ_nosev <- data_categ_nosev %>%
+  dplyr::filter(Covid_tested != 'none') %>%
+  dplyr::mutate(status_cv = dplyr::case_when(
+                                             Covid_tested == 'showing symptoms' ~ 0,
+                                             Covid_tested == 'positive' ~ 1), 
+                number_comorbidities = dplyr::case_when(number_morbidities == 1 ~ 'one', 
+                                                        number_morbidities >= 2 ~ 'more than 2'), 
+                temperature = forcats::fct_recode(temperature, !!!level_key_temperature)) %>%
+  
+  tidyr::drop_na()
+
+data_categ_nosev <- data_categ_nosev %>% dplyr::rename(id = ID, covid_tested = Covid_tested, gender = Gender, age = Age)
+
+show_sympt_positive <- data_categ_nosev %>%
+  dplyr::select(id, status_cv) %>%
+  dplyr::group_by(status_cv) %>%
+  dplyr::tally()
+
+knitr::kable(show_sympt_positive)
 
 data_categ_nosev$gender <- as.factor(data_categ_nosev$gender)
-data_categ_nosev$country <- as.factor(data_categ_nosev$country)
+#data_categ_nosev$country <- as.factor(data_categ_nosev$country)
 data_categ_nosev$chills <- as.factor(data_categ_nosev$chills)
 data_categ_nosev$cough  <- as.factor(data_categ_nosev$cough)
 data_categ_nosev$diarrhoea  <- as.factor(data_categ_nosev$diarrhoea)
@@ -564,16 +797,275 @@ data_categ_nosev$covid_tested <- as.factor(data_categ_nosev$covid_tested)
 ```
 
 
+
+
+```{r}
+obesity_data <- data_categ_nosev %>%
+  dplyr::select(obesity, gender, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+```
+
+
+## Univariate analysis 
+
+Univariate analysis reveal that cough, diarhea, muscle ache, nausea and vomiting, sputum, temperature are associated factors in obese patients. 
+
+
+```{r }
+
+obesity_chills <- glm(obesity ~ chills, data = obesity_data, family = binomial)
+
+summary(obesity_chills)
+
+
+coef_obesity_chills <- coef(obesity_chills)
+
+# odd ratios 
+odd_ratios_ob_ch <- exp(coef_obesity_chills)
+odd_ratios_ob_ch 
+
+```
+
+
+
+
+```{r pressure, echo=FALSE}
+obesity_cough <- glm(obesity ~ cough, data = obesity_data, family = binomial)
+
+summary(obesity_cough)
+
+
+coef_obesity_cough <- coef(obesity_cough)
+
+odd_ratios_ob_co <- exp(coef_obesity_cough)
+
+odd_ratios_ob_co 
+```
+
+
+
+
+```{r}
+obesity_diarrhea <- glm(obesity ~ diarrhoea, data = obesity_data, family = binomial)
+
+summary(obesity_diarrhea)
+
+
+# get coef
+coef_ob_diarrhea <- coef(obesity_diarrhea)
+
+# odd ratios
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
+
+odd_ratio_ob_diar
+```
+
+
+
+
+
+```{r}
+obesity_headache <- glm(obesity ~ headache, data = obesity_data, family = binomial)
+
+summary(obesity_headache)
+
+coef_ob_head <- coef(obesity_headache)
+
+odd_ratio_ob_head <- exp(coef_ob_head)
+
+odd_ratio_ob_head
+```
+
+
+
+
+```{r}
+
+obesity_loss_smell <- glm(obesity ~ loss_smell_taste, data = obesity_data, family = binomial)
+
+
+summary(obesity_loss_smell)
+
+
+
+coef_ob_loss_smell <- coef(obesity_loss_smell)
+
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
+
+odd_ratio_ob_los
+```
+
+
+```{r}
+library(fmsb)
+
+obesity_muscle_ache <- glm(obesity ~ muscle_ache, data = obesity_data, family = binomial)
+ 
+summary(obesity_muscle_ache)
+
+
+
+
+coef_ob_muscle_ac <- coef(obesity_muscle_ache)
+
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
+
+odd_ratio_ob_los
+
+```
+
+
+```{r}
+
+obesity_nasal_cong <- glm(obesity ~ nasal_congestion, data = obesity_data, family = binomial)
+
+summary(obesity_nasal_cong)
+
+
+coef_ob_nas_cong <- coef(obesity_nasal_cong)
+
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
+
+odd_ratio_ob_nas_cong
+```
+
+
+```{r}
+
+obesity_nausea_vomitting <- glm(obesity ~ nausea_vomiting, data = obesity_data, family = binomial)
+
+summary(obesity_nausea_vomitting)
+
+
+coef_ob_naus_vom <- coef(obesity_nausea_vomitting)
+
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
+
+odd_ratio_ob_naus_vom
+```
+
+
+
+```{r}
+
+obesity_short_breath <- glm(obesity ~ shortness_breath, data = obesity_data, family = binomial)
+
+summary(obesity_short_breath)
+
+coef_ob_sh_br <- coef(obesity_short_breath)
+
+
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
+
+odd_ratio_ob_sh_br
+```
+
+
+```{r}
+
+obesity_sore_thr <- glm(obesity ~ sore_throat, data = obesity_data, family = binomial)
+
+summary(obesity_sore_thr)
+
+coef_ob_sore_thr <- coef(obesity_sore_thr)
+
+
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
+
+odd_ratio_ob_sore_thr
+```
+
+
+```{r}
+obesity_sputum <- glm(obesity ~ sputum, data = obesity_data, family = binomial)
+
+
+summary(obesity_sputum)
+
+
+coef_ob_sp <- coef(obesity_sputum)
+
+odd_ratio_ob_sp <- exp(coef_ob_sp)
+
+odd_ratio_ob_sp
+
+vif(obesity_sputum)
+```
+
+
+```{r}
+obesity_temperature <- glm(obesity ~ temperature, data = obesity_data, family = binomial)
+
+
+summary(obesity_temperature)
+
+coef_ob_temp <- coef(obesity_temperature)
+
+odd_ratio_ob_temp <- exp(coef_ob_temp)
+
+odd_ratio_ob_temp
+
+vif(obesity_temperature)
+```
+
+
+Adding all variables that showed an association with obesity. 
+
+When adjusting for all variables,  patients showing covid-19 symptoms/of patients with positive covid test, the results show strong evidence for an association between variables such as cough, diarrhea, sputum and temperature (37.5-38) (p ≤ 0.05) in obese respondents.
+When adjusting for all variables,in patients showing covid-19 symptpms/of patients with positive covid test, in obese respondents there was: 
+- 15 % increase in odds of experiencing cough compared to those who aren't obese
+- 35 % increase in diarrhea compared to those who aren't obese
+- 23 % increase in soutum compared to those who aren't obese
+- 24 % decrease ??? in 37.5-38 temperature compared to those who do not suffer of heart disease
+
+
+
+
+```{r}
+obesity_model <- glm(obesity ~ cough + diarrhoea + shortness_breath + temperature, data = obesity_data, family = binomial)
+
+summary(obesity_model)
+
+
+# odds ratio and 95% CL
+
+exp(cbind(OR = coef(obesity_model), confint(obesity_model)))
+
+vif(obesity_model)
+
+
+
+```
+
+```{r}
+
+
+
+
+```
+
+
 ```{r}
 
 asthma_data <- data_categ_nosev %>%
   dplyr::select(asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension, heart_disease, lung_condition, 
                 liver_disease, kidney_disease, gender, age, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
-                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature, covid_tested) %>%
   tidyr::drop_na()
 
 ```
 
+```{r}
+
+asthma_covid <- asthma_data %>%
+  dplyr::select(asthma, covid_tested) %>%
+  dplyr::group_by(asthma, covid_tested) %>%
+  dplyr::tally()
+
+asthma_covid
+
+```
 
 
 ## Univariate analysis for asthma
@@ -592,7 +1084,7 @@ summary(asthma_chills)
 coef_asthma_chills <- coef(asthma_chills)
 
 # odd ratios 
-odd_ratios_ob_ch <- (exp(coef_asthma_chills)-1)*100
+odd_ratios_ob_ch <- exp(coef_asthma_chills)
 odd_ratios_ob_ch 
 
 ```
@@ -606,7 +1098,7 @@ summary(asthma_cough)
 
 coef_asthma_cough <- coef(asthma_cough)
 
-odd_ratios_ob_co <- (exp(coef_asthma_cough)-1)*100
+odd_ratios_ob_co <- exp(coef_asthma_cough)
 
 odd_ratios_ob_co 
 ```
@@ -623,7 +1115,7 @@ summary(asthma_diarrhea)
 coef_ob_diarrhea <- coef(asthma_diarrhea)
 
 # odd ratios
-odd_ratio_ob_diar <- (exp(coef_ob_diarrhea)-1)*100
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
 
 odd_ratio_ob_diar
 ```
@@ -638,7 +1130,7 @@ summary(asthma_headache)
 
 coef_ob_head <- coef(asthma_headache)
 
-odd_ratio_ob_head <- (exp(coef_ob_head)-1)*100
+odd_ratio_ob_head <- exp(coef_ob_head)
 
 odd_ratio_ob_head
 ```
@@ -672,7 +1164,7 @@ summary(asthma_muscle_ache)
 
 coef_ob_muscle_ac <- coef(asthma_muscle_ache)
 
-odd_ratio_ob_los <- (exp(coef_ob_muscle_ac)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
 
 odd_ratio_ob_los
 
@@ -689,7 +1181,7 @@ summary(asthma_nasal_cong)
 
 coef_ob_nas_cong <- coef(asthma_nasal_cong)
 
-odd_ratio_ob_nas_cong <- (exp(coef_ob_nas_cong))
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
 
 odd_ratio_ob_nas_cong
 ```
@@ -704,7 +1196,7 @@ summary(asthma_nausea_vomitting)
 
 coef_ob_naus_vom <- coef(asthma_nausea_vomitting)
 
-odd_ratio_ob_naus_vom <- (exp(coef_ob_naus_vom)-1)*100
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
 
 odd_ratio_ob_naus_vom
 ```
@@ -721,9 +1213,13 @@ summary(asthma_short_breath)
 coef_ob_sh_br <- coef(asthma_short_breath)
 
 
-odd_ratio_ob_sh_br <- (exp(coef_ob_sh_br)-1)*100
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
 
 odd_ratio_ob_sh_br
+```
+
+```{r}
+
 ```
 
 
@@ -738,7 +1234,7 @@ summary(asthma_sore_thr)
 coef_ob_sore_thr <- coef(asthma_sore_thr)
 
 
-odd_ratio_ob_sore_thr <- (exp(coef_ob_sore_thr)-1)*100
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
 
 odd_ratio_ob_sore_thr
 ```
@@ -754,7 +1250,7 @@ summary(asthma_sputum)
 
 coef_ob_sp <- coef(asthma_sputum)
 
-odd_ratio_ob_sp <- (exp(coef_ob_sp)-1)*100
+odd_ratio_ob_sp <- exp(coef_ob_sp)
 
 odd_ratio_ob_sp
 
@@ -766,16 +1262,8 @@ vif(asthma_sputum)
 ```{r asthma_temperature, echo=FALSE}
 asthma_temperature <- glm(asthma ~ temperature, data = asthma_data, family = binomial)
 
-
 summary(asthma_temperature)
 
-coef_ob_temp <- coef(asthma_temperature)
-
-odd_ratio_ob_temp <- (exp(coef_ob_temp)-1)*100
-
-odd_ratio_ob_temp
-
-vif(asthma_temperature)
 ```
 
 
@@ -802,27 +1290,16 @@ asthma_model <- glm(asthma ~ chills + cough + diarrhoea + headache + muscle_ache
 
 summary(asthma_model)
 
-coef_asthma_model <- coef(asthma_model)
-
-odd_ratio_asthma <- (exp(coef_asthma_model)-1)*100
-
-odd_ratio_asthma
-
-vif(asthma_model)
-
-coef_ob_asthma <- coef(asthma_model)
-# Confidence intervals 
-confint(asthma_model)
-
-#Put the coefficients and confidence intervals onto a useful scale
-
-conf_int_ast <- exp(confint(asthma_model)) 
-conf_int_ast
 
 ```
 
+Odd Ratios and 95 % CL for Asthma model 
 
+```{r}
+# odds ratios and 95% CL
 
+exp(cbind(OR = coef(asthma_model), confint(asthma_model)))
+```
 
 
 ```{r}
@@ -845,7 +1322,7 @@ summary(diabetes_type_one_chills)
 coef_diabetes_type_one_chills <- coef(diabetes_type_one_chills)
 
 # odd ratios 
-odd_ratios_ob_ch <- (exp(coef_diabetes_type_one_chills)-1)*100
+odd_ratios_ob_ch <- exp(coef_diabetes_type_one_chills)
 odd_ratios_ob_ch 
 
 ```
@@ -861,7 +1338,7 @@ summary(diabetes_type_one_cough)
 
 coef_diabetes_type_one_cough <- coef(diabetes_type_one_cough)
 
-odd_ratios_ob_co <- (exp(coef_diabetes_type_one_cough)-1)*100
+odd_ratios_ob_co <- exp(coef_diabetes_type_one_cough)
 
 odd_ratios_ob_co 
 ```
@@ -880,7 +1357,7 @@ summary(diabetes_type_one_diarrhea)
 coef_ob_diarrhea <- coef(diabetes_type_one_diarrhea)
 
 # odd ratios
-odd_ratio_ob_diar <- (exp(coef_ob_diarrhea)-1)*100
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
 
 odd_ratio_ob_diar
 ```
@@ -894,8 +1371,7 @@ summary(diabetes_type_one_headache)
 
 coef_ob_head <- coef(diabetes_type_one_headache)
 
-odd_ratio_ob_head <- (exp(coef_ob_head)-1)*100
-
+odd_ratio_ob_head <- exp(coef_ob_head)
 odd_ratio_ob_head
 ```
 
@@ -911,7 +1387,7 @@ summary(diabetes_type_one_loss_smell)
 
 coef_ob_loss_smell <- coef(diabetes_type_one_loss_smell)
 
-odd_ratio_ob_los <- (exp(coef_ob_loss_smell)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
 
 odd_ratio_ob_los
 ```
@@ -927,7 +1403,7 @@ summary(diabetes_type_one_muscle_ache)
 
 coef_ob_muscle_ac <- coef(diabetes_type_one_muscle_ache)
 
-odd_ratio_ob_los <- (exp(coef_ob_muscle_ac)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
 
 odd_ratio_ob_los
 
@@ -943,7 +1419,7 @@ summary(diabetes_type_one_nasal_cong)
 
 coef_ob_nas_cong <- coef(diabetes_type_one_nasal_cong)
 
-odd_ratio_ob_nas_cong <- (exp(coef_ob_nas_cong))
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
 
 odd_ratio_ob_nas_cong
 ```
@@ -958,7 +1434,7 @@ summary(diabetes_type_one_nausea_vomitting)
 
 coef_ob_naus_vom <- coef(diabetes_type_one_nausea_vomitting)
 
-odd_ratio_ob_naus_vom <- (exp(coef_ob_naus_vom)-1)*100
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
 
 odd_ratio_ob_naus_vom
 ```
@@ -974,7 +1450,7 @@ summary(diabetes_type_one_short_breath)
 coef_ob_sh_br <- coef(diabetes_type_one_short_breath)
 
 
-odd_ratio_ob_sh_br <- (exp(coef_ob_sh_br)-1)*100
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
 
 odd_ratio_ob_sh_br
 ```
@@ -990,7 +1466,7 @@ summary(diabetes_type_one_sore_thr)
 coef_ob_sore_thr <- coef(diabetes_type_one_sore_thr)
 
 
-odd_ratio_ob_sore_thr <- (exp(coef_ob_sore_thr)-1)*100
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
 
 odd_ratio_ob_sore_thr
 ```
@@ -1007,7 +1483,7 @@ summary(diabetes_type_one_sputum)
 
 coef_ob_sp <- coef(diabetes_type_one_sputum)
 
-odd_ratio_ob_sp <- (exp(coef_ob_sp)-1)*100
+odd_ratio_ob_sp <- exp(coef_ob_sp)
 
 odd_ratio_ob_sp
 
@@ -1024,7 +1500,7 @@ summary(diabetes_type_one_temperature)
 
 coef_ob_temp <- coef(diabetes_type_one_temperature)
 
-odd_ratio_ob_temp <- (exp(coef_ob_temp)-1)*100
+odd_ratio_ob_temp <- exp(coef_ob_temp)
 
 odd_ratio_ob_temp
 
@@ -1042,30 +1518,22 @@ When adjusting for all variables,in patients showing covid-19 symptpms/of patien
 
 ```{r diabetes_type_one_model}
 diabetes_type_one_model <- glm(diabetes_type_one ~ chills + cough + headache + loss_smell_taste + muscle_ache + nausea_vomiting +
-                     temperature + age+ gender, data = diabetes_type_one_data, family = binomial)
+                     temperature, data = diabetes_type_one_data, family = binomial)
 
 summary(diabetes_type_one_model)
-
-coef_ob_diabetes_type_one <- coef(diabetes_type_one_model)
-
-odd_ratio_diab_one_m <- (exp(coef_ob_diabetes_type_one)-1)*100
-
-odd_ratio_diab_one_m
-
-vif(diabetes_type_one_model)
-
-
-# Confidence intervals 
-confint(diabetes_type_one_model)
-
-#Put the coefficients and confidence intervals onto a useful scale
-
-conf_int_diab <- exp(confint(diabetes_type_one_model)) 
-conf_int_diab
 
 ```
 
 
+Odd Ratios and 95 % CL for Diabetes Model
+
+```{r}
+# odds ratio and 95% CL
+
+exp(cbind(OR = coef(diabetes_type_one_model), confint(diabetes_type_one_model)))
+
+vif(diabetes_type_one_model)
+```
 
 
 ```{r diabetes_type_two_data}
@@ -1091,7 +1559,7 @@ summary(diabetes_type_two_chills)
 coef_diabetes_type_two_chills <- coef(diabetes_type_two_chills)
 
 # odd ratios 
-odd_ratios_ob_ch <- (exp(coef_diabetes_type_two_chills)-1)*100
+odd_ratios_ob_ch <- exp(coef_diabetes_type_two_chills)
 odd_ratios_ob_ch 
 
 ```
@@ -1105,7 +1573,7 @@ summary(diabetes_type_two_cough)
 
 coef_diabetes_type_two_cough <- coef(diabetes_type_two_cough)
 
-odd_ratios_ob_co <- (exp(coef_diabetes_type_two_cough)-1)*100
+odd_ratios_ob_co <- exp(coef_diabetes_type_two_cough)
 
 odd_ratios_ob_co 
 ```
@@ -1120,7 +1588,7 @@ summary(diabetes_type_two_diarrhea)
 coef_ob_diarrhea <- coef(diabetes_type_two_diarrhea)
 
 # odd ratios
-odd_ratio_ob_diar <- (exp(coef_ob_diarrhea)-1)*100
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
 
 odd_ratio_ob_diar
 ```
@@ -1133,7 +1601,7 @@ summary(diabetes_type_two_headache)
 
 coef_ob_head <- coef(diabetes_type_two_headache)
 
-odd_ratio_ob_head <- (exp(coef_ob_head)-1)*100
+odd_ratio_ob_head <- exp(coef_ob_head)
 
 odd_ratio_ob_head
 ```
@@ -1150,7 +1618,7 @@ summary(diabetes_type_two_loss_smell)
 
 coef_ob_loss_smell <- coef(diabetes_type_two_loss_smell)
 
-odd_ratio_ob_los <- (exp(coef_ob_loss_smell)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
 
 odd_ratio_ob_los
 ```
@@ -1165,7 +1633,7 @@ summary(diabetes_type_two_muscle_ache)
 
 coef_ob_muscle_ac <- coef(diabetes_type_two_muscle_ache)
 
-odd_ratio_ob_los <- (exp(coef_ob_muscle_ac)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
 
 odd_ratio_ob_los
 
@@ -1181,7 +1649,7 @@ summary(diabetes_type_two_nasal_cong)
 
 coef_ob_nas_cong <- coef(diabetes_type_two_nasal_cong)
 
-odd_ratio_ob_nas_cong <- (exp(coef_ob_nas_cong))
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
 
 odd_ratio_ob_nas_cong
 ```
@@ -1196,7 +1664,7 @@ summary(diabetes_type_two_nausea_vomitting)
 
 coef_ob_naus_vom <- coef(diabetes_type_two_nausea_vomitting)
 
-odd_ratio_ob_naus_vom <- (exp(coef_ob_naus_vom)-1)*100
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
 
 odd_ratio_ob_naus_vom
 ```
@@ -1212,7 +1680,7 @@ summary(diabetes_type_two_short_breath)
 coef_ob_sh_br <- coef(diabetes_type_two_short_breath)
 
 
-odd_ratio_ob_sh_br <- (exp(coef_ob_sh_br)-1)*100
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
 
 odd_ratio_ob_sh_br
 ```
@@ -1227,7 +1695,7 @@ summary(diabetes_type_two_sore_thr)
 coef_ob_sore_thr <- coef(diabetes_type_two_sore_thr)
 
 
-odd_ratio_ob_sore_thr <- (exp(coef_ob_sore_thr)-1)*100
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
 
 odd_ratio_ob_sore_thr
 ```
@@ -1242,7 +1710,7 @@ summary(diabetes_type_two_sputum)
 
 coef_ob_sp <- coef(diabetes_type_two_sputum)
 
-odd_ratio_ob_sp <- (exp(coef_ob_sp)-1)*100
+odd_ratio_ob_sp <- exp(coef_ob_sp)
 
 odd_ratio_ob_sp
 
@@ -1258,7 +1726,7 @@ summary(diabetes_type_two_temperature)
 
 coef_ob_temp <- coef(diabetes_type_two_temperature)
 
-odd_ratio_ob_temp <- (exp(coef_ob_temp)-1)*100
+odd_ratio_ob_temp <- exp(coef_ob_temp)
 
 odd_ratio_ob_temp
 
@@ -1287,24 +1755,19 @@ diabetes_type_two_model <- glm(diabetes_type_two ~ headache + shortness_breath +
 
 summary(diabetes_type_two_model)
 
-coef_ob_diabetes_type_two <- coef(diabetes_type_two_model)
-
-odd_ratio_diab_two_m <- (exp(coef_ob_diabetes_type_two)-1)*100
-
-odd_ratio_diab_two_m
-
-vif(diabetes_type_two_model)
-
-
-# Confidence intervals 
-confint(diabetes_type_two_model)
-
-#Put the coefficients and confidence intervals onto a useful scale
-
-conf_int_diab_two <- exp(confint(diabetes_type_two_model)) 
-conf_int_diab_two
 
 ```
+
+
+Odd Ratios and 95 % CL for
+
+```{r}
+exp(cbind(OR = coef(diabetes_type_two_model), confint(diabetes_type_two_model)))
+
+vif(diabetes_type_two_model)
+```
+
+
 
 
 ```{r}
@@ -1331,7 +1794,7 @@ summary(diabetes_type_two_chills)
 coef_diabetes_type_two_chills <- coef(diabetes_type_two_chills)
 
 # odd ratios 
-odd_ratios_ob_ch <- (exp(coef_diabetes_type_two_chills)-1)*100
+odd_ratios_ob_ch <- exp(coef_diabetes_type_two_chills)
 odd_ratios_ob_ch 
 
 ```
@@ -1345,7 +1808,7 @@ summary(diabetes_type_two_cough)
 
 coef_diabetes_type_two_cough <- coef(diabetes_type_two_cough)
 
-odd_ratios_ob_co <- (exp(coef_diabetes_type_two_cough)-1)*100
+odd_ratios_ob_co <- exp(coef_diabetes_type_two_cough)
 
 odd_ratios_ob_co 
 ```
@@ -1363,7 +1826,7 @@ summary(diabetes_type_two_diarrhea)
 coef_ob_diarrhea <- coef(diabetes_type_two_diarrhea)
 
 # odd ratios
-odd_ratio_ob_diar <- (exp(coef_ob_diarrhea)-1)*100
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
 
 odd_ratio_ob_diar
 ```
@@ -1376,7 +1839,7 @@ summary(diabetes_type_two_headache)
 
 coef_ob_head <- coef(diabetes_type_two_headache)
 
-odd_ratio_ob_head <- (exp(coef_ob_head)-1)*100
+odd_ratio_ob_head <- exp(coef_ob_head)
 
 odd_ratio_ob_head
 ```
@@ -1393,7 +1856,7 @@ summary(diabetes_type_two_loss_smell)
 
 coef_ob_loss_smell <- coef(diabetes_type_two_loss_smell)
 
-odd_ratio_ob_los <- (exp(coef_ob_loss_smell)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
 
 odd_ratio_ob_los
 ```
@@ -1408,7 +1871,7 @@ summary(diabetes_type_two_muscle_ache)
 
 coef_ob_muscle_ac <- coef(diabetes_type_two_muscle_ache)
 
-odd_ratio_ob_los <- (exp(coef_ob_muscle_ac)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
 
 odd_ratio_ob_los
 
@@ -1424,7 +1887,7 @@ summary(diabetes_type_two_nasal_cong)
 
 coef_ob_nas_cong <- coef(diabetes_type_two_nasal_cong)
 
-odd_ratio_ob_nas_cong <- (exp(coef_ob_nas_cong))
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
 
 odd_ratio_ob_nas_cong
 ```
@@ -1440,7 +1903,7 @@ summary(diabetes_type_two_nausea_vomitting)
 
 coef_ob_naus_vom <- coef(diabetes_type_two_nausea_vomitting)
 
-odd_ratio_ob_naus_vom <- (exp(coef_ob_naus_vom)-1)*100
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
 
 odd_ratio_ob_naus_vom
 ```
@@ -1456,7 +1919,7 @@ summary(diabetes_type_two_short_breath)
 coef_ob_sh_br <- coef(diabetes_type_two_short_breath)
 
 
-odd_ratio_ob_sh_br <- (exp(coef_ob_sh_br)-1)*100
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
 
 odd_ratio_ob_sh_br
 ```
@@ -1471,7 +1934,7 @@ summary(diabetes_type_two_sore_thr)
 coef_ob_sore_thr <- coef(diabetes_type_two_sore_thr)
 
 
-odd_ratio_ob_sore_thr <- (exp(coef_ob_sore_thr)-1)*100
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
 
 odd_ratio_ob_sore_thr
 ```
@@ -1486,7 +1949,7 @@ summary(diabetes_type_two_sputum)
 
 coef_ob_sp <- coef(diabetes_type_two_sputum)
 
-odd_ratio_ob_sp <- (exp(coef_ob_sp)-1)*100
+odd_ratio_ob_sp <- exp(coef_ob_sp)
 
 odd_ratio_ob_sp
 
@@ -1502,7 +1965,7 @@ summary(diabetes_type_two_temperature)
 
 coef_ob_temp <- coef(diabetes_type_two_temperature)
 
-odd_ratio_ob_temp <- (exp(coef_ob_temp)-1)*100
+odd_ratio_ob_temp <- exp(coef_ob_temp)
 
 odd_ratio_ob_temp
 
@@ -1531,269 +1994,16 @@ diabetes_type_two_model <- glm(diabetes_type_two ~ headache + shortness_breath +
 
 summary(diabetes_type_two_model)
 
-coef_ob_diabetes_type_two <- coef(diabetes_type_two_model)
 
-odd_ratio_diab_two_m <- (exp(coef_ob_diabetes_type_two)-1)*100
-
-odd_ratio_diab_two_m
-
+exp(cbind(OR = coef(diabetes_type_two_model), confint(diabetes_type_two_model)))
 vif(diabetes_type_two_model)
 
 
-# Confidence intervals 
-confint(diabetes_type_two_model)
-
-#Put the coefficients and confidence intervals onto a useful scale
-
-conf_int_diab_two <- exp(confint(diabetes_type_two_model)) 
-conf_int_diab_two
-
 ```
 
 
 
 
-
-```{r}
-obesity_data <- data_categ_nosev %>%
-  dplyr::select(obesity, gender, age, age_band, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
-                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
-  tidyr::drop_na()
-```
-
-
-## Univariate analysis 
-
-Univariate analysis reveal that cough, diarhea, muscle ache, nausea and vomiting, sputum, temperature are associated factors in obese patients. 
-
-
-```{r }
-
-obesity_chills <- glm(obesity ~ chills, data = obesity_data, family = binomial)
-
-summary(obesity_chills)
-
-
-coef_obesity_chills <- coef(obesity_chills)
-
-# odd ratios 
-odd_ratios_ob_ch <- (exp(coef_obesity_chills)-1)*100
-odd_ratios_ob_ch 
-
-```
-
-
-
-
-```{r pressure, echo=FALSE}
-obesity_cough <- glm(obesity ~ cough, data = obesity_data, family = binomial)
-
-summary(obesity_cough)
-
-
-coef_obesity_cough <- coef(obesity_cough)
-
-odd_ratios_ob_co <- (exp(coef_obesity_cough)-1)*100
-
-odd_ratios_ob_co 
-```
-
-
-
-
-```{r}
-obesity_diarrhea <- glm(obesity ~ diarrhoea, data = obesity_data, family = binomial)
-
-summary(obesity_diarrhea)
-
-
-# get coef
-coef_ob_diarrhea <- coef(obesity_diarrhea)
-
-# odd ratios
-odd_ratio_ob_diar <- (exp(coef_ob_diarrhea)-1)*100
-
-odd_ratio_ob_diar
-```
-
-
-
-
-
-```{r}
-obesity_headache <- glm(obesity ~ headache, data = obesity_data, family = binomial)
-
-summary(obesity_headache)
-
-
-coef_ob_head <- coef(obesity_headache)
-
-odd_ratio_ob_head <- (exp(coef_ob_head)-1)*100
-
-odd_ratio_ob_head
-```
-
-
-
-
-```{r}
-
-obesity_loss_smell <- glm(obesity ~ loss_smell_taste, data = obesity_data, family = binomial)
-
-
-summary(obesity_loss_smell)
-
-coef_ob_loss_smell <- coef(obesity_loss_smell)
-
-odd_ratio_ob_los <- (exp(coef_ob_loss_smell)-1)*100
-
-odd_ratio_ob_los
-```
-
-
-```{r}
-
-
-obesity_muscle_ache <- glm(obesity ~ muscle_ache, data = obesity_data, family = binomial)
- 
-summary(obesity_muscle_ache)
-
-
-coef_ob_muscle_ac <- coef(obesity_muscle_ache)
-
-odd_ratio_ob_los <- (exp(coef_ob_muscle_ac)-1)*100
-
-odd_ratio_ob_los
-
-```
-
-
-```{r}
-
-obesity_nasal_cong <- glm(obesity ~ nasal_congestion, data = obesity_data, family = binomial)
-
-summary(obesity_nasal_cong)
-
-
-coef_ob_nas_cong <- coef(obesity_nasal_cong)
-
-odd_ratio_ob_nas_cong <- (exp(coef_ob_nas_cong))
-
-odd_ratio_ob_nas_cong
-```
-
-
-```{r}
-
-obesity_nausea_vomitting <- glm(obesity ~ nausea_vomiting, data = obesity_data, family = binomial)
-
-summary(obesity_nausea_vomitting)
-
-
-coef_ob_naus_vom <- coef(obesity_nausea_vomitting)
-
-odd_ratio_ob_naus_vom <- (exp(coef_ob_naus_vom)-1)*100
-
-odd_ratio_ob_naus_vom
-```
-
-
-
-```{r}
-
-obesity_short_breath <- glm(obesity ~ shortness_breath, data = obesity_data, family = binomial)
-
-summary(obesity_short_breath)
-
-coef_ob_sh_br <- coef(obesity_short_breath)
-
-
-odd_ratio_ob_sh_br <- (exp(coef_ob_sh_br)-1)*100
-
-odd_ratio_ob_sh_br
-```
-
-
-```{r}
-
-obesity_sore_thr <- glm(obesity ~ sore_throat, data = obesity_data, family = binomial)
-
-summary(obesity_sore_thr)
-
-coef_ob_sore_thr <- coef(obesity_sore_thr)
-
-
-odd_ratio_ob_sore_thr <- (exp(coef_ob_sore_thr)-1)*100
-
-odd_ratio_ob_sore_thr
-```
-
-
-```{r}
-obesity_sputum <- glm(obesity ~ sputum, data = obesity_data, family = binomial)
-
-
-summary(obesity_sputum)
-
-
-coef_ob_sp <- coef(obesity_sputum)
-
-odd_ratio_ob_sp <- (exp(coef_ob_sp)-1)*100
-
-odd_ratio_ob_sp
-
-vif(obesity_sputum)
-```
-
-
-```{r}
-obesity_temperature <- glm(obesity ~ temperature, data = obesity_data, family = binomial)
-
-
-summary(obesity_temperature)
-
-coef_ob_temp <- coef(obesity_temperature)
-
-odd_ratio_ob_temp <- (exp(coef_ob_temp)-1)*100
-
-odd_ratio_ob_temp
-
-vif(obesity_temperature)
-```
-
-
-Adding all variables that showed an association with obesity. 
-
-When adjusting for all variables,  patients showing covid-19 symptoms/of patients with positive covid test, the results show strong evidence for an association between variables such as cough, diarrhea, sputum and temperature (37.5-38) (p ≤ 0.05) in obese respondents.
-When adjusting for all variables,in patients showing covid-19 symptpms/of patients with positive covid test, in obese respondents there was: 
-- 15 % increase in odds of experiencing cough compared to those who aren't obese
-- 35 % increase in diarrhea compared to those who aren't obese
-- 23 % increase in soutum compared to those who aren't obese
-- 24 % decrease ??? in 37.5-38 temperature compared to those who do not suffer of heart disease
-
-
-
-
-```{r}
-obesity_model <- glm(obesity ~ cough + diarrhoea + muscle_ache + nausea_vomiting + sputum + temperature, data = obesity_data, family = binomial)
-
-
-summary(obesity_model)
-
-coef_ob_model <- coef(obesity_model)
-# Confidence intervals 
-confint(obesity_model)
-
-#Put the coefficients and confidence intervals onto a useful scale
-conf_int_ob <- exp(confint(obesity_model)) 
-conf_int_ob
-
-odd_ratio_ob_model <- (exp(coef_ob_model)-1)*100
-
-odd_ratio_ob_model
-
-vif(obesity_model)
-```
 
 
 
@@ -1822,7 +2032,7 @@ summary(heart_chills)
 coef_heart_chills <- coef(heart_chills)
 
 # odd ratios 
-odd_ratios_ob_ch <- (exp(coef_heart_chills)-1)*100
+odd_ratios_ob_ch <- exp(coef_heart_chills)
 odd_ratios_ob_ch 
 
 ```
@@ -1836,7 +2046,7 @@ summary(heart_cough)
 
 coef_heart_cough <- coef(heart_cough)
 
-odd_ratios_ob_co <- (exp(coef_heart_cough)-1)*100
+odd_ratios_ob_co <- exp(coef_heart_cough)
 
 odd_ratios_ob_co 
 ```
@@ -1853,7 +2063,7 @@ summary(heart_diarrhea)
 coef_ob_diarrhea <- coef(heart_diarrhea)
 
 # odd ratios
-odd_ratio_ob_diar <- (exp(coef_ob_diarrhea)-1)*100
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
 
 odd_ratio_ob_diar
 ```
@@ -1869,7 +2079,7 @@ summary(heart_headache)
 
 coef_ob_head <- coef(heart_headache)
 
-odd_ratio_ob_head <- (exp(coef_ob_head)-1)*100
+odd_ratio_ob_head <- exp(coef_ob_head)
 
 odd_ratio_ob_head
 ```
@@ -1887,7 +2097,7 @@ summary(heart_loss_smell)
 
 coef_ob_loss_smell <- coef(heart_loss_smell)
 
-odd_ratio_ob_los <- (exp(coef_ob_loss_smell)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
 
 odd_ratio_ob_los
 ```
@@ -1904,7 +2114,7 @@ summary(heart_muscle_ache)
 
 coef_ob_muscle_ac <- coef(heart_muscle_ache)
 
-odd_ratio_ob_los <- (exp(coef_ob_muscle_ac)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
 
 odd_ratio_ob_los
 
@@ -1922,7 +2132,7 @@ summary(heart_nasal_cong)
 
 coef_ob_nas_cong <- coef(heart_nasal_cong)
 
-odd_ratio_ob_nas_cong <- (exp(coef_ob_nas_cong))
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
 
 odd_ratio_ob_nas_cong
 ```
@@ -1939,7 +2149,7 @@ summary(heart_nausea_vomitting)
 
 coef_ob_naus_vom <- coef(heart_nausea_vomitting)
 
-odd_ratio_ob_naus_vom <- (exp(coef_ob_naus_vom)-1)*100
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
 
 odd_ratio_ob_naus_vom
 ```
@@ -1955,7 +2165,7 @@ summary(heart_short_breath)
 coef_ob_sh_br <- coef(heart_short_breath)
 
 
-odd_ratio_ob_sh_br <- (exp(coef_ob_sh_br)-1)*100
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
 
 odd_ratio_ob_sh_br
 ```
@@ -1972,7 +2182,7 @@ summary(heart_sore_thr)
 coef_ob_sore_thr <- coef(heart_sore_thr)
 
 
-odd_ratio_ob_sore_thr <- (exp(coef_ob_sore_thr)-1)*100
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
 
 odd_ratio_ob_sore_thr
 ```
@@ -1989,7 +2199,7 @@ summary(heart_sputum)
 
 coef_ob_sp <- coef(heart_sputum)
 
-odd_ratio_ob_sp <- (exp(coef_ob_sp)-1)*100
+odd_ratio_ob_sp <- exp(coef_ob_sp)
 
 odd_ratio_ob_sp
 
@@ -2005,7 +2215,7 @@ summary(heart_temperature)
 
 coef_ob_temp <- coef(heart_temperature)
 
-odd_ratio_ob_temp <- (exp(coef_ob_temp)-1)*100
+odd_ratio_ob_temp <- exp(coef_ob_temp)
 
 odd_ratio_ob_temp
 
@@ -2033,22 +2243,9 @@ heart_model <- glm(heart_disease ~ chills + diarrhoea + loss_smell_taste +muscle
 
 summary(heart_model)
 
-coef_ob_heart <- coef(heart_model)
-
-odd_ratio_diab_one_m <- (exp(coef_ob_heart)-1)*100
-
-odd_ratio_diab_one_m
+exp(cbind(OR = coef(heart_model), confint(heart_model)))
 
 vif(heart_model)
-
-
-# Confidence intervals 
-confint(heart_model)
-
-#Put the coefficients and confidence intervals onto a useful scale
-
-conf_int_diab <- exp(confint(heart_model)) 
-conf_int_diab
 
 ```
 
@@ -2082,7 +2279,7 @@ summary(hypertension_chills)
 coef_hypertension_chills <- coef(hypertension_chills)
 
 # odd ratios 
-odd_ratios_ob_ch <- (exp(coef_hypertension_chills)-1)*100
+odd_ratios_ob_ch <- exp(coef_hypertension_chills)
 odd_ratios_ob_ch 
 
 ```
@@ -2097,7 +2294,7 @@ summary(hypertension_cough)
 
 coef_hypertension_cough <- coef(hypertension_cough)
 
-odd_ratios_ob_co <- (exp(coef_hypertension_cough)-1)*100
+odd_ratios_ob_co <- exp(coef_hypertension_cough)
 
 odd_ratios_ob_co 
 ```
@@ -2116,7 +2313,7 @@ summary(hypertension_diarrhea)
 coef_ob_diarrhea <- coef(hypertension_diarrhea)
 
 # odd ratios
-odd_ratio_ob_diar <- (exp(coef_ob_diarrhea)-1)*100
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
 
 odd_ratio_ob_diar
 ```
@@ -2129,7 +2326,7 @@ summary(hypertension_headache)
 
 coef_ob_head <- coef(hypertension_headache)
 
-odd_ratio_ob_head <- (exp(coef_ob_head)-1)*100
+odd_ratio_ob_head <- exp(coef_ob_head)
 
 odd_ratio_ob_head
 ```
@@ -2145,7 +2342,7 @@ summary(hypertension_loss_smell)
 
 coef_ob_loss_smell <- coef(hypertension_loss_smell)
 
-odd_ratio_ob_los <- (exp(coef_ob_loss_smell)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
 
 odd_ratio_ob_los
 ```
@@ -2161,7 +2358,7 @@ summary(hypertension_muscle_ache)
 
 coef_ob_muscle_ac <- coef(hypertension_muscle_ache)
 
-odd_ratio_ob_los <- (exp(coef_ob_muscle_ac)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
 
 odd_ratio_ob_los
 
@@ -2177,7 +2374,7 @@ summary(hypertension_nasal_cong)
 
 coef_ob_nas_cong <- coef(hypertension_nasal_cong)
 
-odd_ratio_ob_nas_cong <- (exp(coef_ob_nas_cong))
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
 
 odd_ratio_ob_nas_cong
 ```
@@ -2192,7 +2389,7 @@ summary(hypertension_nausea_vomitting)
 
 coef_ob_naus_vom <- coef(hypertension_nausea_vomitting)
 
-odd_ratio_ob_naus_vom <- (exp(coef_ob_naus_vom)-1)*100
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
 
 odd_ratio_ob_naus_vom
 ```
@@ -2208,7 +2405,7 @@ summary(hypertension_short_breath)
 coef_ob_sh_br <- coef(hypertension_short_breath)
 
 
-odd_ratio_ob_sh_br <- (exp(coef_ob_sh_br)-1)*100
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
 
 odd_ratio_ob_sh_br
 ```
@@ -2223,7 +2420,7 @@ summary(hypertension_sore_thr)
 coef_ob_sore_thr <- coef(hypertension_sore_thr)
 
 
-odd_ratio_ob_sore_thr <- (exp(coef_ob_sore_thr)-1)*100
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
 
 odd_ratio_ob_sore_thr
 ```
@@ -2239,7 +2436,7 @@ summary(hypertension_sputum)
 
 coef_ob_sp <- coef(hypertension_sputum)
 
-odd_ratio_ob_sp <- (exp(coef_ob_sp)-1)*100
+odd_ratio_ob_sp <- exp(coef_ob_sp)
 
 odd_ratio_ob_sp
 
@@ -2255,7 +2452,7 @@ summary(hypertension_temperature)
 
 coef_ob_temp <- coef(hypertension_temperature)
 
-odd_ratio_ob_temp <- (exp(coef_ob_temp)-1)*100
+odd_ratio_ob_temp <- exp(coef_ob_temp)
 
 odd_ratio_ob_temp
 
@@ -2284,22 +2481,10 @@ hypertension_model <- glm(hypertension ~ cough + diarrhoea + muscle_ache + short
 
 summary(hypertension_model)
 
-coef_ob_hypertension <- coef(hypertension_model)
-
-odd_ratio_diab_one_m <- (exp(coef_ob_hypertension)-1)*100
-
-odd_ratio_diab_one_m
+exp(cbind(OR = coef(hypertension_model), confint(hypertension_model)))
 
 vif(hypertension_model)
 
-
-# Confidence intervals 
-confint(hypertension_model)
-
-#Put the coefficients and confidence intervals onto a useful scale
-
-conf_int_diab <- exp(confint(hypertension_model)) 
-conf_int_diab
 
 ```
 
@@ -2328,7 +2513,7 @@ summary(liver_chills)
 coef_liver_chills <- coef(liver_chills)
 
 # odd ratios 
-odd_ratios_ob_ch <- (exp(coef_liver_chills)-1)*100
+odd_ratios_ob_ch <- exp(coef_liver_chills)
 odd_ratios_ob_ch 
 
 ```
@@ -2343,7 +2528,7 @@ summary(liver_cough)
 
 coef_liver_cough <- coef(liver_cough)
 
-odd_ratios_ob_co <- (exp(coef_liver_cough)-1)*100
+odd_ratios_ob_co <- exp(coef_liver_cough)
 
 odd_ratios_ob_co 
 ```
@@ -2360,7 +2545,7 @@ summary(liver_diarrhea)
 coef_ob_diarrhea <- coef(liver_diarrhea)
 
 # odd ratios
-odd_ratio_ob_diar <- (exp(coef_ob_diarrhea)-1)*100
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
 
 odd_ratio_ob_diar
 ```
@@ -2374,7 +2559,7 @@ summary(liver_headache)
 
 coef_ob_head <- coef(liver_headache)
 
-odd_ratio_ob_head <- (exp(coef_ob_head)-1)*100
+odd_ratio_ob_head <- exp(coef_ob_head)
 
 odd_ratio_ob_head
 ```
@@ -2391,7 +2576,7 @@ summary(liver_loss_smell)
 
 coef_ob_loss_smell <- coef(liver_loss_smell)
 
-odd_ratio_ob_los <- (exp(coef_ob_loss_smell)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
 
 odd_ratio_ob_los
 ```
@@ -2406,7 +2591,7 @@ summary(liver_muscle_ache)
 
 coef_ob_muscle_ac <- coef(liver_muscle_ache)
 
-odd_ratio_ob_los <- (exp(coef_ob_muscle_ac)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
 
 odd_ratio_ob_los
 
@@ -2423,7 +2608,7 @@ summary(liver_nasal_cong)
 
 coef_ob_nas_cong <- coef(liver_nasal_cong)
 
-odd_ratio_ob_nas_cong <- (exp(coef_ob_nas_cong))
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
 
 odd_ratio_ob_nas_cong
 ```
@@ -2438,7 +2623,7 @@ summary(liver_nausea_vomitting)
 
 coef_ob_naus_vom <- coef(liver_nausea_vomitting)
 
-odd_ratio_ob_naus_vom <- (exp(coef_ob_naus_vom)-1)*100
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
 
 odd_ratio_ob_naus_vom
 ```
@@ -2454,7 +2639,7 @@ summary(liver_short_breath)
 coef_ob_sh_br <- coef(liver_short_breath)
 
 
-odd_ratio_ob_sh_br <- (exp(coef_ob_sh_br)-1)*100
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
 
 odd_ratio_ob_sh_br
 ```
@@ -2469,7 +2654,7 @@ summary(liver_sore_thr)
 coef_ob_sore_thr <- coef(liver_sore_thr)
 
 
-odd_ratio_ob_sore_thr <- (exp(coef_ob_sore_thr)-1)*100
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
 
 odd_ratio_ob_sore_thr
 ```
@@ -2486,7 +2671,7 @@ summary(liver_sputum)
 
 coef_ob_sp <- coef(liver_sputum)
 
-odd_ratio_ob_sp <- (exp(coef_ob_sp)-1)*100
+odd_ratio_ob_sp <- exp(coef_ob_sp)
 
 odd_ratio_ob_sp
 
@@ -2502,7 +2687,7 @@ summary(liver_temperature)
 
 coef_ob_temp <- coef(liver_temperature)
 
-odd_ratio_ob_temp <- (exp(coef_ob_temp)-1)*100
+odd_ratio_ob_temp <- exp(coef_ob_temp)
 
 odd_ratio_ob_temp
 
@@ -2531,22 +2716,9 @@ liver_model <- glm(liver_disease ~ chills + diarrhoea + loss_smell_taste + muscl
 
 summary(liver_model)
 
-coef_ob_liver <- coef(liver_model)
-
-odd_ratio_liver <- (exp(coef_ob_liver)-1)*100
-
-odd_ratio_liver
+exp(cbind(OR = coef(liver_model), confint(liver_model)))
 
 vif(liver_model)
-
-
-# Confidence intervals 
-confint(liver_model)
-
-#Put the coefficients and confidence intervals onto a useful scale
-
-conf_int_diab <- exp(confint(liver_model)) 
-conf_int_diab
 
 ```
 
@@ -2581,7 +2753,7 @@ summary(lung_condition_chills)
 coef_lung_condition_chills <- coef(lung_condition_chills)
 
 # odd ratios 
-odd_ratios_ob_ch <- (exp(coef_lung_condition_chills)-1)*100
+odd_ratios_ob_ch <- exp(coef_lung_condition_chills)
 odd_ratios_ob_ch 
 
 ```
@@ -2597,7 +2769,7 @@ summary(lung_condition_cough)
 
 coef_lung_condition_cough <- coef(lung_condition_cough)
 
-odd_ratios_ob_co <- (exp(coef_lung_condition_cough)-1)*100
+odd_ratios_ob_co <- exp(coef_lung_condition_cough)
 
 odd_ratios_ob_co 
 ```
@@ -2614,7 +2786,7 @@ summary(lung_condition_diarrhea)
 coef_ob_diarrhea <- coef(lung_condition_diarrhea)
 
 # odd ratios
-odd_ratio_ob_diar <- (exp(coef_ob_diarrhea)-1)*100
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
 
 odd_ratio_ob_diar
 ```
@@ -2629,7 +2801,7 @@ summary(lung_condition_headache)
 
 coef_ob_head <- coef(lung_condition_headache)
 
-odd_ratio_ob_head <- (exp(coef_ob_head)-1)*100
+odd_ratio_ob_head <- exp(coef_ob_head)
 
 odd_ratio_ob_head
 ```
@@ -2646,7 +2818,7 @@ summary(lung_condition_loss_smell)
 
 coef_ob_loss_smell <- coef(lung_condition_loss_smell)
 
-odd_ratio_ob_los <- (exp(coef_ob_loss_smell)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
 
 odd_ratio_ob_los
 ```
@@ -2664,7 +2836,7 @@ summary(lung_condition_muscle_ache)
 
 coef_ob_muscle_ac <- coef(lung_condition_muscle_ache)
 
-odd_ratio_ob_los <- (exp(coef_ob_muscle_ac)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
 
 odd_ratio_ob_los
 
@@ -2683,7 +2855,7 @@ summary(lung_condition_nasal_cong)
 
 coef_ob_nas_cong <- coef(lung_condition_nasal_cong)
 
-odd_ratio_ob_nas_cong <- (exp(coef_ob_nas_cong))
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
 
 odd_ratio_ob_nas_cong
 ```
@@ -2700,7 +2872,7 @@ summary(lung_condition_nausea_vomitting)
 
 coef_ob_naus_vom <- coef(lung_condition_nausea_vomitting)
 
-odd_ratio_ob_naus_vom <- (exp(coef_ob_naus_vom)-1)*100
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
 
 odd_ratio_ob_naus_vom
 ```
@@ -2716,7 +2888,7 @@ summary(lung_condition_short_breath)
 coef_ob_sh_br <- coef(lung_condition_short_breath)
 
 
-odd_ratio_ob_sh_br <- (exp(coef_ob_sh_br)-1)*100
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
 
 odd_ratio_ob_sh_br
 ```
@@ -2734,7 +2906,7 @@ summary(lung_condition_sore_thr)
 coef_ob_sore_thr <- coef(lung_condition_sore_thr)
 
 
-odd_ratio_ob_sore_thr <- (exp(coef_ob_sore_thr)-1)*100
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
 
 odd_ratio_ob_sore_thr
 ```
@@ -2753,7 +2925,7 @@ summary(lung_condition_sputum)
 
 coef_ob_sp <- coef(lung_condition_sputum)
 
-odd_ratio_ob_sp <- (exp(coef_ob_sp)-1)*100
+odd_ratio_ob_sp <- exp(coef_ob_sp)
 
 odd_ratio_ob_sp
 
@@ -2772,7 +2944,7 @@ summary(lung_condition_temperature)
 
 coef_ob_temp <- coef(lung_condition_temperature)
 
-odd_ratio_ob_temp <- (exp(coef_ob_temp)-1)*100
+odd_ratio_ob_temp <- exp(coef_ob_temp)
 
 odd_ratio_ob_temp
 
@@ -2801,22 +2973,11 @@ lung_condition_model <- glm(lung_condition ~  nausea_vomiting +  shortness_breat
 
 summary(lung_condition_model)
 
-coef_ob_lung_condition <- coef(lung_condition_model)
+exp(cbind(OR = coef(lung_condition_model), confint(lung_condition_model)))
 
-odd_ratio_lung_condition <- (exp(coef_ob_lung_condition)-1)*100
-
-odd_ratio_lung_condition
 
 vif(lung_condition_model)
 
-
-# Confidence intervals 
-confint(lung_condition_model)
-
-#Put the coefficients and confidence intervals onto a useful scale
-
-conf_int_diab <- exp(confint(lung_condition_model)) 
-conf_int_diab
 
 ```
 
@@ -2848,7 +3009,7 @@ summary(kidney_chills)
 coef_kidney_chills <- coef(kidney_chills)
 
 # odd ratios 
-odd_ratios_ob_ch <- (exp(coef_kidney_chills)-1)*100
+odd_ratios_ob_ch <- exp(coef_kidney_chills)
 odd_ratios_ob_ch 
 
 ```
@@ -2864,7 +3025,7 @@ summary(kidney_cough)
 
 coef_kidney_cough <- coef(kidney_cough)
 
-odd_ratios_ob_co <- (exp(coef_kidney_cough)-1)*100
+odd_ratios_ob_co <- exp(coef_kidney_cough)
 
 odd_ratios_ob_co 
 ```
@@ -2881,7 +3042,7 @@ summary(kidney_diarrhea)
 coef_ob_diarrhea <- coef(kidney_diarrhea)
 
 # odd ratios
-odd_ratio_ob_diar <- (exp(coef_ob_diarrhea)-1)*100
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
 
 odd_ratio_ob_diar
 ```
@@ -2895,7 +3056,7 @@ summary(kidney_headache)
 
 coef_ob_head <- coef(kidney_headache)
 
-odd_ratio_ob_head <- (exp(coef_ob_head)-1)*100
+odd_ratio_ob_head <- exp(coef_ob_head)
 
 odd_ratio_ob_head
 ```
@@ -2912,7 +3073,7 @@ summary(kidney_loss_smell)
 
 coef_ob_loss_smell <- coef(kidney_loss_smell)
 
-odd_ratio_ob_los <- (exp(coef_ob_loss_smell)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
 
 odd_ratio_ob_los
 ```
@@ -2929,7 +3090,7 @@ summary(kidney_muscle_ache)
 
 coef_ob_muscle_ac <- coef(kidney_muscle_ache)
 
-odd_ratio_ob_los <- (exp(coef_ob_muscle_ac)-1)*100
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
 
 odd_ratio_ob_los
 
@@ -2947,7 +3108,7 @@ summary(kidney_nasal_cong)
 
 coef_ob_nas_cong <- coef(kidney_nasal_cong)
 
-odd_ratio_ob_nas_cong <- (exp(coef_ob_nas_cong))
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
 
 odd_ratio_ob_nas_cong
 ```
@@ -2964,7 +3125,7 @@ summary(kidney_nausea_vomitting)
 
 coef_ob_naus_vom <- coef(kidney_nausea_vomitting)
 
-odd_ratio_ob_naus_vom <- (exp(coef_ob_naus_vom)-1)*100
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
 
 odd_ratio_ob_naus_vom
 ```
@@ -2981,7 +3142,7 @@ summary(kidney_short_breath)
 coef_ob_sh_br <- coef(kidney_short_breath)
 
 
-odd_ratio_ob_sh_br <- (exp(coef_ob_sh_br)-1)*100
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
 
 odd_ratio_ob_sh_br
 ```
@@ -2998,7 +3159,7 @@ summary(kidney_sore_thr)
 coef_ob_sore_thr <- coef(kidney_sore_thr)
 
 
-odd_ratio_ob_sore_thr <- (exp(coef_ob_sore_thr)-1)*100
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
 
 odd_ratio_ob_sore_thr
 ```
@@ -3015,7 +3176,7 @@ summary(kidney_sputum)
 
 coef_ob_sp <- coef(kidney_sputum)
 
-odd_ratio_ob_sp <- (exp(coef_ob_sp)-1)*100
+odd_ratio_ob_sp <- exp(coef_ob_sp)
 
 odd_ratio_ob_sp
 
@@ -3032,7 +3193,7 @@ summary(kidney_temperature)
 
 coef_ob_temp <- coef(kidney_temperature)
 
-odd_ratio_ob_temp <- (exp(coef_ob_temp)-1)*100
+odd_ratio_ob_temp <- exp(coef_ob_temp)
 
 odd_ratio_ob_temp
 
@@ -3043,7 +3204,7 @@ vif(kidney_temperature)
 
 # Multivariate analysis for Kidney disease
 
-The selected variables for the final model are: shortness of breath, temperature, age, gender. 
+The selected variables for the final model are: shortness of breath, temperature. 
 
 In patients showing covid-19 symptoms/of patients with a positive covid test,when adjusting for all relevant variables, in respondents with kidney disease there was a: 
 - 64% increase in the odds of experiencing shortness of breaht compared to those who do not have kidney disease 
@@ -3055,22 +3216,9 @@ kidney_model <- glm(kidney_disease ~  shortness_breath + temperature, data = kid
 
 summary(kidney_model)
 
-coef_ob_kidney <- coef(kidney_model)
-
-odd_ratio_kidney <- (exp(coef_ob_kidney)-1)*100
-
-odd_ratio_kidney
-
+exp(cbind(OR = coef(kidney_model), confint(kidney_model)))
 vif(kidney_model)
 
-
-# Confidence intervals 
-confint(kidney_model)
-
-#Put the coefficients and confidence intervals onto a useful scale
-
-conf_int_diab <- exp(confint(kidney_model)) 
-conf_int_diab
 
 ```
 

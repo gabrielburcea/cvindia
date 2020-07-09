@@ -183,9 +183,9 @@
 #      "38.1-39" = 'Temperature')
 # level_no_days_sympt_show <-
 #   c('21' = "More than 21")
-
+# 
 # data_model <- data_rec %>%
-#   dplyr::mutate(Covid_tested = dplyr::recode(tested_or_not, !!!level_key), 
+#   dplyr::mutate(Covid_tested = dplyr::recode(tested_or_not, !!!level_key),
 #                 number_days_symptoms = forcats::fct_recode(Number.Of.Days.Symptoms.Showing, !!!level_no_days_sympt_show) )
 
 # data_model$gender <- as.factor(data_model$Gender)
@@ -300,23 +300,23 @@
 #   c('No' = "No",
 #     'Yes' = "Mild",
 #     'Yes' = "Moderate",
-#     'Yes' = "Severe", 
+#     'Yes' = "Severe",
 #     'Yes' = "Headcahe")
 # level_key_loss_smell_taste <-
-#   c( 'No' = "Loss of smell and taste",
+#   c( 'Yes' = "Loss of smell and taste",
 #      'No' = "No",
 #      'Yes' = "Mild",
 #      'Yes' = "Moderate",
 #      'Yes' = "Severe")
 # level_key_muschle_ache <-
 #   c( 'No' = "No",
-#      'No' = "Muscle Ache",
+#      'Yes' = "Muscle Ache",
 #      'Yes' = "Mild",
 #      'Yes' = "Moderate",
 #      'Yes' = "Severe")
 # level_key_nasal_congestion <-
 #   c( 'No' = "No",
-#      'No' = "Nasal Congestion",
+#      'Yes' = "Nasal Congestion",
 #      'Yes' = "Mild",
 #      'Yes' = "Moderate",
 #      'Yes' = "Severe")
@@ -333,19 +333,19 @@
 #      'Yes' = "Severe")
 # level_key_short_breath <-
 #   c( 'No' = "No",
-#      'No' = "Shortness of Breath",
+#      'Yes' = "Shortness of Breath",
 #      'Yes' = "Mild",
 #      'Yes' = "Moderate",
 #      'Yes' = "Severe")
 # level_key_sore_throat <-
 #   c( 'No' = "No",
-#      'No' = "Sore Throat",
+#      'Yes' = "Sore Throat",
 #      'Yes' = "Mild",
 #      'Yes' = "Moderate",
 #      'Yes' = "Severe")
 # level_key_sputum <-
 #   c( 'No' = "No",
-#      'No' = "Sputum",
+#      'Yes' = "Sputum",
 #      'Yes' = "Mild",
 #      'Yes' = "Moderate",
 #      'Yes' = "Severe")

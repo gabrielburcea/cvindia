@@ -1,8 +1,8 @@
 Package: cvindia
 Type: Package
-Title: Analysis of Patient Flow in Hospitals
+Title: Analysis of symptoms
 Version: 0.0.1
-Author: Gabriel Burcea, Global Digital Health Unit, Public Health, Imperial College
+Author: Gabriel Burcea
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
@@ -35,5 +35,6 @@ Imports:
     grid,
     DescTools,
     naniar,
-    ggpubr
+    ggpubr,
+    ggplotlyExtra
 VignetteBuilder: knitr

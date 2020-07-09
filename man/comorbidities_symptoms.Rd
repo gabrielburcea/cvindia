@@ -2,7 +2,7 @@
 % Please edit documentation in R/comorbidities_symptoms.R
 \name{comorbidities_symptoms}
 \alias{comorbidities_symptoms}
-\title{comorbidities_symptoms}
+\title{comorbidities_symptoms - symptom count over comorbidities}
 \usage{
 comorbidities_symptoms(
   data,
@@ -24,5 +24,5 @@ comorbidities_symptoms(
 
 }
 \description{
-comorbidities_symptoms
+comorbidities_symptoms - symptom count over comorbidities
 }

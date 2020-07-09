@@ -24,7 +24,7 @@ no_cov <- function(data,start_date = as.Date("2020-04-09", tz = "Europe/London")
     dplyr::filter(Symptom != 'temperature')
   
   
-  title_stub <- "Symptoms in respondents with no covid /showing symptoms\n"
+  title_stub <- "Symptoms in respondents with no covid\n"
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
   end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
   chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)

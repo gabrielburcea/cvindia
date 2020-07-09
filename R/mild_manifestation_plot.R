@@ -228,7 +228,7 @@ symptom_profile_mild <- function(data, start_date = as.Date("2020-04-09", format
   
   if(plot_chart == TRUE){
     
-    plotly::ggplotly(plot_test)
+   plot_test
     
   }else{
     

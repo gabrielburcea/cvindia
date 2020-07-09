@@ -108,7 +108,7 @@ symptom_profile_covid_tested <- function(data, start_date = as.Date("2020-01-01"
   
   if(plot_chart == TRUE){
     
-   plotly::ggplotly(plot_test)
+   plot_test
     
   }else{
     

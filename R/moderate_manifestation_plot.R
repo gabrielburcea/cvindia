@@ -226,7 +226,7 @@ moderate_manifestation_plot <- function(data, start_date = as.Date("2020-04-09",
   
   if(plot_chart == TRUE){
     
-    plotly::ggplotly(plot_test)
+    plot_test
     
   }else{
     

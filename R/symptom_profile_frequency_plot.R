@@ -241,7 +241,7 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-04-0
 
   if(plot_chart == TRUE){
     
-    plotly::ggplotly(plot_test)
+    plot_test
     
   }else{
     

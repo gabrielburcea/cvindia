@@ -1,4 +1,4 @@
-#' comorbidities_symptoms
+#' comorbidities_symptoms - symptom count over comorbidities 
 #'
 #' @param data 
 #' @param start_date 
@@ -75,7 +75,7 @@ comorbidities_symptoms <- function(data, start_date = as.Date("2020-04-09", tz =
   
   if(plot_chart == TRUE){
     
-    plotly::ggplotly(plot_comorb_cov_sympt)
+    plot_comorb_cov_sympt
     
   }else{
     

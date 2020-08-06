@@ -14,12 +14,12 @@ covid_positive <- function(data,start_date = as.Date("2020-04-09", tz = "Europe/
   
   
   positive_cov_symptoms <- data %>%
-    dplyr::select(id, covid_tested, chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, muscle_ache, nasal_congestion, nausea_vomiting, 
+    dplyr::select(ID, covid_tested, chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, muscle_ache, nasal_congestion, nausea_vomiting, 
                   shortness_breath, sore_throat, sputum, temperature) %>%
     tidyr::pivot_longer(cols=3:15, names_to="Symptom", values_to="Answer") %>%
     dplyr::filter(covid_tested == 'positive') %>%
     dplyr::group_by(Symptom, Answer) %>%
-    dplyr::summarise(Count = n()) %>%
+    dplyr::summarise(Count = dplyr::n()) %>%
     dplyr::mutate(Percent = Count/sum(Count)) %>%
     dplyr::filter(Symptom != 'temperature') %>%
     dplyr::arrange(desc(Count))

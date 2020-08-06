@@ -13,7 +13,7 @@ gender_distrib <- function(data, start_date = as.Date("2020-04-09", tz = "Europe
                           end_date = as.Date("2020-05-06",tz = "Europe/London"), plot_chart = TRUE){
   
   gender_tb <- data %>%
-    dplyr::select(id, gender) %>%
+    dplyr::select(ID, gender) %>%
     dplyr::group_by(gender) %>%
     dplyr::tally() %>%
     dplyr::mutate(percent = n/sum(n))

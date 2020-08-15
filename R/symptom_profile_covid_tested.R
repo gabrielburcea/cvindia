@@ -45,8 +45,9 @@ symptom_profile_covid_tested <- function(data, start_date = as.Date("2020-01-01"
   plot_test <- ggplot2::ggplot(data_level_positive, ggplot2::aes(x = reorder(Symptom, -Percentage), y = Percentage, fill = Percentage)) +
     ggplot2::coord_flip() +
     ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    #ggplot2::scale_fill_brewer(palette = 'Reds') + 
     ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
-    ggplot2::scale_x_discrete(limits = unique(melted_symptom_frequency$Symptom)) +
+    ggplot2::scale_x_discrete(limits = unique(data_level_positive$Symptom)) +
     #ggplot2::theme(legend.position = "bottom") +
     #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
     ggplot2::theme_minimal() +

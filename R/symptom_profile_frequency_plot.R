@@ -15,242 +15,87 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-04-0
                                             plot_chart = TRUE) {
   
   
+
+  
   positive_tested_symptoms <- data %>% 
-    dplyr::mutate(tested_positive = stringr::str_detect(tested_or_not, pattern = "Positive" )) %>%
-    dplyr::filter(tested_positive == TRUE)
+    dplyr::select(id, covid_tested, shortness_breath, muscle_ache, cough, loss_smell_taste, chills, diarrhoea, fatigue, headache, nasal_congestion, 
+                  nausea_vomiting,sore_throat, sputum, temperature, loss_appetite, sneezing, chest_pain, itchy_eyes, joint_pain) %>%
+    dplyr::filter(covid_tested == "positive")
   
-  count_chills <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, chills) %>%
-    dplyr::rename(group = chills) %>%
-    dplyr::group_by(group) %>%
-    dplyr::summarise(Count_chills = dplyr::n()) %>%
-    dplyr::mutate(Chills = Count_chills / sum(Count_chills) *100)
-   
+  data_piv <- positive_tested_symptoms %>% 
+    tidyr::pivot_longer(cols=3:18, names_to="Symptom", values_to="Event") %>%
+    dplyr::group_by(Symptom, Event) %>%
+    dplyr::summarise(Count=n()) %>%
+    dplyr::mutate(Percentage=Count/sum(Count) *100)
   
-  
-  count_cough <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, cough) %>%
-    dplyr::rename(group = cough) %>%
-    dplyr::group_by(group) %>%
-    dplyr::summarise(Count_cough = dplyr::n()) %>%
-    dplyr::mutate(Cough = Count_cough / sum(Count_cough)*100)
-  
- 
-  
-  count_diarrhoea <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, diarrhoea) %>%
-    dplyr::rename(group = diarrhoea) %>%
-    dplyr::group_by(group) %>%
-    dplyr::summarise(Count_diarrhoea = dplyr::n()) %>%
-    dplyr::mutate(Diarrhoea = Count_diarrhoea / sum(Count_diarrhoea)*100)
-  
- 
-  
-  count_fatigue <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, fatigue) %>%
-    dplyr::rename(group = fatigue) %>%
-    dplyr::group_by(group) %>%
-    dplyr::summarise(Count_fatigue = dplyr::n()) %>%
-    dplyr::mutate(Fatigue = Count_fatigue/sum(Count_fatigue)*100)
+  symptom_levels <- c('Shorthness of breath' = "shortness_breath", 
+                      'Muscle ache' = "muscle_ache", 
+                      "Cough" = "cough", 
+                      "Loss of smell and taste" = "loss_smell_taste", 
+                      "Chills" = "chills", 
+                      "Diarrhoea" = "diarrhoea", 
+                      "Fatigue" = "fatigue", 
+                      "Headache" = "headache", 
+                      "Nasal congestion" = "nasal_congestion", 
+                      "Nausea and vomiting" = "nausea_vomiting", 
+                      "Sore throat" = "sore_throat", 
+                      "Sputum" = "sputum", 
+                      "Temperature" = "temperature", 
+                      "Loss of appetite" = "loss_appetite", 
+                      "Sneezing" = "sneezing", 
+                      "Chest pain" = "chest_pain", 
+                      "Itchy eyes" = "itchy_eyes", 
+                      "Joint pain" = "joint_pain")
   
   
-  
-  count_headache <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, headache) %>%
-    dplyr::rename(group = headache) %>%
-    dplyr::group_by(group) %>%
-    dplyr::summarise(Count_headache = dplyr::n()) %>%
-    dplyr::mutate(Headache = Count_headache / sum(Count_headache)*100)
-  
-  
-  
-  count_muscle_ache <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, muscle_ache) %>%
-    dplyr::rename(group = muscle_ache) %>%
-    dplyr::group_by(group) %>%
-    dplyr::summarise(Count_muscle_ache = dplyr::n()) %>%
-    dplyr::mutate('Muscle Ache' = Count_muscle_ache / sum(Count_muscle_ache)*100)
-  
-  
-  
-  count_nasal_congestion <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, nasal_congestion) %>%
-    dplyr::rename(group = nasal_congestion) %>%
-    dplyr::group_by(group) %>%
-    dplyr::summarise(Count_nasal_congestion = dplyr::n()) %>%
-    dplyr::mutate('Nasal Congestion' = Count_nasal_congestion / sum(Count_nasal_congestion)*100)
-  
-  count_loss_smell_taste <- positive_tested_symptoms  %>%
-    dplyr::select(id, tested_positive, loss_smell_taste) %>%
-    dplyr::rename(group = loss_smell_taste) %>%
-    dplyr::group_by(group) %>%
-    dplyr::summarise(Count_loss_smell_taste = dplyr::n()) %>%
-    dplyr::mutate('Loss Smell Taste' = Count_loss_smell_taste / sum(Count_loss_smell_taste)*100)
-  
-  count_nause_vomiting <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, nausea_vomiting) %>%
-    dplyr::rename(group = nausea_vomiting) %>%
-    dplyr::group_by(group) %>%
-    dplyr::summarise(Count_nausea_vomiting = dplyr::n()) %>%
-    dplyr::mutate('Nausea and Vomiting' = Count_nausea_vomiting / sum(Count_nausea_vomiting)*100)
-  
-  
-  
-  count_self_diagnosis <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, self_diagnosis) %>%
-    dplyr::rename(group = self_diagnosis) %>%
-    dplyr::group_by(group) %>% 
-    dplyr::summarise(Count_self_diagnosis = dplyr::n()) %>%
-    dplyr::mutate('Self Diagnosis' = Count_self_diagnosis / sum(Count_self_diagnosis)*100)
-  
-  
-  
-  count_shortness_breath <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, shortness_breath) %>%
-    dplyr::rename(group = shortness_breath) %>%
-    dplyr::group_by(group) %>%
-    dplyr::summarise(Count_shortness_breath = dplyr::n()) %>%
-    dplyr::mutate('Shortness of Breath' = Count_shortness_breath / sum(Count_shortness_breath)*100)
-  
-  
-  count_sore_throat <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, sore_throat) %>%
-    dplyr::rename(group = sore_throat) %>%
-    dplyr::group_by(group) %>%
-    dplyr::summarise(Count_sore_throat= dplyr::n()) %>%
-    dplyr::mutate('Sore Throat' = Count_sore_throat / sum(Count_sore_throat)*100)
-  
-  
-  
-  count_sputum <- positive_tested_symptoms  %>%
-    dplyr::select(id, tested_positive, sputum ) %>%
-    dplyr::rename(group = sputum) %>%
-    dplyr::group_by(group) %>%
-    dplyr::summarise(Count_sputum = dplyr::n()) %>%
-    dplyr::mutate('Sputum' = Count_sputum  / sum(Count_sputum)*100)
-  
-
-  
-  count_temperature <- positive_tested_symptoms %>%
-    dplyr::select(id, tested_positive, temperature) %>%
-    dplyr::rename(group = temperature) %>%
-    dplyr::group_by(group) %>%
-    dplyr::summarise(Count_temperature = dplyr::n()) %>%
-    dplyr::mutate('Temperature' = Count_temperature / sum(Count_temperature)*100)
-  
-  
-  
-  ch_cho <- dplyr::left_join(count_chills, count_cough,  by = c('group'))
-  
-  
-  ch_cho_diar <- dplyr::left_join(ch_cho, count_diarrhoea,  by = c('group'))
-  
-  ch_cho_diar_fatig <- dplyr::left_join(ch_cho_diar, count_fatigue, by =c('group'))
-  
-  ch_cho_diar_fatig_head <- dplyr::left_join(ch_cho_diar_fatig, count_headache, by = c('group'))
-
-  ch_cho_diar_fatig_head_ache <- dplyr::left_join(ch_cho_diar_fatig_head , count_muscle_ache, by = c('group'))
-  
-  ch_cho_diar_fatig_head_ache_cong <- dplyr::left_join(ch_cho_diar_fatig_head_ache,  count_nasal_congestion,by = c('group'))
-  
-  ch_cho_diar_fatig_head_ache_cong_short <- dplyr::left_join(ch_cho_diar_fatig_head_ache_cong, count_shortness_breath, by = c('group'))
-  
-  ch_cho_diar_fatig_head_ache_cong_short_sore <- dplyr::left_join(ch_cho_diar_fatig_head_ache_cong_short, count_sore_throat, by = c('group'))
- 
-  ch_cho_diar_fatig_head_ache_cong_short_sore_sputum <- dplyr::left_join(ch_cho_diar_fatig_head_ache_cong_short_sore, 
-                                                                         count_sputum, by = c('group'))
-
-  
-  ch_cho_diar_fatig_head_ache_cong_short_sore_sputum_nausea <- dplyr::left_join(ch_cho_diar_fatig_head_ache_cong_short_sore_sputum, 
-                                                                                count_nause_vomiting, by = c('group'))
-  
-  
-  ch_cho_diar_fatig_head_ache_cong_short_sore_sputum_nausea_loss_smell <- dplyr::left_join(ch_cho_diar_fatig_head_ache_cong_short_sore_sputum_nausea, 
-                                                                                count_loss_smell_taste, by = c('group'))
-  
-  
-  symptom_numbers <- ch_cho_diar_fatig_head_ache_cong_short_sore_sputum_nausea_loss_smell %>%
-    dplyr::filter(group != 'No')
-
-  
-  melted_symptom_frequency <- symptom_numbers  %>%
-    tidyr::gather(key = "Event",
-                  value = "Frequency",
-                  Chills,'Sore Throat', Sputum, Diarrhoea, Fatigue, 
-                  Headache, 'Nasal Congestion', 'Nausea and Vomiting', 
-                  'Shortness of Breath',Cough,'Muscle Ache', 'Loss Smell Taste') %>%
-    dplyr::select(group, Event, Frequency)
-  melted_symptom_frequency
- 
-  melted_symptom_count <- symptom_numbers %>%
-    dplyr::select(group, Count_chills,Count_cough,Count_diarrhoea,
-                  Count_fatigue, Count_headache, Count_muscle_ache, 
-                  Count_nasal_congestion, Count_nausea_vomiting, 
-                  Count_shortness_breath, Count_sore_throat, 
-                  Count_sputum, Count_loss_smell_taste) %>%
-    dplyr::rename(Chills = Count_chills, Cough = Count_cough, Diarrhoea = Count_diarrhoea,
-                  Fatigue = Count_fatigue, Headache = Count_headache, 'Muscle Ache' = Count_muscle_ache, 
-                  'Nasal Congestion' = Count_nasal_congestion, 'Nausea and Vomiting' = Count_nausea_vomiting, 
-                  'Shortness of Breath' = Count_shortness_breath, 'Sore Throat' = Count_sore_throat, 
-                  Sputum = Count_sputum, 'Loss Smell Taste' = Count_loss_smell_taste)
-  
-  melted_symp_count <- melted_symptom_count %>%
-    tidyr::gather(key = "Event",
-                  value = "Count", 
-                  Chills,'Sore Throat', 'Loss Smell Taste', Sputum, Diarrhoea, Fatigue, 
-                  Headache, 'Nasal Congestion', 'Nausea and Vomiting', 
-                  'Shortness of Breath', Cough, 'Muscle Ache') %>%
-    dplyr::select(group, Event, Count) %>%
+  data_levels <- data_piv %>% 
+    dplyr::mutate(Symptom = forcats::fct_recode(Symptom, !!!symptom_levels))  %>%
     dplyr::arrange(desc(Count))
-  melted_symp_count
   
-  number_joined <- dplyr::left_join(melted_symp_count, melted_symptom_frequency,by = c('Event', 'group'))
+  data_level_positive <- data_levels %>%
+    dplyr::filter(Event == "Yes")
   
-  
-  
-  title_stub_freq <- "SARS-COVID-19 positive tested respondents, Frequency\n"
+  title_stub_freq <- "SARS-COVID-19 positive tested patients, Frequency\n"
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
-  
-  
   end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
   chart_title_2 <- paste0(title_stub_freq, start_date_title, " to ", end_date_title)
   
-  number_joined$group <- factor(number_joined$group)
-  levels(number_joined$group)
+  plot_test <- ggplot2::ggplot(data_level_positive, ggplot2::aes(x = reorder(Symptom, -Percentage), y = Percentage, fill = Percentage)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    #ggplot2::scale_fill_brewer(palette = 'Reds') + 
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(data_level_positive$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title_2,
+                   subtitle = "Covid-19 Symptoms in patients tested positive",
+                   y = "Frequency",
+                   x = "Covid-19 Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
   
-  number_joined$group <- factor(number_joined$group, 
-                                           levels = c("Mild", "Moderate", "Severe"), 
-                                           labels = c("Mild", "Moderate", "Severe"))
-    
-
   
-  plot_test <- ggplot2::ggplot(number_joined, ggplot2::aes(x = Event, Frequency, fill = group)) +
-    ggplot2::geom_col(ggplot2::aes(colour = group)) +
-    ggplot2::coord_flip() + 
-    ggplot2::scale_fill_brewer(palette = 'Blues') +
-    #ggplot2::scale_y_continuous(expand = c(0,0)) +
-    ggplot2::labs(title = chart_title_2,
-                  subtitle = "\nNote: Results may change due to ongoing refresh of data",
-                  x = "Symptoms", y = "Frequency", caption = "Source: Your.md") +
-    ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 21, b = 0, l = 0)),
-                   plot.title = ggplot2::element_text(size = 12, face = "bold"),
-                   plot.subtitle = ggplot2::element_text(size = 10),
-                   legend.position = "bottom" , legend.box = "horizontal") +
-    ggplot2::theme_bw()
-   
-
   if(plot_chart == TRUE){
     
     plot_test
     
   }else{
     
-    number_joined <- number_joined %>% 
-      dplyr::select(group, Event, Count, Frequency)
-    number_joined
-    
+    data_levels
   }
-   
+  
 }
 
 #' symptom_profile_count_plot

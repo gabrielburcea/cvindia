@@ -15,8 +15,6 @@ symptom_profile_frequency_plot <- function(data, start_date = as.Date("2020-04-0
                                             plot_chart = TRUE) {
   
   
-
-  
   positive_tested_symptoms <- data %>% 
     dplyr::select(id, covid_tested, shortness_breath, muscle_ache, cough, loss_smell_taste, chills, diarrhoea, fatigue, headache, nasal_congestion, 
                   nausea_vomiting,sore_throat, sputum, temperature, loss_appetite, sneezing, chest_pain, itchy_eyes, joint_pain) %>%

@@ -1,5 +1,4 @@
 # library(tidyverse)
-# 
 # data <- PivotMappe060520r
 # 
 # data_select <- data %>%

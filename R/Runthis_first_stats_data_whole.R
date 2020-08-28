@@ -39,8 +39,8 @@
 #     reason_for_help = "Reason For Helping",
 #     language = Language,
 #     health_condition = "Long Standing Health Issues"
-# 
-#   )
+#   ) %>%
+#   dplyr::mutate(id = str_sub(id, -10))
 # data_com <- data_rename %>%
 #   rowwise() %>%
 #   mutate(health_condition =
@@ -128,23 +128,27 @@
 #   tidyr::pivot_longer(cols = starts_with('Comorbidity'),
 #                       names_to = 'Comorbidity_count',
 #                       values_to = 'Comorbidity') %>%
+#   naniar::replace_with_na(replace = list(Comorbidity = "None")) %>%
+#   distinct() %>%
+#   dplyr::group_by(id) %>%
+#   dplyr::mutate(number_morbidities = sum(!is.na(Comorbidity))) %>%
 #   tidyr::drop_na('Comorbidity') %>%
 #   dplyr::select(-Comorbidity_count) %>%
 #   dplyr::distinct() %>%
 #   dplyr::mutate(Condition = 'Yes') %>%
-#   tidyr::pivot_wider(names_from = Comorbidity, values_from = Condition, values_fill = list(Condition = 'No')) %>%
-#   dplyr::select(-None)
+#   tidyr::pivot_wider(names_from = Comorbidity, values_from = Condition, values_fill = list(Condition = 'No'))
 # # ###########################################################
 # # ### Get patients without multiple comorbidities  #########
 # # ##########################################################
-# count_id <- data_comorb %>%
+# data_c <- data_comorb %>%
 #   tidyr::pivot_longer(cols = starts_with('Comorbidity'),
 #                       names_to = 'Comorbidity_count',
 #                       values_to = 'Comorbidity') %>%
+#   dplyr::mutate(Comorbidity = if_else(Comorbidity == "None", NA_character_, Comorbidity)) %>%
+#   distinct() %>%
 #   dplyr::group_by(id) %>%
-#   tidyr::drop_na() %>%
-#   dplyr::mutate(number_morbidities = n())
-# df_comorbidity_unique <- distinct(count_id, id, .keep_all = TRUE)
+#   mutate(number_morbidities = sum(!is.na(Comorbidity)))
+# df_comorbidity_unique <- distinct(data_c, id, .keep_all = TRUE)
 # data_unique_comorb <- df_comorbidity_unique  %>%
 #   tidyr::pivot_longer(cols = starts_with('Comorbidity'),
 #                       names_to = 'Comorbidity_count',
@@ -154,7 +158,7 @@
 #   dplyr::distinct() %>%
 #   dplyr::mutate(Condition = 'Yes') %>%
 #   tidyr::pivot_wider(id_cols = -c(Comorbidity, Condition), names_from = Comorbidity, values_from = Condition, values_fill = list(Condition = 'No')) %>%
-#   dplyr::select(-None)
+#   dplyr::select(-Comorbidity_one)
 # # # # # #################################################
 # # # # # ######### Get a numeric dataset #################
 # # # # # #################################################
@@ -204,9 +208,6 @@
 # data_model$chest_pain <- as.factor(data_model$chest_pain)
 # data_model$itchy_eyes <- as.factor(data_model$itchy_eyes)
 # data_model$joint_pain <- as.factor(data_model$joint_pain)
-# 
-# 
-# 
 # # # # #### Refactor the levels ##################################################
 # data_sel <- data_model %>% # here make sure the dataset is ritght - either patients with multiple comorbidities or patients without multitple comorbidties
 #   dplyr::select(
@@ -252,7 +253,8 @@
 #     heart_disease,
 #     lung_condition,
 #     liver_disease,
-#     kidney_disease
+#     kidney_disease, 
+#     number_morbidities
 #   )
 # data_sel %>% distinct(cough)
 # data_model %>% distinct(chills)
@@ -355,12 +357,11 @@
 #   c( 'No' = "None",
 #      'No' =  "Long-Standing Lung Condition",
 #      'No' = "Pregnant",
-#      "No" = 'High Blood Pressure (hypertension),No,No,Yes,No,2,No,Showing Symptoms But Not Tested,Mild,No,No,No,No,Portuguese,No, No,No,No,No\n380a7278-700f-441f-9c7c-6013e80f2f78,62,Male,"Cd. Madero Tamaulipas', 
+#      "No" = 'High Blood Pressure (hypertension),No,No,Yes,No,2,No,Showing Symptoms But Not Tested,Mild,No,No,No,No,Portuguese,No, No,No,No,No\n380a7278-700f-441f-9c7c-6013e80f2f78,62,Male,"Cd. Madero Tamaulipas',
 #      'Yes' = "Sputum",
 #      'Yes' = "Mild",
 #      'Yes' = "Moderate",
 #      'Yes' = "Severe")
-# 
 # level_key_care_home_worker <-
 #   c(
 #     'No' = 'Care Home Worker',
@@ -391,13 +392,11 @@
 # level_key_itchy_eyes <-
 #   c('No' = "Itchy Eyes",
 #     'No' = "Temperature")
-# 
 # data_sel %>% distinct(joint_pain)
 # level_key_joint_pain <-
 #   c('No' = 'Joint Pain',
 #     'No' = "Showing Symptoms But Not Tested",
 #     'No' = "Language")
-# 
 # # # # #### Refactor the levels ##################################################
 # data_categ_nosev <- data_sel %>%
 #   dplyr::mutate(chills = forcats::fct_recode(chills, !!!level_key_chills),
@@ -459,13 +458,11 @@
 #                 lung_condition_liver_disease = if_else(lung_condition == 'Yes' | liver_disease == 'Yes' , TRUE, FALSE),
 #                 lung_condition_kidney_disease = if_else(lung_condition == 'Yes' | kidney_disease == 'Yes' , TRUE, FALSE),
 #                 liver_disease_kidney_disease = if_else(liver_disease == 'Yes' | kidney_disease == 'Yes' , TRUE, FALSE))
-
 #  write.csv(test, file = "/Users/gabrielburcea/Rprojects/data/data_no_sev_stats.csv", row.names = FALSE)
-
-# # ######################################################################################################################################
-# # ######### Get a numeric dataset ######################################################################################################
-# # ######################################################################################################################################
-# # 
+# ######################################################################################################################################
+# ######### Get a numeric dataset ######################################################################################################
+# ######################################################################################################################################
+#
 # data <- read.csv("/Users/gabrielburcea/Rprojects/data/PivotMappe060520r.csv", header = TRUE, sep = ",")
 # data_select <- data %>%
 #   #### rename reason for helping as it contains whether respondents have been tested negative or positive
@@ -555,7 +552,6 @@
 #     'Tested Negative But Have Symptoms,Curious,Self-Isolating With No Symptoms' = 'showing symptoms',
 #     'Tested Negative But Have Symptoms,Showing Symptoms But Not Tested,Curious'  = 'showing symptoms'
 #   )
-
 # # #################################################
 # # ######### Get a numeric dataset #################
 # # #################################################

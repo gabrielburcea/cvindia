@@ -1,8 +1,9 @@
 library(tidyverse)
 library(naniar)
 library(forcats)
-data_rec <-
-  read_csv("/Users/gabrielburcea/Rprojects/data/csvdata.csv")
+# data_rec <-
+#   read_csv("/Users/gabrielburcea/rprojects/data/your.md/18_08_csvdata.csv")
+
 nrow(distinct(data_rec))
 data_rename <- data_rec %>%
   dplyr::rename(
@@ -137,22 +138,20 @@ data_long_wid <- data_comorb  %>%
   dplyr::distinct() %>%
   dplyr::mutate(Condition = 'Yes') %>%
   tidyr::pivot_wider(names_from = Comorbidity, values_from = Condition, values_fill = list(Condition = 'No'))
-
-df_comorbidity_unique <- distinct(data_comorb, id, .keep_all = TRUE)
-
+df_unique <- distinct(data_comorb, id, .keep_all = TRUE)
 # ###########################################################
-# ### Get patients without multiple comorbidities but also count the number of patients 
+# ### Get patients without multiple comorbidities but also count the number of patients
 # make sure count on unique number of patients  #########
 # ##########################################################
-data_c <- df_comorbidity_unique %>%
+data_c <- df_unique %>%
   tidyr::pivot_longer(cols = starts_with('Comorbidity'),
                       names_to = 'Comorbidity_count',
                       values_to = 'Comorbidity') %>%
   dplyr::mutate(Comorbidity = if_else(Comorbidity == "None", NA_character_, Comorbidity)) %>%
   distinct() %>%
   dplyr::group_by(id) %>%
-  mutate(number_morbidities = sum(!is.na(Comorbidity)))
-
+  mutate(number_morbidities = sum(!is.na(Comorbidity))) %>%
+  dplyr::filter(Comorbidity_count == "Comorbidity_one") # if running only the for data viz then uncomment this line since it takes out all the other comorbidities
 data_unique_comorb <- data_c %>%
   tidyr::pivot_longer(cols = starts_with('Comorbidity'),
                       names_to = 'Comorbidity_count',
@@ -163,15 +162,12 @@ data_unique_comorb <- data_c %>%
   dplyr::mutate(Condition = 'Yes') %>%
   tidyr::pivot_wider(id_cols = -c(Comorbidity, Condition), names_from = Comorbidity, values_from = Condition, values_fill = list(Condition = 'No')) %>%
   dplyr::select(-Comorbidity_one)
-# # # # #################################################
-# # # # ######### Get a numeric dataset #################
-# # # # #################################################
-
+# # # # # #################################################
+# # # # # ######### Get a numeric dataset #################
+# # # # # #################################################
 data_model <- data_unique_comorb %>% # here make sure the dataset is ritght - either patients with multiple comorbidities or patients without multitple comorbidties
   dplyr::mutate(covid_tested = forcats::fct_recode(reason_for_help, !!!reason_for_help_levels)) %>%
   dplyr::select(-reason_for_help)
-
-
 data_model$gender <- as.factor(data_model$gender)
 data_model$country <- as.factor(data_model$country)
 data_model$chills <- as.factor(data_model$chills)
@@ -212,9 +208,6 @@ data_model$sneezing <- as.factor(data_model$sneezing)
 data_model$chest_pain <- as.factor(data_model$chest_pain)
 data_model$itchy_eyes <- as.factor(data_model$itchy_eyes)
 data_model$joint_pain <- as.factor(data_model$joint_pain)
-
-
-
 # # # #### Refactor the levels ##################################################
 data_sel <- data_model %>% # here make sure the dataset is ritght - either patients with multiple comorbidities or patients without multitple comorbidties
   dplyr::select(
@@ -282,11 +275,11 @@ level_key_cough <-
 data_sel %>% distinct(diarrhoea)
 level_key_diarrhoea <-
   c(
-     'Yes' = "Mild",
-     'Yes' = "Moderate",
-     'Yes' = "Severe",
-     'No' = "Diarrhoea",
-     'No' ='Country')
+    'Yes' = "Mild",
+    'Yes' = "Moderate",
+    'Yes' = "Severe",
+    'No' = "Diarrhoea",
+    'No' ='Country')
 data_sel %>% distinct(fatigue)
 level_key_fatigue <-
   c( 'No' = 'Date Completed',
@@ -294,7 +287,7 @@ level_key_fatigue <-
      'Yes' = "Mild",
      'Yes' = "Moderate",
      'Yes' = "Severe"
-     )
+  )
 data_sel %>% distinct(headache)
 level_key_headache <-
   c('No' = 'Headache',
@@ -405,8 +398,7 @@ level_key_joint_pain <-
     'No' = "Showing Symptoms But Not Tested",
     'No' = "Language")
 itchy_eyes_t <- table(data_sel$itchy_eyes)
-
-# # # #### Refactor the levels ##################################################
+# # #### Refactor the levels ##################################################
 data_categ_nosev <- data_sel %>%
   dplyr::mutate(chills = forcats::fct_recode(chills, !!!level_key_chills),
                 cough = forcats::fct_recode(cough, !!!level_key_cough),
@@ -427,7 +419,6 @@ data_categ_nosev <- data_sel %>%
                 chest_pain = forcats::fct_recode(chest_pain, !!!level_key_chest_pain),
                 itchy_eyes = forcats::fct_recode(itchy_eyes, !!!level_key_itchy_eyes),
                 joint_pain = forcats::fct_recode(joint_pain, !!!level_key_joint_pain))
-sputum_lev <-table(data_categ_nosev$sputum)
-data_categ_nosev_comorbidity_one <- data_categ_nosev
-write.csv(data_categ_nosev_comorbidity_one, file = "/Users/gabrielburcea/Rprojects/stats_data_whole/cleaned_data_18_08_2020.csv", row.names = FALSE)
-c
+sputum_lev <- table(data_categ_nosev$sputum)
+# make sure you know which structure of comorbidities written as  one patient may encounter multiple comorbidities, yet when running stats on it make the patient has only one comorbidity
+#write.csv(data_categ_nosev, file = "/Users/gabrielburcea/Rprojects/data/your.md/cleaned_data_18_08_2020_unique_comorbidities.csv", row.names = FALSE)

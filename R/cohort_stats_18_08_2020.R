@@ -5,7 +5,7 @@ library(tidyverse)
 library(stargazer)
 library(psych)
 
-
+conflict_prefer("filter", "stats")
 
 cleaned_data <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_18_08_2020_multiple_comorbidities.csv")
 
@@ -62,7 +62,7 @@ data_num_age_groups <- data %>%
 covid_positive_age_mean_std <- data_num_groups %>%
   dplyr::filter(covid_tested == "positive") %>% 
   drop_na() %>%
-  dplyr::select(n)
+  dplyr::select(Age)
 
 covid_pos_age_mean_std <- as.data.frame(covid_positive_age_mean_std)
 psych::describe(covid_pos_age_mean_std, skew = FALSE)
@@ -83,9 +83,6 @@ covid_negative_age_mean_std <- data_num_groups %>%
   dplyr::select(Age)
 covid_negat_age_mean_std <- as.data.frame(covid_negative_age_mean_std)
 psych::describe(covid_negat_age_mean_std, skew = FALSE)
-
-
-
 
 # Cre home worker -
 na_strings_care_home_worker <- c("Age", "Care Home Worker")
@@ -329,12 +326,37 @@ data <- data %>%
                 ~ replace(.,. %in% na_strings_pregnant, NA)))
 
 
+female_pregnant <- data %>%
+  dplyr::select(covid_tested, gender, pregnant) %>% 
+  dplyr::filter(gender == "Female")
 
-data %>%
-  dplyr::group_by(covid_tested, pregnant) %>% 
+  
+female_pregnant_cov_pos <- female_pregnant %>%
+  dplyr::filter(covid_tested == "positive") %>%
   drop_na() %>%
+  dplyr::group_by(pregnant) %>%
   dplyr::tally() %>%
   dplyr::mutate(Percentage = n/sum(n)*100)
+
+female_pregnant_cov_pos
+
+female_pregnant_show_cov<- female_pregnant %>%
+  dplyr::filter(covid_tested == "showing symptoms") %>%
+  drop_na() %>%
+  dplyr::group_by(pregnant) %>%
+  dplyr::tally() %>%
+  dplyr::mutate(Percentage = n/sum(n)*100)
+
+female_pregnant_show_cov
+
+female_pregnant_cov_neg <- female_pregnant %>%
+  dplyr::filter(covid_tested == "negative") %>%
+  drop_na() %>%
+  dplyr::group_by(pregnant) %>%
+  dplyr::tally() %>%
+  dplyr::mutate(Percentage = n/sum(n)*100)
+
+female_pregnant_cov_neg
 
 # answered questions on symptoms
 questions_symptoms_answered <- data %>%
@@ -358,3 +380,19 @@ data %>%
   dplyr::group_by(covid_tested) %>%
   dplyr::tally() %>%
   dplyr::mutate(Percentage = n/sum(n)*100)
+
+
+# Get the unique comorbidities - this is done here since some cleaning is taking part in this script 
+# first run the cleaning_rtf_18_08_2020 and then apply this script to data so that you get a fully cleaned data 
+# need to move the cleaning part into cleaning_rtf_18_08_2020
+
+pregnant_t <- table(data$pregnant)
+
+pregnant_gender <- data %>%
+  dplyr::group_by(gender, pregnant) %>%
+  tally()
+
+
+write.csv(data, file = "/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_18_08_2020_fully_cleaned_uniq_comorb.csv", row.names = FALSE)
+
+  

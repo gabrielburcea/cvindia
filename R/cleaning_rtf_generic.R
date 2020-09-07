@@ -130,352 +130,352 @@
 # # ###########################################################
 # # ### Get patients without multiple comorbidities  #########
 # # ##########################################################
-data_c <- df_comorbidity_unique %>%
-  tidyr::pivot_longer(cols = starts_with('Comorbidity'),
-                      names_to = 'Comorbidity_count',
-                      values_to = 'Comorbidity') %>%
-  dplyr::mutate(Comorbidity = if_else(Comorbidity == "None", NA_character_, Comorbidity)) %>%
-  distinct() %>%
-  dplyr::group_by(id) %>%
-  mutate(number_morbidities = sum(!is.na(Comorbidity)))
-data_unique_comorb <- data_c %>%
-  tidyr::pivot_longer(cols = starts_with('Comorbidity'),
-                      names_to = 'Comorbidity_count',
-                      values_to = 'Comorbidity') %>%
-  tidyr::drop_na('Comorbidity') %>%
-  dplyr::select(-Comorbidity_count) %>%
-  dplyr::distinct() %>%
-  dplyr::mutate(Condition = 'Yes') %>%
-  tidyr::pivot_wider(id_cols = -c(Comorbidity, Condition), names_from = Comorbidity, values_from = Condition, values_fill = list(Condition = 'No')) #%>%
-  dplyr::select(-Comorbidity_one)
+# data_c <- df_comorbidity_unique %>%
+#   tidyr::pivot_longer(cols = starts_with('Comorbidity'),
+#                       names_to = 'Comorbidity_count',
+#                       values_to = 'Comorbidity') %>%
+#   dplyr::mutate(Comorbidity = if_else(Comorbidity == "None", NA_character_, Comorbidity)) %>%
+#   distinct() %>%
+#   dplyr::group_by(id) %>%
+#   mutate(number_morbidities = sum(!is.na(Comorbidity)))
+# data_unique_comorb <- data_c %>%
+#   tidyr::pivot_longer(cols = starts_with('Comorbidity'),
+#                       names_to = 'Comorbidity_count',
+#                       values_to = 'Comorbidity') %>%
+#   tidyr::drop_na('Comorbidity') %>%
+#   dplyr::select(-Comorbidity_count) %>%
+#   dplyr::distinct() %>%
+#   dplyr::mutate(Condition = 'Yes') %>%
+#   tidyr::pivot_wider(id_cols = -c(Comorbidity, Condition), names_from = Comorbidity, values_from = Condition, values_fill = list(Condition = 'No')) #%>%
+#   dplyr::select(-Comorbidity_one)
 # # # # # # #################################################
 # # # # # # ######### Get a numeric dataset #################
 # # # # # # #################################################
-data_model <- data_unique_comorb %>% # here make sure the dataset is ritght - either patients with multiple comorbidities or patients without multitple comorbidties
-  dplyr::mutate(covid_tested = forcats::fct_recode(reason_for_help, !!!reason_for_help_levels)) %>%
-  dplyr::select(-reason_for_help)
-data_model$gender <- as.factor(data_model$gender)
-data_model$country <- as.factor(data_model$country)
-data_model$chills <- as.factor(data_model$chills)
-data_model$cough  <- as.factor(data_model$cough)
-data_model$diarrhoea  <- as.factor(data_model$diarrhoea)
-data_model$fatigue  <- as.factor(data_model$fatigue)
-data_model$headache   <- as.factor(data_model$headache)
-data_model$loss_of_smell_and_taste   <- as.factor(data_model$loss_of_smell_and_taste)
-data_model$muscle_ache  <- as.factor(data_model$muscle_ache)
-data_model$nasal_congestion <- as.factor(data_model$nasal_congestion)
-data_model$nausea_vomiting  <- as.factor(data_model$nausea_vomiting)
-data_model$self_diagnosis <- as.factor(data_model$self_diagnosis)
-data_model$shortness_breath <- as.factor(data_model$shortness_breath)
-data_model$sore_throat <- as.factor(data_model$sore_throat)
-data_model$sputum <- as.factor(data_model$sputum)
-data_model$temperature  <- as.factor(data_model$temperature)
-data_model$health_care_worker <- as.factor(data_model$health_care_worker)
-data_model$care_home_worker <- as.factor(data_model$care_home_worker)
-data_model$asthma   <- as.factor(data_model$`Asthma (managed with an inhaler)`)
-data_model$diabetes_type_two <- as.factor(data_model$`Diabetes Type 2`)
-data_model$obesity <- as.factor(data_model$Obesity)
-data_model$hypertension  <- as.factor(data_model$`High Blood Pressure (hypertension)`)
-data_model$heart_disease  <- as.factor(data_model$`Long-Standing Heart Disease`)
-data_model$kidney_disease <- as.factor(data_model$`Long-Standing Kidney Disease`)
-data_model$lung_condition <- as.factor(data_model$`Long-Standing Lung Condition`)
-data_model$liver_disease <- as.factor(data_model$`Long-Standing Liver Disease`)
-data_model$diabetes_type_one <- as.factor(data_model$`Diabetes Type 1 (controlled by insulin)`)
-data_model$how_unwell <- as.factor(data_model$how_unwell)
-data_model$covid_tested <- as.factor(data_model$covid_tested)
-data_model$id <- as.character(data_model$id)
-data_model$age <- as.numeric(data_model$age)
-data_model$gender <- as.factor(data_model$gender)
-data_model$pregnant <- as.factor(data_model$pregnant)
-data_model$date_completed <- as.Date(data_model$date_completed)
-data_model$location <- as.factor(data_model$location)
-data_model$loss_appetite <- as.factor(data_model$loss_appetite)
-data_model$sneezing <- as.factor(data_model$sneezing)
-data_model$chest_pain <- as.factor(data_model$chest_pain)
-data_model$itchy_eyes <- as.factor(data_model$itchy_eyes)
-data_model$joint_pain <- as.factor(data_model$joint_pain)
-covid_table <- table(data_model$covid_tested)
-covid_table
+# data_model <- data_unique_comorb %>% # here make sure the dataset is ritght - either patients with multiple comorbidities or patients without multitple comorbidties
+#   dplyr::mutate(covid_tested = forcats::fct_recode(reason_for_help, !!!reason_for_help_levels)) %>%
+#   dplyr::select(-reason_for_help)
+# data_model$gender <- as.factor(data_model$gender)
+# data_model$country <- as.factor(data_model$country)
+# data_model$chills <- as.factor(data_model$chills)
+# data_model$cough  <- as.factor(data_model$cough)
+# data_model$diarrhoea  <- as.factor(data_model$diarrhoea)
+# data_model$fatigue  <- as.factor(data_model$fatigue)
+# data_model$headache   <- as.factor(data_model$headache)
+# data_model$loss_of_smell_and_taste   <- as.factor(data_model$loss_of_smell_and_taste)
+# data_model$muscle_ache  <- as.factor(data_model$muscle_ache)
+# data_model$nasal_congestion <- as.factor(data_model$nasal_congestion)
+# data_model$nausea_vomiting  <- as.factor(data_model$nausea_vomiting)
+# data_model$self_diagnosis <- as.factor(data_model$self_diagnosis)
+# data_model$shortness_breath <- as.factor(data_model$shortness_breath)
+# data_model$sore_throat <- as.factor(data_model$sore_throat)
+# data_model$sputum <- as.factor(data_model$sputum)
+# data_model$temperature  <- as.factor(data_model$temperature)
+# data_model$health_care_worker <- as.factor(data_model$health_care_worker)
+# data_model$care_home_worker <- as.factor(data_model$care_home_worker)
+# data_model$asthma   <- as.factor(data_model$`Asthma (managed with an inhaler)`)
+# data_model$diabetes_type_two <- as.factor(data_model$`Diabetes Type 2`)
+# data_model$obesity <- as.factor(data_model$Obesity)
+# data_model$hypertension  <- as.factor(data_model$`High Blood Pressure (hypertension)`)
+# data_model$heart_disease  <- as.factor(data_model$`Long-Standing Heart Disease`)
+# data_model$kidney_disease <- as.factor(data_model$`Long-Standing Kidney Disease`)
+# data_model$lung_condition <- as.factor(data_model$`Long-Standing Lung Condition`)
+# data_model$liver_disease <- as.factor(data_model$`Long-Standing Liver Disease`)
+# data_model$diabetes_type_one <- as.factor(data_model$`Diabetes Type 1 (controlled by insulin)`)
+# data_model$how_unwell <- as.factor(data_model$how_unwell)
+# data_model$covid_tested <- as.factor(data_model$covid_tested)
+# data_model$id <- as.character(data_model$id)
+# data_model$age <- as.numeric(data_model$age)
+# data_model$gender <- as.factor(data_model$gender)
+# data_model$pregnant <- as.factor(data_model$pregnant)
+# data_model$date_completed <- as.Date(data_model$date_completed)
+# data_model$location <- as.factor(data_model$location)
+# data_model$loss_appetite <- as.factor(data_model$loss_appetite)
+# data_model$sneezing <- as.factor(data_model$sneezing)
+# data_model$chest_pain <- as.factor(data_model$chest_pain)
+# data_model$itchy_eyes <- as.factor(data_model$itchy_eyes)
+# data_model$joint_pain <- as.factor(data_model$joint_pain)
+# covid_table <- table(data_model$covid_tested)
+# covid_table
 # # # # #### Refactor the levels ##################################################
-data_sel <- data_model %>% # here make sure the dataset is ritght - either patients with multiple comorbidities or patients without multitple comorbidties
-  dplyr::select(
-    id,
-    covid_tested,
-    age,
-    gender,
-    country,
-    location,
-    date_completed,
-    care_home_worker,
-    chills,
-    cough,
-    diarrhoea,
-    fatigue,
-    headache,
-    health_care_worker,
-    how_unwell,
-    loss_of_smell_and_taste,
-    muscle_ache,
-    nasal_congestion,
-    nausea_vomiting,
-    number_days_symptom_showing,
-    pregnant,
-    self_diagnosis,
-    shortness_breath,
-    sore_throat,
-    sputum,
-    temperature,
-    language,
-    loss_appetite,
-    sneezing,
-    chest_pain,
-    itchy_eyes,
-    joint_pain,
-    covid_tested,
-    number_days_symptoms,
-    asthma,
-    diabetes_type_one,
-    diabetes_type_two,
-    obesity,
-    hypertension,
-    heart_disease,
-    lung_condition,
-    liver_disease,
-    kidney_disease,
-    number_morbidities
-  )
-data_sel %>% dplyr::distinct(cough)
-data_sel %>% distinct(chills)
-level_gender <- c("Other" = "Gender")
-level_key_chills <-
-  c( 'Yes' = "Chills",
-     'Yes' = "Mild",
-     'Yes' = "Moderate",
-     'Yes' = "Severe",
-     'No' = "Gender")
-
-level_key_cough <-
-  c( 'Yes' = "Cough",
-     'Yes' = "Mild",
-     'Yes' = "Moderate",
-     'No' = "Location",
-     'Yes' = "Severe",
-     'Yes' = 'Cough')
-data_sel %>% distinct(diarrhoea)
-level_key_diarrhoea <-
-  c(
-     'Yes' = "Mild",
-     'Yes' = "Moderate",
-     'Yes' = "Severe",
-     'No' = "Diarrhoea",
-     'No' ='Country')
-data_sel %>% distinct(fatigue)
-level_key_fatigue <-
-  c( 'No' = 'Date Completed',
-     'No' = "Fatigue",
-     'Yes' = "Mild",
-     'Yes' = "Moderate",
-     'Yes' = "Severe"
-     )
-data_sel %>% distinct(headache)
-level_key_headache <-
-  c('No' = 'Headache',
-    'No' = 'Care Home Worker',
-    'Yes' = "Mild",
-    'Yes' = "Moderate",
-    'Yes' = "Severe",
-    'Yes' = "Headcahe")
-data_sel %>% distinct(loss_of_smell_and_taste)
-level_key_loss_smell_taste <-
-  c( 'No' = "Loss of smell and taste",
-     'No' = 'Brazil',
-     'No' = 'Peru',
-     'No' = 'Diabetes Type 1 (controlled by insulin)',
-     'No' = "Diabetes Type 2",
-     'No' = "Fatigue",
-     'No' = "High Blood Pressure (hypertension)",
-     'No'   = "Long-Standing Kidney Disease",
-     'No' = "Loss of smell and taste",
-     'No' = "Obesity",
-     'No' = 'Fatigue',
-     'Yes' = "Mild",
-     'Yes' = "Moderate",
-     'Yes' = "Severe")
-data_sel %>% distinct(muscle_ache)
-muscle_t
-level_key_muschle_ache <-
-  c( 'No' = "Muscle Ache",
-     'No' = "2020-08-04 17:11:00",
-     'No' = "2020-08-02 01:55:00",
-     'No' = "2020-08-01 15:11:00",
-     'No' = "Diabetes Type 2",
-     'No' = "Obesity",
-     'No' = "Headcahe",
-     'No' = "Long-Standing Liver Disease",
-     'No' = "Headcahe",
-     'Yes' = "Mild",
-     'Yes' = "Moderate",
-     'Yes' = "Severe")
-data_sel %>% distinct(nasal_congestion)
-nasal_t <- table(data_sel$nasal_congestion)
-nasal_t
-level_key_nasal_congestion <-
-  c( 'No' = "Healthcare Worker",
-     'Yes' = "Nasal Congestion",
-     'Yes' = "Mild",
-     'Yes' = "Moderate",
-     'Yes' = "Severe",
-     "No" = "Obesity")
-data_sel %>% distinct(nausea_vomiting)
-level_key_nausea_vomiting <-
-  c( 'No' = "How Unwell",
-     'Yes' = "Nausea and Vomiting",
-     'Yes' = "Mild",
-     'Yes' = "Moderate",
-     'Yes' = "Severe")
-data_sel %>% distinct(self_diagnosis)
-
-self_diag_t <- table(data_sel$self_diagnosis)
-self_diag_t
-level_key_self_diagnosis <-
-  c( 'None' = "No",
-     'None' = 0,
-     'Yes' = "Mild",
-     'Yes' = "Moderate",
-     'Yes' = "Severe",
-     'None' = "Self Diagnosis",
-     'None' = "Nasal Congestion",
-     'None' = "Recovered But Have New Symptoms",
-     'None' = "Self-Isolating With No Symptoms",
-     'None' = "Showing Symptoms But Not Tested",
-     'None'  = "Tested Negative But Have Symptoms",
-     'None'  = "Tested Positive")
-data_sel %>% distinct(shortness_breath)
-shortness_t <- table(data_sel$shortness_breath)
-shortness_t
-level_key_short_breath <-
-  c( 'No' = "Nausea and Vomiting",
-     'Yes' = "Shortness of Breath",
-     'Yes' = "Mild",
-     'No' = "None",
-     "No" = "Recovered But Have New Symptoms",
-     'No' = "Self-Isolating With No Symptoms",
-     'No' = "Showing Symptoms But Not Tested",
-     'No' = "Tested Negative But Have Symptoms",
-     'No' = "Tested Negative But Have Symptoms",
-     'No' = "Tested Positive",
-     'Yes' = "Moderate",
-     'Yes' = "Severe")
-data_sel %>% distinct(sore_throat)
-level_key_sore_throat <-
-  c( 'No' = "Number Of Days Symptoms Showing",
-     'No' = '1',
-     'No' = "Sore Throat",
-     'Yes' = "Mild",
-     'Yes' = "Moderate",
-     'Yes' = "Severe"
-     'No' = "Tested Positive")
-data_sel %>% distinct(sputum)
-level_key_sputum <-
-  c( 'No' = "None",
-     'No' =  "Long-Standing Lung Condition",
-     'No' = "Pregnant",
-     "No" = 'High Blood Pressure (hypertension),No,No,Yes,No,2,No,Showing Symptoms But Not Tested,Mild,No,No,No,No,Portuguese,No, No,No,No,No\n380a7278-700f-441f-9c7c-6013e80f2f78,62,Male,"Cd. Madero Tamaulipas',
-     'Yes' = "Sputum",
-     'Yes' = "Mild",
-     'Yes' = "Moderate",
-     'Yes' = "Severe")
-level_key_health_care_worker <-
-  c("No" = "Chills",
-    "No" =  "Healthcare Worker")
-data_sel %>% distinct(temperature)
-temperat_t <- table(data_sel$temperature)
-temperat_t
-level_key_temperature <-
-  c('No' = 'Temperature',
-    'No' = "Mexico",
-    'No' = "Reason For Helping",
-    'Yes' = "37.5-38",
-    'Yes' = "38.1-39",
-    'Yes' = "39.1-41",
-    'Yes' = "38.2-39")
-data_sel %>% distinct(loss_appetite)
-loss_app <- table(data_sel$loss_appetite)
-level_key_loss_appetite <-
-  c('No' = "Loss of Appetite",
-    'No' = "Shortness of Breath",
-    'No' = "Portuguese",
-    "No" = "Spanish")
-data_sel %>% distinct(sneezing)
-sneezing_table <- table(data_sel$sneezing)
-sneezing_table
-level_key_sneezing <-
-  c('No' = "Sneezing",
-    'No' = "Sore Throat",
-    'No' = "Spanish",
-    'No' = "Portuguese")
-data_sel %>% distinct(chest_pain)
-chest_p_table <- table(data_sel$chest_pain)
-chest_p_table
-level_key_chest_pain <-
-  c('No' = 'Chest Pain',
-    'No' = '0',
-    'No' = 'Sputum',
-    'No' = 'Spanish')
-data_sel %>% distinct(itchy_eyes)
-level_key_itchy_eyes <-
-  c('No' = "Itchy Eyes",
-    'No' = "Temperature")
-data_sel %>% distinct(joint_pain)
-level_key_joint_pain <-
-  c('No' = 'Joint Pain',
-    'No' = "Showing Symptoms But Not Tested",
-    'No' = "Language")
-pregnant_lev <- table(data_sel$pregnant)
-pregnant_lev
-level_pregnant <- c(
-   "No" = 0 ,
-   "No" = 1,
-   "No" = 10,
-   "No" = 15,
-   "No" = 15,
-   "No" = 2,
-   "No" = 3,
-   "No" = 35,
-   "No" = 4,
-   "No"  = 5,
-   "No" = 7,
-   "No" = 8,
-   "No" = 9,
-   "No" = "Loss of smell and taste",
-   "No" = "Pregnant")
-# # # # # #### Refactor the levels ##################################################
-data_categ_nosev <- data_sel %>%
-  dplyr::mutate(
-    gender = forcats::fct_recode(gender,!!!level_gender),
-    chills = forcats::fct_recode(chills,!!!level_key_chills),
-    cough = forcats::fct_recode(cough,!!!level_key_cough),
-    health_care_worker = forcats::fct_recode(health_care_worker, !!!level_key_health_care_worker),
-    diarrhoea = forcats::fct_recode(diarrhoea,!!!level_key_diarrhoea),
-    fatigue = forcats::fct_recode(fatigue,!!!level_key_fatigue),
-    headache = forcats::fct_recode(headache,!!!level_key_headache),
-    loss_smell_taste = forcats::fct_recode(loss_of_smell_and_taste,!!!level_key_loss_smell_taste),
-    muscle_ache = forcats::fct_recode(muscle_ache,!!!level_key_muschle_ache),
-    nasal_congestion = forcats::fct_recode(nasal_congestion,!!!level_key_nasal_congestion),
-    nausea_vomiting = forcats::fct_recode(nausea_vomiting,!!!level_key_nausea_vomiting),
-    self_diagnosis = forcats::fct_recode(self_diagnosis,!!!level_key_self_diagnosis),
-    shortness_breath = forcats::fct_recode(shortness_breath,!!!level_key_short_breath),
-    sore_throat = forcats::fct_recode(sore_throat,!!!level_key_sore_throat),
-    sputum = forcats::fct_recode(sputum,!!!level_key_sputum),
-    temperature = forcats::fct_recode(temperature,!!!level_key_temperature),
-    loss_appetite = forcats::fct_recode(loss_appetite,!!!level_key_loss_appetite),
-    sneezing = forcats::fct_recode(sneezing,!!!level_key_sneezing),
-    chest_pain = forcats::fct_recode(chest_pain,!!!level_key_chest_pain),
-    itchy_eyes = forcats::fct_recode(itchy_eyes,!!!level_key_itchy_eyes),
-    joint_pain = forcats::fct_recode(joint_pain,!!!level_key_joint_pain),
-    pregnant = forcats::fct_recode(pregnant, !!!level_pregnant)
-  )
-sputum_lev <- table(data_categ_nosev$sputum)
+# data_sel <- data_model %>% # here make sure the dataset is ritght - either patients with multiple comorbidities or patients without multitple comorbidties
+#   dplyr::select(
+#     id,
+#     covid_tested,
+#     age,
+#     gender,
+#     country,
+#     location,
+#     date_completed,
+#     care_home_worker,
+#     chills,
+#     cough,
+#     diarrhoea,
+#     fatigue,
+#     headache,
+#     health_care_worker,
+#     how_unwell,
+#     loss_of_smell_and_taste,
+#     muscle_ache,
+#     nasal_congestion,
+#     nausea_vomiting,
+#     number_days_symptom_showing,
+#     pregnant,
+#     self_diagnosis,
+#     shortness_breath,
+#     sore_throat,
+#     sputum,
+#     temperature,
+#     language,
+#     loss_appetite,
+#     sneezing,
+#     chest_pain,
+#     itchy_eyes,
+#     joint_pain,
+#     covid_tested,
+#     number_days_symptoms,
+#     asthma,
+#     diabetes_type_one,
+#     diabetes_type_two,
+#     obesity,
+#     hypertension,
+#     heart_disease,
+#     lung_condition,
+#     liver_disease,
+#     kidney_disease,
+#     number_morbidities
+#   )
+# data_sel %>% dplyr::distinct(cough)
+# data_sel %>% distinct(chills)
+# level_gender <- c("Other" = "Gender")
+# level_key_chills <-
+#   c( 'Yes' = "Chills",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe",
+#      'No' = "Gender")
+# 
+# level_key_cough <-
+#   c( 'Yes' = "Cough",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'No' = "Location",
+#      'Yes' = "Severe",
+#      'Yes' = 'Cough')
+# data_sel %>% distinct(diarrhoea)
+# level_key_diarrhoea <-
+#   c(
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe",
+#      'No' = "Diarrhoea",
+#      'No' ='Country')
+# data_sel %>% distinct(fatigue)
+# level_key_fatigue <-
+#   c( 'No' = 'Date Completed',
+#      'No' = "Fatigue",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe"
+#      )
+# data_sel %>% distinct(headache)
+# level_key_headache <-
+#   c('No' = 'Headache',
+#     'No' = 'Care Home Worker',
+#     'Yes' = "Mild",
+#     'Yes' = "Moderate",
+#     'Yes' = "Severe",
+#     'Yes' = "Headcahe")
+# data_sel %>% distinct(loss_of_smell_and_taste)
+# level_key_loss_smell_taste <-
+#   c( 'No' = "Loss of smell and taste",
+#      'No' = 'Brazil',
+#      'No' = 'Peru',
+#      'No' = 'Diabetes Type 1 (controlled by insulin)',
+#      'No' = "Diabetes Type 2",
+#      'No' = "Fatigue",
+#      'No' = "High Blood Pressure (hypertension)",
+#      'No'   = "Long-Standing Kidney Disease",
+#      'No' = "Loss of smell and taste",
+#      'No' = "Obesity",
+#      'No' = 'Fatigue',
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
+# data_sel %>% distinct(muscle_ache)
+# muscle_t
+# level_key_muschle_ache <-
+#   c( 'No' = "Muscle Ache",
+#      'No' = "2020-08-04 17:11:00",
+#      'No' = "2020-08-02 01:55:00",
+#      'No' = "2020-08-01 15:11:00",
+#      'No' = "Diabetes Type 2",
+#      'No' = "Obesity",
+#      'No' = "Headcahe",
+#      'No' = "Long-Standing Liver Disease",
+#      'No' = "Headcahe",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
+# data_sel %>% distinct(nasal_congestion)
+# nasal_t <- table(data_sel$nasal_congestion)
+# nasal_t
+# level_key_nasal_congestion <-
+#   c( 'No' = "Healthcare Worker",
+#      'Yes' = "Nasal Congestion",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe",
+#      "No" = "Obesity")
+# data_sel %>% distinct(nausea_vomiting)
+# level_key_nausea_vomiting <-
+#   c( 'No' = "How Unwell",
+#      'Yes' = "Nausea and Vomiting",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
+# data_sel %>% distinct(self_diagnosis)
+# 
+# self_diag_t <- table(data_sel$self_diagnosis)
+# self_diag_t
+# level_key_self_diagnosis <-
+#   c( 'None' = "No",
+#      'None' = 0,
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe",
+#      'None' = "Self Diagnosis",
+#      'None' = "Nasal Congestion",
+#      'None' = "Recovered But Have New Symptoms",
+#      'None' = "Self-Isolating With No Symptoms",
+#      'None' = "Showing Symptoms But Not Tested",
+#      'None'  = "Tested Negative But Have Symptoms",
+#      'None'  = "Tested Positive")
+# data_sel %>% distinct(shortness_breath)
+# shortness_t <- table(data_sel$shortness_breath)
+# shortness_t
+# level_key_short_breath <-
+#   c( 'No' = "Nausea and Vomiting",
+#      'Yes' = "Shortness of Breath",
+#      'Yes' = "Mild",
+#      'No' = "None",
+#      "No" = "Recovered But Have New Symptoms",
+#      'No' = "Self-Isolating With No Symptoms",
+#      'No' = "Showing Symptoms But Not Tested",
+#      'No' = "Tested Negative But Have Symptoms",
+#      'No' = "Tested Negative But Have Symptoms",
+#      'No' = "Tested Positive",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
+# data_sel %>% distinct(sore_throat)
+# level_key_sore_throat <-
+#   c( 'No' = "Number Of Days Symptoms Showing",
+#      'No' = '1',
+#      'No' = "Sore Throat",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe"
+#      'No' = "Tested Positive")
+# data_sel %>% distinct(sputum)
+# level_key_sputum <-
+#   c( 'No' = "None",
+#      'No' =  "Long-Standing Lung Condition",
+#      'No' = "Pregnant",
+#      "No" = 'High Blood Pressure (hypertension),No,No,Yes,No,2,No,Showing Symptoms But Not Tested,Mild,No,No,No,No,Portuguese,No, No,No,No,No\n380a7278-700f-441f-9c7c-6013e80f2f78,62,Male,"Cd. Madero Tamaulipas',
+#      'Yes' = "Sputum",
+#      'Yes' = "Mild",
+#      'Yes' = "Moderate",
+#      'Yes' = "Severe")
+# level_key_health_care_worker <-
+#   c("No" = "Chills",
+#     "No" =  "Healthcare Worker")
+# data_sel %>% distinct(temperature)
+# temperat_t <- table(data_sel$temperature)
+# temperat_t
+# level_key_temperature <-
+#   c('No' = 'Temperature',
+#     'No' = "Mexico",
+#     'No' = "Reason For Helping",
+#     'Yes' = "37.5-38",
+#     'Yes' = "38.1-39",
+#     'Yes' = "39.1-41",
+#     'Yes' = "38.2-39")
+# data_sel %>% distinct(loss_appetite)
+# loss_app <- table(data_sel$loss_appetite)
+# level_key_loss_appetite <-
+#   c('No' = "Loss of Appetite",
+#     'No' = "Shortness of Breath",
+#     'No' = "Portuguese",
+#     "No" = "Spanish")
+# data_sel %>% distinct(sneezing)
+# sneezing_table <- table(data_sel$sneezing)
+# sneezing_table
+# level_key_sneezing <-
+#   c('No' = "Sneezing",
+#     'No' = "Sore Throat",
+#     'No' = "Spanish",
+#     'No' = "Portuguese")
+# data_sel %>% distinct(chest_pain)
+# chest_p_table <- table(data_sel$chest_pain)
+# chest_p_table
+# level_key_chest_pain <-
+#   c('No' = 'Chest Pain',
+#     'No' = '0',
+#     'No' = 'Sputum',
+#     'No' = 'Spanish')
+# data_sel %>% distinct(itchy_eyes)
+# level_key_itchy_eyes <-
+#   c('No' = "Itchy Eyes",
+#     'No' = "Temperature")
+# data_sel %>% distinct(joint_pain)
+# level_key_joint_pain <-
+#   c('No' = 'Joint Pain',
+#     'No' = "Showing Symptoms But Not Tested",
+#     'No' = "Language")
+# pregnant_lev <- table(data_sel$pregnant)
+# pregnant_lev
+# level_pregnant <- c(
+#    "No" = 0 ,
+#    "No" = 1,
+#    "No" = 10,
+#    "No" = 15,
+#    "No" = 15,
+#    "No" = 2,
+#    "No" = 3,
+#    "No" = 35,
+#    "No" = 4,
+#    "No"  = 5,
+#    "No" = 7,
+#    "No" = 8,
+#    "No" = 9,
+#    "No" = "Loss of smell and taste",
+#    "No" = "Pregnant")
+# # # # # # #### Refactor the levels ##################################################
+# data_categ_nosev <- data_sel %>%
+#   dplyr::mutate(
+#     gender = forcats::fct_recode(gender,!!!level_gender),
+#     chills = forcats::fct_recode(chills,!!!level_key_chills),
+#     cough = forcats::fct_recode(cough,!!!level_key_cough),
+#     health_care_worker = forcats::fct_recode(health_care_worker, !!!level_key_health_care_worker),
+#     diarrhoea = forcats::fct_recode(diarrhoea,!!!level_key_diarrhoea),
+#     fatigue = forcats::fct_recode(fatigue,!!!level_key_fatigue),
+#     headache = forcats::fct_recode(headache,!!!level_key_headache),
+#     loss_smell_taste = forcats::fct_recode(loss_of_smell_and_taste,!!!level_key_loss_smell_taste),
+#     muscle_ache = forcats::fct_recode(muscle_ache,!!!level_key_muschle_ache),
+#     nasal_congestion = forcats::fct_recode(nasal_congestion,!!!level_key_nasal_congestion),
+#     nausea_vomiting = forcats::fct_recode(nausea_vomiting,!!!level_key_nausea_vomiting),
+#     self_diagnosis = forcats::fct_recode(self_diagnosis,!!!level_key_self_diagnosis),
+#     shortness_breath = forcats::fct_recode(shortness_breath,!!!level_key_short_breath),
+#     sore_throat = forcats::fct_recode(sore_throat,!!!level_key_sore_throat),
+#     sputum = forcats::fct_recode(sputum,!!!level_key_sputum),
+#     temperature = forcats::fct_recode(temperature,!!!level_key_temperature),
+#     loss_appetite = forcats::fct_recode(loss_appetite,!!!level_key_loss_appetite),
+#     sneezing = forcats::fct_recode(sneezing,!!!level_key_sneezing),
+#     chest_pain = forcats::fct_recode(chest_pain,!!!level_key_chest_pain),
+#     itchy_eyes = forcats::fct_recode(itchy_eyes,!!!level_key_itchy_eyes),
+#     joint_pain = forcats::fct_recode(joint_pain,!!!level_key_joint_pain),
+#     pregnant = forcats::fct_recode(pregnant, !!!level_pregnant)
+#   )
+# sputum_lev <- table(data_categ_nosev$sputum)
 # as.data.frame(covid_table) <- table(data_categ_nosev$covid_tested)
 # gender_table <- table(data_categ_nosev$gender)
 # gender_table

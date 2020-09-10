@@ -230,8 +230,9 @@ The bar chart bellow shows symptom across co-morbidity groups. By observing the 
 
 ```{r,comorb_cov_sympt, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
 
+data_select <- read_csv("/Users/gabrielburcea/Rprojects/data/PivotMappe060520r.csv")
 
-data_select <- readr::read_csv("/Users/gabrielburcea/Rprojects/data/PivotMappe060520r.csv")
+
 comorb_cov_sympt <- cvindia::comorbidities_symptoms(data = data_select, start_date = as.Date("2020-04-09"), 
                                                     end_date = as.Date("2020-05-09"), plot_chart = TRUE)
 
@@ -240,8 +241,88 @@ comorb_cov_sympt
 
 ```
 
+```{r}
+no_cov <- function(data,start_date = as.Date("2020-04-09", tz = "Europe/London"),
+                              end_date = as.Date("2020-05-06",tz = "Europe/London"), plot_chart = TRUE){
+  
+  
+  show_sympt_cov <- data %>%
+    dplyr::select(id, covid_tested, chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, muscle_ache, nasal_congestion, nausea_vomiting, 
+                  shortness_breath, sore_throat, sputum, temperature) %>%
+    tidyr::pivot_longer(cols=3:15, names_to="Symptom", values_to="Answer") %>%
+    dplyr::filter(covid_tested == 'none') %>%
+    dplyr::group_by(Symptom, Answer) %>%
+    dplyr::summarise(Count = n()) %>%
+    dplyr::mutate(Percent = Count/sum(Count)) %>%
+    dplyr::filter(Symptom != 'temperature')
+  
+  
+  title_stub <- "Symptoms in respondents with no covid\n"
+  start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+  end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+  chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+  plot_show_symptoms <-
+    ggplot2::ggplot(show_sympt_cov, ggplot2::aes(x = reorder(Symptom,-Count), Count, fill = Answer)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_x_discrete(limits = unique(show_sympt_cov$Symptom)) +
+    ggplot2::theme(legend.position = "bottom") +
+    ggplot2::scale_fill_brewer(palette="Oranges")+
+    ggplot2::theme_minimal() +
+    ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of symptoms in respondents with no Covid-19",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      legend.position = "bottom",
+      legend.box = "horizontal",
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+  
+  plot_show_symptoms
+  
+  if(plot_chart == TRUE){
+    
+    
+    plot_show_symptoms
+    
+  }else{
+    
+    show_sympt_cov
+    
+  }
+}
+```
+
+
+```{r}
+library(tidyverse)
+
+
+cov_sympt_plot <- cvindia::no_cov(data = data_no_sev,start_date = as.Date("2020-04-09", tz = "Europe/London"),
+                              end_date = as.Date("2020-05-06",tz = "Europe/London"), plot_chart = TRUE)
+
+plotly::ggplotly(cov_sympt_plot)
+```
+
+
 
 ```{r, comorb_cov_sympt_num, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+
+
+
 comorb_cov_sympt_num <- cvindia::comorbidities_symptoms(data = data_select, start_date = as.Date("2020-04-09"), 
                                                     end_date = as.Date("2020-05-09"), plot_chart = FALSE)
 
@@ -438,22 +519,221 @@ plotly::ggplotly(plot_lung_sympt)
 ```
 
 ```{r}
+heart_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "Long-Standing Heart Disease") %>%
+  dplyr::arrange(desc(Count))
+
+
+title_stub <- "Long-Standing Heart Disease across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+plot_heart_sympt <-
+    ggplot2::ggplot(heart_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(heart_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+
+
+plotly::ggplotly(plot_heart_sympt)
 
 ```
 
 ```{r}
 
+kidney_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "Long-Standing Kidney Disease") %>%
+  dplyr::arrange(desc(Count))
+
+
+title_stub <- "Long-Standing Kidney Disease across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+plot_kidney_sympt <-
+    ggplot2::ggplot(kidney_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(kidney_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+
+
+plotly::ggplotly(plot_kidney_sympt)
+
+
 ```
 
 ```{r}
+liver_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "Long-Standing Liver Disease") %>%
+  dplyr::arrange(desc(Count))
 
+
+title_stub <- "Long-Standing Liver Disease across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+plot_liver_num <-
+    ggplot2::ggplot(liver_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(liver_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+
+
+plotly::ggplotly(plot_liver_num)
 ```
 
 
 ```{r}
+diab_type_one_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "Diabetes Type 1 (controlled by insulin)") %>%
+  dplyr::arrange(desc(Count))
 
+
+title_stub <- "Diabetes Type 1 across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+plot_diab_1_num <-
+    ggplot2::ggplot(diab_type_one_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(diab_type_one_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+
+
+plotly::ggplotly(plot_diab_1_num)
 ```
 
+```{r}
+	
+diab_type_two_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "Diabetes Type 2") %>%
+  dplyr::arrange(desc(Count))
+
+
+title_stub <- "Diabetes Type 2 across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+plot_diab_2_num <-
+    ggplot2::ggplot(diab_type_two_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(diab_type_two_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+
+
+plotly::ggplotly(plot_diab_2_num)
+
+```
 
 
 
@@ -490,9 +770,10 @@ How many male and female we have in our dataset? There are 5083 male accounting 
 
 
 ```{r, gender-pie, echo=F, results= 'asis', fig.height=5, fig.width=7}
+data_categ_nosev <- readr::read_csv("/Users/gabrielburcea/Rprojects/data/data_no_sev_stats.csv")
 
 gender_tb <- data_categ_nosev %>%
-  dplyr::select(id, gender) %>%
+  dplyr::select(ID, gender) %>%
   dplyr::group_by(gender) %>%
   dplyr::tally() %>%
   dplyr::mutate(percent = n/sum(n))
@@ -740,17 +1021,17 @@ level_key_temperature <-
 data_categ_nosev <- readr::read_csv("/Users/gabrielburcea/Rprojects/stats_data_whole/data_categ_no_sev.csv")
 
 data_categ_nosev <- data_categ_nosev %>%
-  dplyr::filter(Covid_tested != 'none') %>%
+  dplyr::filter(covid_tested != 'none') %>%
   dplyr::mutate(status_cv = dplyr::case_when(
-                                             Covid_tested == 'showing symptoms' ~ 0,
-                                             Covid_tested == 'positive' ~ 1), 
+                                             covid_tested == 'showing symptoms' ~ 0,
+                                             covid_tested == 'positive' ~ 1), 
                 number_comorbidities = dplyr::case_when(number_morbidities == 1 ~ 'one', 
                                                         number_morbidities >= 2 ~ 'more than 2'), 
                 temperature = forcats::fct_recode(temperature, !!!level_key_temperature)) %>%
   
   tidyr::drop_na()
 
-data_categ_nosev <- data_categ_nosev %>% dplyr::rename(id = ID, covid_tested = Covid_tested, gender = Gender, age = Age)
+data_categ_nosev <- data_categ_nosev %>% dplyr::rename(id = ID)
 
 show_sympt_positive <- data_categ_nosev %>%
   dplyr::select(id, status_cv) %>%
@@ -1304,7 +1585,7 @@ exp(cbind(OR = coef(asthma_model), confint(asthma_model)))
 
 ```{r}
 diabetes_type_one_data <- data_categ_nosev %>%
-  dplyr::select(diabetes_type_one, gender, age, age_band, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+  dplyr::select(diabetes_type_one, gender,  chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
                 nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
   tidyr::drop_na()
 ```
@@ -1538,7 +1819,7 @@ vif(diabetes_type_one_model)
 
 ```{r diabetes_type_two_data}
 diabetes_type_two_data <- data_categ_nosev %>%
-  dplyr::select(diabetes_type_two, gender, age, age_band, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+  dplyr::select(diabetes_type_two, gender, age, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
                 nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
   tidyr::drop_na()
 ```
@@ -2003,14 +2284,9 @@ vif(diabetes_type_two_model)
 
 
 
-
-
-
-
-
 ```{r}
 heart_data <- data_categ_nosev %>%
-  dplyr::select(heart_disease, gender, age, age_band, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+  dplyr::select(heart_disease, gender, age, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
                 nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
   tidyr::drop_na()
 ```
@@ -2491,7 +2767,7 @@ vif(hypertension_model)
 
 ```{r}
 liver_data <- data_categ_nosev %>%
-  dplyr::select(liver_disease, gender, age, age_band, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+  dplyr::select(liver_disease, gender, age, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
                 nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
   tidyr::drop_na()
 ```
@@ -2728,7 +3004,7 @@ vif(liver_model)
 
 ```{r}
 lung_condition_data <- data_categ_nosev %>%
-  dplyr::select(lung_condition, gender, age, age_band, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+  dplyr::select(lung_condition, gender, age, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
                 nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
   tidyr::drop_na()
 ```
@@ -2986,7 +3262,7 @@ vif(lung_condition_model)
 
 ```{r}
 kidney_data <- data_categ_nosev %>%
-  dplyr::select(kidney_disease, gender, age, age_band, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+  dplyr::select(kidney_disease, gender, age,  chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
                 nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
   tidyr::drop_na()
 ```

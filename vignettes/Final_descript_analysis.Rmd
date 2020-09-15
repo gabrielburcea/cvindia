@@ -1,0 +1,304 @@
+---
+title: "Descriptive Analytics"
+author: "Gabriel Burcea"
+date: "09/07/2020"
+output:
+  word_document:
+    toc: yes
+  html_document:
+    df_print: paged
+    toc: yes
+  pdf_document:
+    number_sections: yes
+    toc: yes
+code_folding: hide
+always_allow_html: true
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+
+library(magrittr)
+library(tidyverse)
+```
+
+
+```{r}
+library(tidyverse)
+#counting symptoms without severity 
+data_categ_nosev <- read_csv("/Users/gabrielburcea/Rprojects/stats_data_whole/data_categ_nosev.csv")
+```
+
+## I. Descriptive analytics
+
+Exploratory questions of interest are: 
+1. How does symptom profile map to mild/moderate/severe? 
+2. Does symptom profile differ by underlying co-morbidity? 
+
+Answering to first question:
+1. How does symptom profile map to mild/moderate/severe? 
+
+We choose to look at the most common symptoms according to UK guidelines in patients who reported that they had a Covid 19
+positive test. We look at these symptoms according to whether they were reported as mild/moderate/severe
+```{r symptoms_covid_in_resp, echo = F, results='asis',  fig.height=5, fig.width=9, cache=TRUE}
+symtoms_covid_in_resp <- cvindia::symptom_profile_covid_tested(data = data_categ_nosev, start_date = as.Date("2020-04-01", format = "%Y-%m-%d"), 
+                                           end_date = as.Date("2020-09-01", format = "%Y-%m-%d"), plot_chart = TRUE)
+symtoms_covid_in_resp
+```
+Cough, followed by muscle ache are the most symptoms in patient who declared they had a Covid-19 positive test. Loss of smell and shorthness of breath are next. Yet, as observed there are different levels of severity, were mild form of symptoms are reported.  
+
+```{r symptoms_covid_in_resp_numbers, echo = F, results='asis',  fig.height=5, fig.width=9, cache=TRUE}
+symtoms_covid_in_resp <- cvindia::symptom_profile_covid_tested(data = data_categ_nosev, start_date = as.Date("2020-04-01", format = "%Y-%m-%d"), 
+                                           end_date = as.Date("2020-09-01", format = "%Y-%m-%d"), plot_chart = FALSE)
+
+sympt_cov_in_resp_n <- dplyr::top_n(symtoms_covid_in_resp, 10)
+
+knitr::kable(dplyr::top_n(sympt_cov_in_resp_n, 10))
+```
+
+The next barchart takes into accound all other symptoms for the purpose of comparison. However, fatigue seems to have the highest countS, followed by the most common symptoms of Covid-19. 
+
+```{r symptom_profile_all_symptoms, echo = F, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+all_syptpms_frequency <- cvindia::symptom_profile_frequency_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
+                                            end_date = as.Date("2020-05-09", format = "%Y-%m-%d"),
+                                            plot_chart = TRUE)
+
+all_syptpms_frequency  
+
+```
+
+Table bellow shows the first ten most occurring symptoms taking into account the level of severity. However, the most common symptoms expressed in level of severity are Cough as a mild for, shortness of breath, fatigue, muscle ache and headache, all in a mild form.
+
+```{r symptom_profile_all_symptoms_numbers, echo= F, results='asis',   fig.height=5, fig.width=9,, cache=TRUE}
+all_syptpms_numbers <- cvindia::symptom_profile_frequency_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
+                                            end_date = as.Date("2020-05-09", format = "%Y-%m-%d"),
+                                            plot_chart = FALSE)
+
+all_sympt_numb <- dplyr::top_n(all_syptpms_numbers, 10)
+
+
+ten_most_occuring_symptoms <- dplyr::top_n(all_sympt_numb, 10) %>% filter(Event != "No")
+
+ten_most_occuring_symptoms
+```
+
+
+
+
+```{r symptom_profile_show_symptoms, echo= F, results='asis',   fig.height=5, fig.width=9,, cache=TRUE}
+
+show_symptoms  <- cvindia::symptom_profile_showing_symptom(data = data_categ_nosev, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
+                                           end_date = as.Date("2020-05-09", format = "%Y-%m-%d"),
+                                           plot_chart = TRUE) 
+
+show_symptoms
+
+```
+
+
+
+
+As a conclusion we may pressume a symptom trajectory in covid-19 positive tested. Mild sore throat which then progresses to a cough, and shortness of breath? 
+
+
+2. Does symptom profile differ by underlying co-morbidity? 
+
+The bar chart bellow shows symptom across co-morbidity groups. By observing the obesity and hypertensive patients, although we see a similar pattern in symptom manifestation, there are slight differences when it comes to sputum and sore throat. In hypertensive respondents sore throat is more prominent than in obese respondents, which are experiencing more sputum. This is not the same with respondent with asthma, which are experiencing sputum and shortness of breath, where sore throat comes on the fourth place, after muscle ache. 
+
+
+```{r,comorb_cov_sympt, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+
+comorb_cov_sympt <- cvindia::comorbidities_symptoms(data = data_categ_nosev, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = TRUE)
+
+
+comorb_cov_sympt
+
+```
+
+
+
+
+```{r, comorb_cov_sympt_num, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+comorb_cov_sympt_num <- cvindia::comorbidities_symptoms(data = data_categ_nosev, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = FALSE)
+
+
+comorb_cov_sympt_num
+
+
+#knitr::kable(dplyr::top_n(comorb_cov_sympt_num,10))
+```
+
+
+```{r, hypertension, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+
+hypertension_p <- cvindia::hypertension_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = TRUE)
+
+hypertension_p
+
+
+```
+
+
+```{r, obesity, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+
+obesity_p <- cvindia::obesity_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = TRUE)
+
+obesity_p
+
+
+
+
+```
+
+```{r, obesity_n, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+obesity_n <- cvindia::obesity_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = FALSE)
+
+obesity_n
+
+```
+
+
+```{r, astma, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE }
+
+asthma_p <- cvindia::asthma_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = TRUE)
+
+asthma_p
+  
+  
+
+```
+```{r, asthma_n, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+asthma_n <- cvindia::asthma_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = FALSE)
+
+asthma_n
+```
+```{r, lung_p, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+lung_p <- cvindia::lung_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = TRUE)
+
+lung_p
+```
+
+
+```{r, lung_n, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+lung_n <- cvindia::lung_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = FALSE)
+
+lung_n
+```
+
+
+```{r, kidney_p, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+kidney_p <- cvindia::kidney_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = TRUE)
+
+kidney_p
+  
+```
+
+```{r, kidney_n,echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE }
+kidney_n <- cvindia::kidney_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = FALSE)
+
+kidney_n
+```
+
+
+```{r, heart_p, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+heart_p <- cvindia::heart_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = TRUE)
+
+heart_p
+
+```
+
+```{r, heart_n, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+heart_n <- cvindia::heart_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = FALSE)
+
+heart_n
+```
+
+
+```{r, diabetes_one_p, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+diabetes_one_p <- cvindia::diabetes_one_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = TRUE)
+
+diabetes_one_p
+
+```
+
+```{r, diabetes_one_n, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+diabetes_one_n <- cvindia::diabetes_one_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = FALSE)
+
+diabetes_one_n
+```
+
+
+```{r, diabetes_two_p,echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE }
+diabetes_two_p <- cvindia::diabetes_two_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = TRUE)
+
+diabetes_two_p
+
+
+```
+
+```{r, diabetes_two_n, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+diabetes_two_n <- cvindia::diabetes_two_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = FALSE)
+
+diabetes_two_n
+```
+
+
+```{r, liver_p, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+liver_p <- cvindia::liver_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = TRUE)
+
+liver_p
+
+
+```
+
+```{r, liver_n, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+liver_n <- cvindia::liver_plot(data = data_categ_nosev, start_date = as.Date("2020-04-09", tz = "Europe/London"), end_date = as.Date("2020-08-20"), plot_chart = FALSE)
+
+liver_n
+```
+
+
+<!-- Overview of groups of respondents with symptoms and tested positive.  -->
+
+<!-- Looking at respondents who are covid positive and the symptoms.  -->
+
+<!-- ```{r, cov-sympt-plot, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE} -->
+
+<!-- cov_sympt_plot <- cvindia::covid_positive(data = data_categ_nosev,start_date = as.Date("2020-04-09", tz = "Europe/London"), -->
+<!--                               end_date = as.Date("2020-05-06",tz = "Europe/London"), plot_chart = TRUE) -->
+
+<!-- plotly::ggplotly(cov_sympt_plot) -->
+<!-- ``` -->
+
+
+
+
+
+
+<!-- Looking at respondents who declared no covid - this is visualised in order to decide whether this group shall be added to the analysis as forming the group 0.  -->
+
+<!-- ```{r, no-covid-symptoms, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE} -->
+
+<!-- library(tidyverse) -->
+<!-- cov_sympt_plot <- cvindia::no_cov(data = data_categ_nosev,start_date = as.Date("2020-04-09", tz = "Europe/London"), -->
+<!--                               end_date = as.Date("2020-05-06",tz = "Europe/London"), plot_chart = TRUE) -->
+
+<!-- plotly::ggplotly(cov_sympt_plot) -->
+<!-- ``` -->
+
+<!-- ```{r, no-cov-comorbidities-symptoms, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE} -->
+<!-- comorb_symptoms_no_cov <- cvindia::symptom_comorbidities_no_cv(data = data_no_sev,start_date = as.Date("2020-04-09", tz = "Europe/London"), -->
+<!--                               end_date = as.Date("2020-05-06",tz = "Europe/London"), plot_chart = TRUE) -->
+
+<!-- plotly::ggplotly(comorb_symptoms_no_cov) -->
+<!-- ``` -->
+

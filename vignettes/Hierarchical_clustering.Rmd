@@ -1,0 +1,353 @@
+---
+title: "Hierarchal Clustering"
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+library(cluster)
+library(plotly)
+library(fpc)
+library(dendextend)
+library(factoextra)
+library(FactoMineR)
+
+```
+
+```{r}
+
+data_cluster <- read_csv("/Users/gabrielburcea/rprojects/data/data_no_sev.csv")
+
+
+data_cluster %>% distinct(covid_tested)
+
+covid_tested_lev <- c("none" = "live_with_scorona")
+
+count_covid <- data_cluster %>%
+  dplyr::select(id, covid_tested) %>%
+  dplyr::mutate(covid_tested = forcats::fct_recode(covid_tested, !!!covid_tested_lev)) %>%
+  dplyr::group_by(covid_tested) %>%
+  dplyr::summarize(Count = n()) %>%
+  dplyr::mutate(Frequency = Count/sum(Count)*100)
+
+count_comorbidities <- data_no_sev_stats %>%
+  dplyr::group_by(number_morbidities) %>%
+  dplyr::summarise(Count = n()) %>% 
+  dplyr::mutate(Frequency = Count/sum(Count)*100)
+  
+  
+
+data_select <- data_cluster %>%
+  dplyr::select(id, covid_tested, country, chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  dplyr::filter(covid_tested != "none") 
+
+
+
+
+
+covid_tested_levels <- c("positive" = "showing symptoms")
+level_key_temperature <- c("Yes" = "37.5-38", 
+                           "Yes" = "38.1-39", 
+                           "Yes" =  "38.2-39",
+                           "Yes" = "39.1-41")
+
+
+
+levels_country <- c ('USA' = "United States of America", 
+                    'United Kingdom' = "Great Britain")
+
+data_transf <- data_select %>% 
+  dplyr::mutate(covid_tested = forcats::fct_recode(covid_tested, !!!covid_tested_levels), 
+                temperature = forcats::fct_recode(temperature, !!!level_key_temperature), 
+                country = forcats::fct_recode(country, !!!levels_country))
+
+data_transf$covid_tested <- as.factor(data_transf$covid_tested)
+data_transf$country <- as.factor(data_transf$country)
+data_transf$chills <- as.factor(data_transf$chills)
+data_transf$cough <- as.factor(data_transf$cough)
+data_transf$diarrhoea <- as.factor(data_transf$diarrhoea)
+data_transf$fatigue <- as.factor(data_transf$fatigue)
+data_transf$headache <- as.factor(data_transf$headache)
+data_transf$loss_smell_taste <- as.factor(data_transf$loss_smell_taste)
+data_transf$muscle_ache <- as.factor(data_transf$muscle_ache)
+data_transf$ nasal_congestion <- as.factor(data_transf$ nasal_congestion)
+data_transf$nausea_vomiting <- as.factor(data_transf$nausea_vomiting)
+data_transf$shortness_breath <- as.factor(data_transf$shortness_breath)
+data_transf$sore_throat <- as.factor(data_transf$sore_throat)
+data_transf$sputum <- as.factor(data_transf$sputum)
+data_transf$temperature <- as.factor(data_transf$temperature)
+
+gather_divided <- data_transf %>%
+  tidyr::pivot_longer(cols = 4:16,
+                      names_to = "Symptom",
+                      values_to = "Severity") %>%
+  dplyr::filter(Severity != "No") %>%
+  dplyr::group_by(Symptom, country) %>%
+  dplyr::summarise(Count = n())
+
+
+# do the proportions 
+
+test_data <-  gather_divided %>% pivot_wider(names_from = Symptom, values_from = Count)
+
+test_data$chills  <- as.numeric(test_data$chills) 
+test_data$cough  <- as.numeric(test_data$cough)
+test_data$diarrhoea  <- as.numeric(test_data$diarrhoea)
+test_data$fatigue  <- as.numeric(test_data$fatigue)
+test_data$headache  <- as.numeric(test_data$headache)
+test_data$loss_smell_taste  <- as.numeric(test_data$loss_smell_taste)
+test_data$muscle_ache  <- as.numeric(test_data$muscle_ache)
+test_data$nasal_congestion  <- as.numeric(test_data$nasal_congestion)
+test_data$nausea_vomiting  <- as.numeric(test_data$nausea_vomiting)
+test_data$shortness_breath  <- as.numeric(test_data$shortness_breath)
+test_data$sore_throat  <- as.numeric(test_data$sore_throat)
+test_data$sputum <- as.numeric(test_data$sputum)
+test_data$temperature <- as.numeric(test_data$temperature)
+
+test_data <- test_data %>% mutate_if(is.numeric, funs(replace_na(., 0)))
+
+#test_data <- na.omit(test_data)
+
+df_scaled <- scale(test_data[2:14]) # not necessarily 
+
+rownames(df_scaled) <- test_data$country
+
+```
+
+```{r}
+# Disimilarity matrix 
+d <- dist(df_scaled, method  = "euclidean")
+
+#Hierarchicla clustering using Complete Linkage
+hc_complete <- hclust(d, method = "complete")
+
+#Plot the obtained dendogram 
+plot(hc_complete, cex = 0.6, hang = -31)
+```
+
+```{r}
+# Compute with agnes 
+hc_agnes <- agnes(df_scaled, method = "complete")
+
+# Agglomerative coeffiecient 
+hc_agnes$ac
+```
+
+```{r}
+#methods to assess
+
+m <- c("average", "single", "complete", "ward")
+
+names(m) <- c("average", "single", "complete", "ward")
+
+ac <- function(x) {
+  
+  agnes(df_scaled, method = x)$ac
+}
+
+map_dbl(m, ac)
+```
+
+```{r}
+hc_agnes_2 <- agnes(df_scaled, method = "ward")
+
+pltree(hc_agnes_2, cex = 0.6, hang = -1, main = "Dendrogram of agnes")
+```
+ Divisive Hierarchicla Clustering 
+
+```{r}
+# compute divisive hierarchical clustering 
+hc_diana<- diana(df_scaled)
+
+# Divisive coefficient; amount of clustering structure found 
+hc_diana$dc
+
+
+#plot dendogram 
+
+pltree(hc_diana, cex = 0.6, hang = -1, main = "Dendogram of diana")
+```
+
+Working with Dendrograms 
+
+```{r}
+
+# Ward's method 
+
+hc_ward_method <- hclust(d, method = "ward.D2")
+
+# Cut tree into 4 groups 
+
+sub_grp <- cutree(hc_ward_method, k = 4)
+
+#Number of countries in each cluster
+table(sub_grp)
+```
+
+
+```{r}
+
+cluster_dt <- test_data %>% mutate(cluster = sub_grp)
+
+cluster_dt
+```
+
+```{r}
+
+plot(hc_ward_method,  cex =0.6)
+
+rect.hclust(hc_ward_method , k = 4, border = 2:5)
+```
+
+```{r}
+fviz_cluster(list(data = df_scaled, cluster = sub_grp))
+```
+
+
+```{r}
+
+# Cut agnes() tree into 4 groups
+hc_a <- agnes(df_scaled, method = "ward")
+cutree(as.hclust(hc_a), k = 4)
+
+# Cut diana() tree into 4 groups
+hc_d <- diana(df_scaled)
+cutree(as.hclust(hc_d), k = 4)
+
+
+```
+
+Comparing two dendograms. Comparing hierarchical clustering with complete linkage versus Ward's method. 
+
+The output displays "unique" nodes, with a combination of labels/items not present in the other treem highlighted wth dashed line.
+The quality of the alignment of the two trees can be measured using the function entanglement. Entanglement is a measure between 1 
+(full entanglement) 0 (no entanglement). A lower entanglement coefficient corresponds to a good alignment. 
+
+```{r}
+
+# Compute distance matrix
+res_dist <- dist(df_scaled, method = "euclidean")
+
+# Compute 2 hierarchical clusterings
+hc_complete <- hclust(res_dist, method = "complete")
+hc_ward <- hclust(res_dist, method = "ward.D2")
+
+# Create two dendrograms
+dend_complete <- as.dendrogram (hc_complete)
+dend_ward <- as.dendrogram (hc_ward)
+
+tanglegram(dend_complete, dend_ward, 
+           margin_inner = 10)
+
+```
+
+
+
+```{r}
+dend_list <- dendlist(dend_complete, dend_ward)
+
+tanglegram(dend_complete, dend_ward, 
+           margin_inner = 10,
+           highlight_distinct_edges = FALSE, #Turn-off dashed line
+           common_subtrees_color_lines = FALSE, # Turn-off line colors
+           common_subtrees_color_branches = TRUE, # Color common branches
+           main = paste("entanglement =", round(entanglement(dend_list),2)))
+```
+
+Determining Optimal Clusters 
+
+Elbow Method - is suggesting 2 clusters - however, we need more data. 
+```{r}
+fviz_nbclust(df_scaled, FUN = hcut, method = "wss")
+```
+
+
+Average Silhouette Method - this method does suggest the same number of clusters just as elbow has indicated.
+```{r}
+fviz_nbclust(df_scaled, FUN = hcut, method = "silhouette")
+```
+
+Gap Statistic Method  - the same 
+```{r}
+
+gap_stat <- clusGap(df_scaled, FUN = hcut, nstart = 25, K.max = 10, B = 50)
+
+fviz_gap_stat(gap_stat)
+
+```
+```{r}
+
+cstats.table <- function(dist, tree, k) {
+  clust.assess <-
+    c(
+      "cluster.number",
+      "n",
+      "within.cluster.ss",
+      "average.within",
+      "average.between",
+      "wb.ratio",
+      "dunn2",
+      "avg.silwidth"
+    )
+  
+  clust.size <- c("cluster.size")
+  
+  stats.names <- c()
+  
+  row.clust <- c()
+  
+  output.stats <- matrix(ncol = k, nrow = length(clust.assess))
+  
+  cluster.sizes <- matrix(ncol = k, nrow = k)
+  for (i in c(1:k)) {
+    row.clust[i] <- paste("Cluster-", i, " size")
+  }
+  for (i in c(2:k)) {
+    stats.names[i] <- paste("Test", i - 1)
+    
+    for (j in seq_along(clust.assess)) {
+      output.stats[j, i] <-
+        unlist(cluster.stats(d = dist, clustering = cutree(tree, k = i))[clust.assess])[j]
+      
+    }
+    
+    for (d in 1:k) {
+      cluster.sizes[d, i] <-
+        unlist(cluster.stats(d = dist, clustering = cutree(tree, k = i))[clust.size])[d]
+      dim(cluster.sizes[d, i]) <- c(length(cluster.sizes[i]), 1)
+      cluster.sizes[d, i]
+      
+    }
+  }
+  
+  output.stats.df <- data.frame(output.stats)
+  cluster.sizes <- data.frame(cluster.sizes)
+  cluster.sizes[is.na(cluster.sizes)] <- 0
+  rows.all <- c(clust.assess, row.clust)
+  # rownames(output.stats.df) <- clust.assess
+  output <- rbind(output.stats.df, cluster.sizes)[, -1]
+  colnames(output) <- stats.names[2:k]
+  rownames(output) <- rows.all
+  is.num <- sapply(output, is.numeric)
+  output[is.num] <- lapply(output[is.num], round, 2)
+  output
+}
+
+
+```
+
+
+```{r}
+stats_hc_complete <- cstats.table(res_dist, hc_complete, 4)
+
+stats_hc_complete
+
+```
+
+
+
+```{r}
+stats_clust_ward <- cstats.table(res_dist, hc_ward, 4)
+
+stats_clust_ward
+```

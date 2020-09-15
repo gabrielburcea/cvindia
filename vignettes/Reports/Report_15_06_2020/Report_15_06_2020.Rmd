@@ -1,0 +1,1067 @@
+---
+title: "R Notebook"
+output:
+  word_document: default
+  html_notebook: default
+---
+
+
+
+
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(
+  
+  collapse = TRUE, 
+  comment = "#>", 
+  echo = FALSE,
+  warning= FALSE, 
+  message = FALSE
+)
+
+```
+
+
+```{r  include=FALSE, echo=TRUE}
+
+
+library(tidymodels)
+library(readr)
+library(dplyr)
+library(corrr)
+library(tidyverse)
+library(conflicted)
+library(tidymodels)
+library(ggrepel)
+library(corrplot)
+library(dplyr)
+library(corrr) 
+library(themis)
+library(rsample)
+library(caret)
+library(forcats)
+library(rcompanion)
+library(MASS)
+library(pROC)
+library(ROCR)
+library(data.table)
+library(ggplot2)
+
+conflict_prefer("step", "stats")
+
+### ML for Mixed - categorical and numerica data ####
+
+```
+
+
+
+```{r}
+
+data_categ_nosev <- readr::read_csv("/Users/gabrielburcea/Rprojects/data/data_lev_categorical_no_sev.csv")
+
+data_categ_nosev_depend_var <- data_categ_nosev %>%
+  dplyr::select(Covid_tested)
+
+
+data_categ_nosev$Country <- NULL
+```
+
+
+
+```{r}
+# Recoding age as some respondents are randomly choosing age above 200 
+data_categ_nosev <- data_categ_nosev %>%
+  dplyr::mutate(age_rec = replace(Age, Age > 100, NA_real_)) %>%
+  drop_na()
+
+data_categ_nosev %>% 
+  distinct(temperature)
+
+data_categ_nosev <- data_categ_nosev %>%
+  dplyr::mutate(age_band = dplyr::case_when(
+    age_rec == 0 | age_rec <= 20 ~ '0-20',
+    age_rec == 21 | age_rec <= 30 ~ '21-30',
+    age_rec == 31 | age_rec <= 40 ~ '31-40',
+    age_rec == 41 | age_rec <= 50 ~ '41-50',
+    age_rec == 51 | age_rec <= 60 ~ '51-60',
+    age_rec == 61 | age_rec <= 70 ~ '61-70',
+    age_rec == 71 | age_rec <= 80 ~ '71-80',
+    age_rec == 81 | age_rec <= 90 ~ '81-100'))
+
+
+data_categ_nosev <- data_categ_nosev %>%
+  dplyr::mutate(temperature= dplyr::case_when(
+    temperature == "No" ~ '37', 
+    temperature == "37.5-38" ~ "37.5-38",
+    temperature == "38.1-39" ~ "38.1-39",
+    temperature == "39.1-41" ~ "39.1-41"
+  ))
+
+
+temp_rec <- data_categ_nosev %>% 
+  distinct(temperature)
+
+temp_rec
+```
+
+
+```{r}
+
+###########################################################################################
+### Transforming variables in factor format ###############################################
+#data_categ_nosev$country <- as.factor(data_categ_nosev$country)
+data_categ_nosev$chills <- as.factor(data_categ_nosev$chills)
+data_categ_nosev$cough  <- as.factor(data_categ_nosev$cough)
+data_categ_nosev$Gender <- as.factor(data_categ_nosev$Gender)
+data_categ_nosev$Covid_tested <- as.factor(data_categ_nosev$Covid_tested)
+data_categ_nosev$diarrhoea  <- as.factor(data_categ_nosev$diarrhoea)
+data_categ_nosev$fatigue  <- as.factor(data_categ_nosev$fatigue)
+data_categ_nosev$headache   <- as.factor(data_categ_nosev$headache)
+data_categ_nosev$loss_smell_taste   <- as.factor(data_categ_nosev$loss_smell_taste)
+data_categ_nosev$muscle_ache  <- as.factor(data_categ_nosev$muscle_ache)
+data_categ_nosev$nasal_congestion <- as.factor(data_categ_nosev$nasal_congestion)
+data_categ_nosev$nausea_vomiting  <- as.factor(data_categ_nosev$nausea_vomiting)
+data_categ_nosev$self_diagnosis <- as.factor(data_categ_nosev$self_diagnosis)
+data_categ_nosev$shortness_breath <- as.factor(data_categ_nosev$shortness_breath)
+data_categ_nosev$sore_throat <- as.factor(data_categ_nosev$sore_throat)
+data_categ_nosev$sputum <- as.factor(data_categ_nosev$sputum)
+data_categ_nosev$temperature  <- as.factor(data_categ_nosev$temperature)
+data_categ_nosev$health_care_worker <- as.factor(data_categ_nosev$health_care_worker)
+data_categ_nosev$care_home_worker <- as.factor(data_categ_nosev$care_home_worker)
+### Transforming variables in numerical format  #########################################################
+data_categ_nosev$asthma   <- as.factor(data_categ_nosev$asthma)
+data_categ_nosev$diabetes_type_two <- as.factor(data_categ_nosev$diabetes_type_two)
+data_categ_nosev$obesity <- as.factor(data_categ_nosev$obesity)
+data_categ_nosev$hypertension  <- as.factor(data_categ_nosev$hypertension)
+data_categ_nosev$heart_disease  <- as.factor(data_categ_nosev$heart_disease)
+data_categ_nosev$kidney_disease <- as.factor(data_categ_nosev$kidney_disease)
+data_categ_nosev$lung_condition <- as.factor(data_categ_nosev$lung_condition)
+data_categ_nosev$liver_disease <- as.factor(data_categ_nosev$liver_disease)
+data_categ_nosev$diabetes_type_one <- as.factor(data_categ_nosev$diabetes_type_one)
+data_categ_nosev$how_unwell <- as.numeric(data_categ_nosev$how_unwell)
+data_categ_nosev$number_days_symptoms <- as.numeric(data_categ_nosev$number_days_symptoms)
+data_categ_nosev$Age <- as.numeric(data_categ_nosev$Age)
+data_categ_nosev$temperature <- as.factor(data_categ_nosev$temperature)
+#data_categ_nosev$covid_tested <- as.factor(data_categ_nose
+```
+
+
+
+
+# Introduction 
+
+I have undertaken several steps in modeling: 
+- I have looked at age variable and compared it to the comorbidities, thus attempting to find some age band groupings 
+- I have added counts of gender as well as patients that declare whether they are covid tested negative, positive or showing symptoms of covid (that never been tested)
+- added a correlation matrix 
+- I have used stepwise logistic regression , with forward method(see Appendices) 
+- taken out covid_tested variable and fatigue (as it seems to be correlated with muscle ache - the highest score (0.453) yet not even reaching 0.50; But took it out from the analysis
+- I, then build the final model based on stepwise logistic model output
+- I have computed the odd ratios 
+- I have computed the confidence intervals
+- I have also reported the findings just to check whether I write well the findings
+- however, not sure whether I shall report age - how to report them as I am trying to understand more on how to group age and age bands
+- 
+
+Yet, what I have to consider is: 
+- adjusting for multiple testing?
+- variance inflation factor (some are even calling this multiconlinearity but not sure of myself)?
+- and the last stage would be comparing the findings between all models
+- but also trying to understand the concept of confounders in health statistics 
+
+
+# Exploring the data 
+
+Age variable may not fit the model well. Therefore, I am calculating the percentages of age with comorbidities and see whether I can spot any age groups. I have 9 comorbidities and will take age and calculate the percentages. Obesity, diabetes type I and II, asthma, hypertension, heart_disease, lung condition, liver disease and kidney disease are the variables that would be calculated against age with the purpose of whether we can spot different age bands. Yet, analysis revealed different age bands based on observations made when observed towards different comorbidity groups. Yet, if I choose different age bands are these, then comparable? I thought it is worth keeping similar age bands across different models for the sake of comparability?I I will therefore, keep the age bands as 0-20, 21-30, 31 - 40, 41 -50, 51-60, 61-70, 71-80, 81-100, for the sake of comparability. But I have to check with more collegues on this. 
+
+# Obesity by age. 
+
+The plot suggests some groups. From 0-20 we have first group since no obese in this group. However, with the increase of obesity from 20 years old to approx 40, we may have another age group, but we can see that from 20-30 obesity is increasing and then it starts decreasing from 30 to 40 and even towards 50 and 60 years of age. However, from aprox 60 to 80 it is show less obesity, with 80 to 100 no obesity. Therefore, the age groups are 0-20, 21-30, 31-40, 41-50,  51-60, 61-70, 71-80, 80-100. 
+
+```{r}
+# Calculate the percentage of obese respondents across age in my dataset
+obesity_age <- data_categ_nosev %>%
+   dplyr::select(age_rec, obesity) %>%
+  dplyr::filter(obesity == "Yes") %>%
+  group_by(age_rec) %>%
+  tally() %>%
+  dplyr::mutate(Percentage = n/sum(n))
+
+obesity_age
+plot(obesity_age$age_rec, obesity_age$Percentage)
+```
+
+# Diabetes type I
+Similar to obesity, the same groups can be spotted with the difference in groups 20-30 since there seem to be less respondents suffering of diabetes type 1, compared to 30 and 40 age group. 40 to 60 would form another group. Whereas 60 to 70 years of age and 80 to 100 would be treated as different groups.Thus, 0-20, 21 -30, 31-40, 41-60, 61-70, 70-80, 81-100. 
+
+```{r}
+
+# Diabetes type I 
+
+diabetes_age <- data_categ_nosev %>%
+   dplyr::select(age_rec, diabetes_type_one) %>%
+  dplyr::filter(diabetes_type_one== "Yes") %>%
+  group_by(age_rec) %>%
+  tally() %>%
+  dplyr::mutate(Percentage = n/sum(n))
+diabetes_age
+
+#plot
+plot(diabetes_age$age_rec, diabetes_age$Percentage)
+
+
+```
+
+# Diabetes type II
+As the plot suggests, following groups may be formed, 0-20, 21-30, 31-40, 41-60, 61-70, 71-80, 80-100. 
+
+```{r}
+
+# Diabetes type II
+
+diabetes_two <- data_categ_nosev %>%
+  dplyr::select(age_rec, diabetes_type_two) %>%
+  dplyr::filter(diabetes_type_two == "Yes") %>%
+  group_by(age_rec) %>%
+  tally() %>%
+  dplyr::mutate(Percentages = n/sum(n))
+
+# plot
+plot(diabetes_two$age_rec, diabetes_two$Percentages)
+```
+
+# Asthma
+Asthma reveals the same patters with difference in 25 to 40 years of age, although debatable. Therefore the groups chosen for asthma modelling are 0-20, 21-30, 31-40, 41-50, 51-60, 61-70, 71-80, 81-100. 
+
+```{r}
+# Asthma and age
+
+asthma_age <- data_categ_nosev %>%
+  dplyr::select(age_rec,asthma) %>%
+  dplyr::filter(asthma == "Yes") %>%
+  group_by(age_rec) %>%
+  tally() %>%
+  dplyr::mutate(Percentages = n/sum(n))
+
+asthma_age
+# plot
+plot(asthma_age$age_rec, asthma_age$Percentages)
+```
+# Hypertension
+Hypertension and age shows similiarities with previous plots. Therefore, the age_bands are 0-20, 21-30, 31-40, 41-50, 51-60, 61-70, 71-80, 81-100. 
+
+```{r}
+# Hypertension and age 
+hyperthension_age <- data_categ_nosev %>%
+  dplyr::select(age_rec,hypertension) %>%
+  dplyr::filter(hypertension == "Yes") %>%
+  group_by(age_rec) %>%
+  tally() %>%
+  dplyr::mutate(Percentages = n/sum(n))
+
+hyperthension_age
+# plot
+plot(hyperthension_age$age_rec, hyperthension_age$Percentages)
+```
+
+# Heart disease
+
+Heart disease by age. The plot reveals different groups - 0-20, 21-30, 31-40, 41-50, 51-70, 71-80, 80-100. 
+
+```{r}
+
+# Heart and age 
+heart_disease_age <- data_categ_nosev %>%
+  dplyr::select(age_rec,heart_disease) %>%
+  dplyr::filter(heart_disease == "Yes") %>%
+  group_by(age_rec) %>%
+  tally() %>%
+  dplyr::mutate(Percentages = n/sum(n))
+heart_disease_age
+
+# plot
+plot(heart_disease_age$age_rec, heart_disease_age$Percentages)
+
+```
+
+
+# Lung condition
+Lung condidition by age.Groups emerging such as 0-20, 21-30, 31-40, 41-60, 61-70, 71-80, 80-100. 
+
+```{r}
+
+# Lung conditions and age 
+lunc_cond_age <- data_categ_nosev %>%
+  dplyr::select(age_rec,lung_condition) %>%
+  dplyr::filter(lung_condition == "Yes") %>%
+  group_by(age_rec) %>%
+  tally() %>%
+  dplyr::mutate(Percentages = n/sum(n))
+
+# plot
+plot(lunc_cond_age$age_rec, lunc_cond_age$Percentages)
+
+```
+
+# Liver disease 
+
+Liver disease ha hig variation within the groups of 30 all the way to 40, the same as for the 40 to 50, yet not as in the 30 and 40 group. I would create groups from 0-20, 21-30, 31-40, 41-50, 51-60, 61-80. 80-100. 
+
+```{r}
+# Liver disease and age 
+liver_disease_age <- data_categ_nosev %>%
+  dplyr::select(age_rec,liver_disease) %>%
+  dplyr::filter(liver_disease == "Yes") %>%
+  group_by(age_rec) %>%
+  tally() %>%
+  dplyr::mutate(Percentages = n/sum(n))
+
+# plot liver disease 
+plot(liver_disease_age$age_rec, liver_disease_age$Percentages)
+```
+
+# Kidney disease 
+Kindney disease is suggesting more or less the same grouping. From 0-20, 21-30, 31-40, 41-60, 61-80, 80-100. 
+
+```{r}
+
+kidney_disease_age <- data_categ_nosev %>%
+  dplyr::select(age_rec,kidney_disease) %>%
+  dplyr::filter(kidney_disease == "Yes") %>%
+  group_by(age_rec) %>%
+  tally() %>%
+  dplyr::mutate(Percentages = n/sum(n))
+
+# plot liver disease 
+plot(kidney_disease_age$age_rec, kidney_disease_age$Percentages)
+
+```
+
+# Conclusion 
+As a conclusion, obesity, diabetes type I, asthma, hypertension suggest same age grouping, from 0-20, 21-30, 31 - 40, 41 -50, 51-60, 61-70, 71-80, 81-100. Yet, diabetes type II and lung condition and kidney disease suggest that 41 to 60 year olds may be grouped within the same age band. Heart disease suggest age bands from 51-70 and liver disease and kidney disease suggest 61 to 80 years olds forming the same age bands. 
+
+However, if I have different age bands for different models, are these, then comparable? Is it worth keeping similar age bands across different models for the sake of comparability? I will therefore, keep the age bands as 0-20, 21-30, 31 - 40, 41 -50, 51-60, 61-70, 71-80, 81-100, for the sake of comparability. 
+
+
+# Gender 
+
+How many male and female we have in our dataset? There are 33.957 male accounting for 56 percent whilst femlae are 26.574 accounting for 44 percent and we have very low percent of other group. As observed, there are 6.383 more male than female. 
+
+```{r, echo=F, results= 'asis', fig.height=5, fig.width=7}
+
+gender_tb <- data_categ_nosev %>%
+  dplyr::select(ID, Gender) %>%
+  dplyr::group_by(Gender) %>%
+  tally() %>%
+  dplyr::mutate(percent = n/sum(n))
+
+gender_tb
+
+bp <- ggplot2::ggplot(gender_tb, aes(x = "", y = percent, fill = Gender)) + 
+  geom_bar(width = 1, stat = "identity")
+
+pie <- bp + ggplot2::coord_polar("y", start = 0) + 
+  ggplot2::scale_fill_brewer(palette = "Blues") +
+  ggplot2::theme(axis.text.x = ggplot2::element_blank())
+
+pie
+```
+
+
+# Covid tested positive, negative, showing symptoms
+
+I have recorded showing symptoms on its own category since a lot of respondents have not been tested but declare they show symptoms. 
+I am keeping this three categories as they are since I am not attempting any predictive modeling but rather looking to differences and similarities symptoms of Covid in different comorbidity groups. 
+
+
+Table bellow is showing there are 8748 respondents showing symptoms but not tested, 713 tested positive and 51.351 are negative. 
+```{r, echo=F, results= 'asis', fig.height=5, fig.width=7}
+# Reading numerical data for the purpose of correlations. 
+data_num_with_severity <- read.csv("/Users/gabrielburcea/Rprojects/data/data_numerical.csv", header = TRUE, sep = ",")
+
+pos_neg_show_symtp <-data_num_with_severity %>%
+  dplyr::select(ID, covid_tested) %>%
+  dplyr::group_by(covid_tested) %>%
+  tally()
+
+
+pos_neg_show_symtp
+```
+
+
+# Correlations 
+
+Correlations matrix is done on numerical variables. However, I have transformed the categorical variables into numerical ones, as I cannot correlate all categorical variables once. From the correlation matrixt, it is noticed, fatigue and muscle ache seem to be correlated, but only with 0.43550, the highest correlation. Yet, for the highest correlation, it is not even passing the 0.5. However, I choose to take out of the analysis the fatigue variable. 
+
+
+```{r, echo=F, results= 'asis', fig.height=5, fig.width=7}
+###################################
+#######Corelations ################
+
+correlation_num_dt <- data_num_with_severity  %>%
+  dplyr::select_if(is.numeric) %>%
+  corrr::correlate(x = .,
+                   method = "spearman", 
+                   quiet = TRUE) %>%
+  corrr::rearrange(x =., 
+                   method = "MDS", 
+                   absolute = FALSE)
+
+correlation_num_dt
+
+
+rplot_labs_v1 <- ggplot2::labs(
+  title = "Correlations - symptoms and comorbidities", 
+  subtitle = "Symptoms and Commorbidities", 
+  caption = "Data accessed from Your.md")
+
+#As we can see, the hue of the color and the size of the point indicate the level of the correlation
+
+correlated_vars_plot <- correlation_num_dt %>%
+  corrr::rplot(rdf = ., shape = 19, 
+               colors = c("yellow", 
+                          "purple")) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
+  rplot_labs_v1
+
+correlated_vars_plot
+
+
+```
+
+# Analysis 
+
+
+```{r}
+
+# Choosing data
+obesity_data <- data_categ_nosev %>%
+  dplyr::select(obesity, Gender, age_band, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+
+
+#asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension,heart_disease, lung_condition, liver_disease, kidney_disease,
+```
+
+# Obesity 
+ 
+What are the Covid-19 symptoms associated with obesity? The model has been achieved by using stepwise logistic modeling, using forward method approach. I have used result from stepwise model to build the final model. 
+
+```{r}
+obesity_final <- glm(obesity ~ muscle_ache + sputum + diarrhoea + 
+    shortness_breath + loss_smell_taste + temperature + age_band + Gender, data = obesity_data, family = "binomial")
+
+summary(obesity_final)
+```
+
+
+When adjusting for all variables, for obese group, the results show (strong) evidence for an association between Covid-19 symptoms such as: 
+- muscle ache, shortness of breath, loss of smell and taste temperature (p≤0.05) for obese patients
+- sputum and diarrhea for obese respondents (p≤ 0.01). 
+
+Obese respondents are: 
+- 3 times more likely to experience muscle ache compared to those who do not
+- are 1 time more likely to experience shortness of breath compared to those who do not
+- and 2 times more likely to experience temperature compared to those who do not. 
+
+
+```{r}
+# Confidence intervals 
+confint(obesity_final)
+
+#Put the coefficients and confidence intervals onto a useful scale
+conf_int <- exp(confint(obesity_final)) 
+conf_int
+```
+
+
+```{r}
+
+coeficients_obesity <- coef(obesity_final)
+
+# odd ratios 
+odd_ratios_obesity <- (exp(coeficients_obesity)-1)*100
+odd_ratios_obesity 
+```
+
+
+# Asthma
+
+Next question to be addressed is what are the Covid-19 symptoms associated with asthma? 
+The final model has been achieved through stepwise method, see appendices. 
+
+```{r}
+
+asthma_data <- data_categ_nosev %>%
+  dplyr::select(asthma, Gender, age_band, chills, cough, diarrhoea,  headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+
+
+#asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension,heart_disease, lung_condition, liver_disease, kidney_disease,
+```
+
+
+When adjusting for all variables, for asthmatic patients, the results show a strong association: 
+- of Covid-19 symptoms such as (shorthness of breath and temperature (p≤0.001)
+- of other symptoms such as  sputum and sore throat (p≤0.001)  
+
+Moreover, asthmatic patients are: 
+- almost 2 times more likely to experienced shortness of breath compared to those at baseline(negative response); 
+- 3 times more likely to experience sputum than those at the baseling(negative response). 
+- 8 times more likely to experience 39.1-41 temperature compared to those at baseline(negative response). 
+```{r}
+asthma_final <- glm(asthma ~ shortness_breath + sputum + sore_throat + 
+    temperature + Gender + age_band,  data = asthma_data, family = "binomial")
+summary(asthma_final)
+```
+
+
+
+```{r}
+coeficients_asthma <- coef(asthma_final)
+
+# odd ratios 
+odd_ratios_asthma <- (exp(coeficients_asthma)-1)*100
+odd_ratios_asthma
+```
+
+```{r}
+# Confidence intervals 
+confint(asthma_final)
+```
+
+```{r}
+#Put the coefficients and confidence intervals onto a useful scale
+exp(confint(asthma_final))  
+```
+
+# Diabetes type I
+Third question is what are the factors associated with diabetes type I?
+See appendinces for stepwise selection method that was used to aid the findings of variables which are statisically relevant of this comorbidity. 
+
+```{r}
+
+diabetes_1_data <- data_categ_nosev %>%
+  dplyr::select(diabetes_type_one, Gender, age_band, chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+
+
+#asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension,heart_disease, lung_condition, liver_disease, kidney_disease,
+```
+
+
+When adjusting for all variables, for diabetes type 1 comorbidity group, the results show strong evidence of association:
+- of Covid-19 symptoms (cough, temperature - p≤0.05)
+
+Evidence shows patients with diabetes type I are: 
+- 4 times more likely to experience cough compared to those at the baseline(negative response)
+- 4 times more likely to experience 37.5-38 temperature; 
+- 8 times more likely to experience 38.1-39 and 
+- 39- 41 temperature compared to those who do not have temperature.  
+```{r}
+diabetes_1_final <- glm(diabetes_type_one ~ cough + muscle_ache + temperature + sore_throat + age_band + Gender, data = diabetes_1_data, family = "binomial")
+
+summary(diabetes_1_final)
+```
+
+```{r}
+coeficients_diabetes_one <- coef(diabetes_1_final)
+
+# odd ratios 
+odd_ratios_diab_one <- (exp(coeficients_diabetes_one)-1)*100
+odd_ratios_diab_one
+```
+
+```{r}
+# Confidence intervals 
+confint(diabetes_1_final)
+```
+
+
+```{r}
+
+#Put the coefficients and confidence intervals onto a useful scale
+exp(confint(diabetes_1_final))  
+```
+
+
+# Diabetes type 2 
+
+Fourth question is what are the factors associated with diabetes type 2?
+See appendices for stepwise selection method that was used to aid the findings of variables which are statisically relevant of diabetes type II. 
+
+```{r}
+
+diabetes_2_data <- data_categ_nosev %>%
+  dplyr::select(diabetes_type_two, Gender, age_band, chills, cough, diarrhoea,  headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+#asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension,heart_disease, lung_condition, liver_disease, kidney_disease,
+```
+
+
+When adjusting for all variables, for diabetes type 2 group, the results show strong evidence of associations: 
+- of Covid-19 symptoms (temperature and nausea and vomiting - p≤0.01)
+
+Moreover, respondents suffering of diabetes type two are: 
+- almost 4 times more likely to experience 37.5-38 temperature, 
+- almost 9 times more likely to experience 38.1 -39 and 39.1-41 temperature. 
+
+```{r}
+diabetes_2_final <- glm(diabetes_type_two ~  sore_throat + cough + 
+    temperature + headache + chills + loss_smell_taste + nausea_vomiting + age_band + Gender, data = diabetes_2_data, family = "binomial")
+summary(diabetes_2_final)
+```
+
+
+```{r}
+coeficients_diabetes_two <- coef(diabetes_2_final)
+
+# odd ratios 
+odd_ratios_diab_two <- (exp(coeficients_diabetes_two)-1)*100
+odd_ratios_diab_two
+```
+
+
+Confidence intervals diabetes type 2
+```{r}
+# Confidence intervals 
+confint(diabetes_2_final)
+
+ 
+```
+
+
+```{r}
+#Put the coefficients and confidence intervals onto a useful scale
+exp(confint(diabetes_2_final)) 
+```
+
+
+
+# Hypertension 
+Fifth question is what are the Covid-19 symptons hypertensive patients are experiencing? 
+
+```{r}
+
+hypertension_data <- data_categ_nosev %>%
+  dplyr::select(hypertension,  Gender, age_band, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+
+
+#asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension,heart_disease, lung_condition, liver_disease, kidney_disease,
+```
+
+When adjusting for all variables, for the hypertensive patients, the results show strong evidence: 
+- of associations of Covid-19 symptoms such as muscle ache, temperature, cough
+- and other symptoms such as sputum, nasal congestion, diarrhea (p≤0.05)
+
+Moreover, respondents suffering of hypertension are:
+- almost 2 times more likely to experience muscle ache 
+- almost 3 times more to experience 38.1-39 temperature
+- and almost 4 times more likely to experience 39.1-41 temperature   
+- 6 times more likely to experience cough compared 
+- 1 time more likely to experience sputum
+- 7 times more likely to experience nasal congestion
+- and 1 times more likely to experience diarrhea
+
+```{r}
+
+hypertension_final <- glm(hypertension ~  muscle_ache + sputum + chills + 
+    nasal_congestion + temperature + diarrhoea + loss_smell_taste + 
+    cough + age_band + Gender , family = "binomial", data = hypertension_data)
+
+summary(hypertension_final)
+```
+
+
+
+```{r}
+coeficients_hypertension <- coef(hypertension_final)
+
+# odd ratios 
+odd_ratios_hyper <- (exp(coeficients_hypertension)-1)*100
+odd_ratios_hyper
+```
+
+Confidence intervals for hypertension model
+```{r}
+
+# Confidence intervals 
+confint(hypertension_final)
+```
+ 
+ 
+```{r}
+#Put the coefficients and confidence intervals onto a useful scale
+exp(confint(hypertension_final))  
+
+```
+
+
+# Heart disease
+
+Sixth question is what are the Covid-19 symptoms respondents with heart disease are experiencing? 
+
+```{r}
+
+heart_data <- data_categ_nosev %>%
+  dplyr::select(heart_disease,  Gender, age_band, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+
+
+#asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension,heart_disease, lung_condition, liver_disease, kidney_disease,
+```
+
+
+When adjusting for all variables, for the heart disease group, results show strong evidenceof association: 
+- of Covid-19 symptoms such as shortness of breath, muscle ache, temperature (p≤0.05)
+- and other symptoms such as chills and nausea and vomiting for respondents with heart disease
+
+Respondents with heart disease are: 
+- 6 times more likely to experience shortness of breath
+- almost 2 times more likely to experience muscle ache
+- almost 2 times more likely to have 37.5-38 temperature
+- 7 times more likely to experience 38.1-39 temperature 
+- 2 times more likely to show 39.1-40 in temperature rise
+- 5 times more likely to experience chills 
+- 6 times more likely to experience nausea and vomiting
+
+```{r}
+
+heart_final <- glm(heart_disease ~  shortness_breath + muscle_ache + temperature + chills + 
+    nausea_vomiting + headache + age_band + Gender, family = "binomial", data = heart_data)
+
+summary(heart_final)
+```
+
+
+
+```{r}
+coeficients_heart <- coef(heart_final)
+
+# odd ratios 
+odd_ratios_heart <- (exp(coeficients_heart)-1)*100
+odd_ratios_heart
+```
+
+
+Confidence Intervals for heart disease model 
+
+```{r}
+# Confidence intervals 
+confint(heart_final)
+
+
+```
+
+Put the coefficients and confidence intervals onto a useful scale
+
+```{r}
+#Put the coefficients and confidence intervals onto a useful scale
+exp(confint(heart_final))  
+```
+
+# Lung disease 
+
+Seventh question is what are the Covid-19 symptoms respondents with lung disease experience? 
+
+```{r, echo = FALSE, results = 'asis', fig.height=5, fig.width= 6}
+
+lungc_data <- data_categ_nosev %>%
+  dplyr::select(lung_condition,  Gender, age_band, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+
+
+#asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension,heart_disease, lung_condition, liver_disease, kidney_disease,
+```
+
+
+When adjusting for all variables, for respondents with lung diseases, results reveal strong evidence of associations:
+- of Covid-19 symptoms such as shorthness of breath, musce ache and cough (p≤0.001) 
+- as well as nausea and vomiting (p≤0.01)
+
+Moreover, patients with lung condition are: 
+- 1 time more likely to experience shortness of breath 
+- 3 times more likely to experience muscle ache 
+-  2 times more likely to experience cough  
+- 8 times more likely to experience temperature between 37.5 - 38
+- 7 times more likely to experience temperature between 39.1 - 41 
+- almost 8 times more likely to experience sputum 
+- 4 times more likely to experience nausea and vomiting
+```{r}
+lung_final <- glm(lung_condition ~  shortness_breath + muscle_ache + cough + sputum + temperature + 
+    sore_throat + nausea_vomiting + headache + age_band + Gender, family = "binomial", data = lungc_data)
+
+summary(lung_final)
+```
+
+
+
+```{r}
+coeficients_lung <- coef(lung_final)
+
+# odd ratios 
+odd_ratios_lung <- (exp(coeficients_lung)-1)*100
+odd_ratios_lung
+```
+
+
+Confidence intervals for lung disease
+```{r}
+
+# Confidence intervals 
+confint(lung_final)
+```
+
+
+```{r}
+#Put the coefficients and confidence intervals onto a useful scale
+exp(confint(lung_final))  
+
+
+```
+
+
+#Liver disease
+
+Eighth question is what are the Covid-19 symptos patients with liver disease are experiencing? 
+
+
+```{r}
+
+liver_data <- data_categ_nosev %>%
+  dplyr::select(liver_disease,  Gender, age_band, chills, cough, diarrhoea,  headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+
+
+#asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension,heart_disease, lung_condition, liver_disease, kidney_disease,
+```
+
+When adjusting for all variables, for the liver disease group, results reveal strong evidence: 
+- of association of Covid-19 symptoms such as muscle ache and temperature (p≤0.001) 
+- as well as other symptoms sch as nausea, chills and sputum (p≤0.001) 
+
+This group is: 
+- 8 times more likely to experience muscle ache 
+- almost 3 times more likely to experience increase in  37.5 -38 temperature
+- 4 times more likely increase in 38.1 -39 temperature 
+- 3 times more likely increase in 39.1-41 temperature 
+- is 2 times more likely to experience nausea and vomiting 
+- is almost 5 times to more likely to experience sputum 
+- almost 5 times more likely to experience chills
+
+```{r}
+liver_final <- glm(liver_disease ~ muscle_ache + temperature + nausea_vomiting  + chills +  sputum + age_band + Gender,  family = "binomial", data = liver_data)
+
+summary(liver_final)
+```
+
+
+```{r}
+coeficients_liver <- coef(liver_final)
+
+# odd ratios 
+odd_ratios_liver <- (exp(coeficients_liver)-1)*100
+odd_ratios_liver
+```
+
+
+
+Confidence intervals for liver disease model 
+
+```{r}
+# Confidence intervals 
+confint(liver_final)
+```
+
+
+```{r}
+#Put the coefficients and confidence intervals onto a useful scale
+exp(confint(liver_final))  
+```
+
+
+# Kidney disease 
+And finaly, the ninth question is what are the symptoms kidney disease patients are experiencing? 
+
+
+```{r}
+
+kidney_data <- data_categ_nosev %>%
+  dplyr::select(kidney_disease, Gender, age_band, chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  drop_na()
+
+
+#asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension,heart_disease, lung_condition, liver_disease, kidney_disease,
+```
+
+
+When adjusting for all variables, for respondets with kidney disease, results show strong evidence of associations of:
+- Covid-19 symptoms (loss of smell and test, cough muscle ache, shortness of breath and temperature (p≤0.05))
+- and other symptoms such as sore throat
+
+Patients with kidney disease are: 
+
+- 1 time more likely to experience loss of smell and taste
+- almost 3 times more likely to experience shortness of breath
+- 3 times more likely to experience muscle ache
+- almost 4 times likely to experience cough
+- almost 8 times to experience 37.5-38 temperature  increase
+- 7 times more likely to experience 38.1-29 temperature increase
+- 4 times more likely to experience 39.1-41 temperature increase4
+- 2 times more likely to expereince sore throat
+```{r}
+kidney_final <- glm(kidney_disease ~ loss_smell_taste + cough + muscle_ache + shortness_breath + temperature + chills +  sore_throat + age_band + Gender, family = "binomial", 
+    data = kidney_data)
+
+summary(kidney_final)
+```
+
+```{r}
+coeficients_kidney <- coef(kidney_final)
+
+# odd ratios 
+odd_ratios_kidney <- (exp(coeficients_kidney )-1)*100
+odd_ratios_kidney
+```
+
+
+Confidence intervals for kidney disease
+
+```{r}
+confint(kidney_final)
+```
+
+
+```{r}
+# Put coefficients on a useful scale
+exp(confint(kidney_final))  
+```
+
+
+
+
+
+## Appendices
+
+# Stepwise model
+
+Obesity
+
+```{r}
+obesity_null_model <- glm(obesity ~ 1, data = obesity_data, family = "binomial")
+
+fm_obesity <- glm(obesity ~., data = obesity_data, family ="binomial")
+
+stepmodel_obesity <- step(obesity_null_model, scope = list(lower = obesity_null_model, upper = fm_obesity), direction = "forward")
+```
+
+Obesity summary model
+```{r}
+summary(stepmodel_obesity)
+```
+
+
+
+Asthma 
+
+```{r}
+asthma_null_model <- glm(asthma ~ 1, data = asthma_data, family = "binomial")
+
+fm_asthma <- glm(asthma ~., data = asthma_data, family ="binomial")
+
+stepmodel_asthma <- step(asthma_null_model, scope = list(lower = asthma_null_model, upper = fm_asthma), direction = "forward")
+```
+
+
+
+Diabetes type I
+
+
+```{r}
+diabetes_1_null_model <- glm(diabetes_type_one ~ 1, data = diabetes_1_data, family = "binomial")
+
+fm_diabetes_1 <- glm(diabetes_type_one ~., data = diabetes_1_data, family ="binomial")
+
+stepmodel_diabetes_1 <- step(diabetes_1_null_model, scope = list(lower = diabetes_1_null_model, upper = fm_diabetes_1), direction = "forward")
+```
+
+Diabetes type II
+
+
+```{r}
+diabetes_2_null_model <- glm(diabetes_type_two ~ 1, data = diabetes_2_data, family = "binomial")
+
+fm_diabetes_2 <- glm(diabetes_type_two ~., data = diabetes_2_data, family ="binomial")
+
+stepmodel_diabetes_2 <- step(diabetes_2_null_model, scope = list(lower = diabetes_2_null_model, upper = fm_diabetes_2), direction = "forward")
+```
+
+
+Hypertension
+
+```{r}
+hypertension_null_model <- glm(hypertension ~ 1, data = hypertension_data, family = "binomial")
+
+fm_hypertension <- glm(hypertension ~., data = hypertension_data, family ="binomial")
+
+stepmodel_hypertension <- step(hypertension_null_model, scope = list(lower = hypertension_null_model, upper = fm_hypertension), direction = "forward")
+```
+
+
+
+Heart disease  
+
+```{r}
+heart_null_model <- glm(heart_disease ~ 1, data = heart_data, family = "binomial")
+
+fm_heart <- glm(heart_disease ~., data =heart_data, family ="binomial")
+
+stepmodel_heartd <- step(heart_null_model, scope = list(lower = heart_null_model, upper = fm_heart), direction = "forward")
+```
+
+
+Lung Disease
+
+
+```{r}
+lungc_null_model <- glm(lung_condition ~ 1, data = lungc_data, family = "binomial")
+
+fm_lungc <- glm(lung_condition ~., data =lungc_data, family ="binomial")
+
+stepmodel_lungc  <- step(lungc_null_model, scope = list(lower = lungc_null_model, upper = fm_lungc), direction = "forward")
+```
+
+
+
+Liver disease 
+
+```{r}
+liverd_null_model <- glm(liver_disease ~ 1, data = liver_data, family = "binomial")
+
+fm_liverd <- glm(liver_disease ~ ., data = liver_data,, family ="binomial")
+
+stepmodel_liverd  <- step(liverd_null_model, scope = list(lower = liverd_null_model, upper = fm_liverd), direction = "forward")
+```
+
+
+Kidney disease 
+
+```{r}
+kidneyd_null_model <- glm(kidney_disease ~ 1, data = kidney_data, family = "binomial")
+
+fm_kidneyd <- glm(kidney_disease ~ ., data = kidney_data,, family ="binomial")
+
+stepmodel_kidneyd  <- step(kidneyd_null_model, scope = list(lower = kidneyd_null_model, upper = fm_kidneyd), direction = "forward")
+```
+

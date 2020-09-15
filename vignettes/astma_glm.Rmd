@@ -1,0 +1,345 @@
+---
+title: "R Notebook"
+output:
+  word_document: default
+  html_notebook: default
+---
+
+
+```{r}
+
+library(tidymodels)
+library(readr)
+library(dplyr)
+library(corrr)
+library(tidyverse)
+library(conflicted)
+library(tidymodels)
+library(ggrepel)
+library(corrplot)
+library(dplyr)
+library(corrr) 
+library(themis)
+library(rsample)
+library(caret)
+library(forcats)
+library(rcompanion)
+library(MASS)
+library(pROC)
+library(ROCR)
+library(data.table)
+library(ggplot2)
+library(tidyverse)
+library(rms)
+
+
+conflict_prefer("step", "stats")
+```
+
+
+
+
+```{r}
+data_categ_no_sev <- readr::read_csv("/Users/gabrielburcea/Rprojects/data/data_no_sev_stats.csv")
+
+
+data_categ_no_sev$gender <- as.factor(data_categ_no_sev$gender)
+data_categ_no_sev$country <- as.factor(data_categ_no_sev$country)
+data_categ_no_sev$chills <- as.factor(data_categ_no_sev$chills)
+data_categ_no_sev$cough  <- as.factor(data_categ_no_sev$cough)
+data_categ_no_sev$diarrhoea  <- as.factor(data_categ_no_sev$diarrhoea)
+data_categ_no_sev$fatigue  <- as.factor(data_categ_no_sev$fatigue)
+data_categ_no_sev$headache   <- as.factor(data_categ_no_sev$headache)
+data_categ_no_sev$loss_smell_taste   <- as.factor(data_categ_no_sev$loss_smell_taste)
+data_categ_no_sev$muscle_ache  <- as.factor(data_categ_no_sev$muscle_ache)
+data_categ_no_sev$nasal_congestion <- as.factor(data_categ_no_sev$nasal_congestion)
+data_categ_no_sev$nausea_vomiting  <- as.factor(data_categ_no_sev$nausea_vomiting)
+data_categ_no_sev$self_diagnosis <- as.factor(data_categ_no_sev$self_diagnosis)
+data_categ_no_sev$shortness_breath <- as.factor(data_categ_no_sev$shortness_breath)
+data_categ_no_sev$sore_throat <- as.factor(data_categ_no_sev$sore_throat)
+data_categ_no_sev$sputum <- as.factor(data_categ_no_sev$sputum)
+data_categ_no_sev$temperature  <- as.factor(data_categ_no_sev$temperature)
+data_categ_no_sev$health_care_worker <- as.factor(data_categ_no_sev$health_care_worker)
+data_categ_no_sev$care_home_worker <- as.factor(data_categ_no_sev$care_home_worker)
+
+data_categ_no_sev$asthma   <- as.factor(data_categ_no_sev$asthma)
+data_categ_no_sev$diabetes_type_two <- as.factor(data_categ_no_sev$diabetes_type_two)
+data_categ_no_sev$obesity <- as.factor(data_categ_no_sev$obesity)
+data_categ_no_sev$hypertension  <- as.factor(data_categ_no_sev$hypertension)
+data_categ_no_sev$heart_disease  <- as.factor(data_categ_no_sev$heart_disease)
+data_categ_no_sev$kidney_disease <- as.factor(data_categ_no_sev$kidney_disease)
+data_categ_no_sev$lung_condition <- as.factor(data_categ_no_sev$lung_condition)
+data_categ_no_sev$liver_disease <- as.factor(data_categ_no_sev$liver_disease)
+data_categ_no_sev$diabetes_type_one <- as.factor(data_categ_no_sev$diabetes_type_one)
+data_categ_no_sev$how_unwell <- as.factor(data_categ_no_sev$how_unwell)
+data_categ_no_sev$age <- as.factor(data_categ_no_sev$age)
+data_categ_no_sev$covid_tested <- as.factor(data_categ_no_sev$covid_tested)
+
+
+
+
+```
+
+
+```{r}
+
+asthma_data <- data_categ_no_sev %>%
+  dplyr::select(asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension, heart_disease, lung_condition, 
+                liver_disease, kidney_disease, gender, age, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+
+```
+
+## Asthma 
+
+## Univariate analysis
+
+Unvivariate analysis reveal chills, cough, diarrhea, headache, muschle ache, sore throat, nausea and vomiting, shortness of breath, sputum, temperature are the associated Covid symptoms in respondents with asthma. 
+
+
+1. Asthma and chills
+```{r }
+
+asthma_chills <- glm(asthma ~ chills, data = asthma_data, family = binomial)
+
+summary(asthma_chills)
+
+
+coef_asthma_chills <- coef(asthma_chills)
+
+# odd ratios 
+odd_ratios_ob_ch <- (exp(coef_asthma_chills)-1)*100
+odd_ratios_ob_ch 
+
+```
+
+2. Asthma and cough
+```{r pressure, echo=FALSE}
+asthma_cough <- glm(asthma ~ cough, data = asthma_data, family = binomial)
+
+summary(asthma_cough)
+
+
+coef_asthma_cough <- coef(asthma_cough)
+
+odd_ratios_ob_co <- (exp(coef_asthma_cough)-1)*100
+
+odd_ratios_ob_co 
+```
+
+
+3. Asthma and diarrhea
+```{r}
+asthma_diarrhea <- glm(asthma ~ diarrhoea, data = asthma_data, family = binomial)
+
+summary(asthma_diarrhea)
+
+
+# get coef
+coef_ob_diarrhea <- coef(asthma_diarrhea)
+
+# odd ratios
+odd_ratio_ob_diar <- (exp(coef_ob_diarrhea)-1)*100
+
+odd_ratio_ob_diar
+```
+
+
+4. Asthma and headache
+
+```{r}
+asthma_headache <- glm(asthma ~ headache, data = asthma_data, family = binomial)
+
+summary(asthma_headache)
+
+coef_ob_head <- coef(asthma_headache)
+
+odd_ratio_ob_head <- (exp(coef_ob_head)-1)*100
+
+odd_ratio_ob_head
+```
+
+5. Asthma and loss of smell and taste
+
+
+```{r}
+
+asthma_loss_smell <- glm(asthma ~ loss_smell_taste, data = asthma_data, family = binomial)
+
+
+summary(asthma_loss_smell)
+
+coef_ob_loss_smell <- coef(asthma_loss_smell)
+
+odd_ratio_ob_los <- (exp(coef_ob_loss_smell)-1)*100
+
+odd_ratio_ob_los
+```
+
+
+6. Asthma and muscle ache
+
+```{r}
+
+
+asthma_muscle_ache <- glm(asthma ~ muscle_ache, data = asthma_data, family = binomial)
+ 
+summary(asthma_muscle_ache)
+
+coef_ob_muscle_ac <- coef(asthma_muscle_ache)
+
+odd_ratio_ob_los <- (exp(coef_ob_muscle_ac)-1)*100
+
+odd_ratio_ob_los
+
+```
+
+7. Asthma and nasal congestion
+
+```{r}
+
+asthma_nasal_cong <- glm(asthma ~ nasal_congestion, data = asthma_data, family = binomial)
+
+summary(asthma_nasal_cong)
+
+
+coef_ob_nas_cong <- coef(asthma_nasal_cong)
+
+odd_ratio_ob_nas_cong <- (exp(coef_ob_nas_cong))
+
+odd_ratio_ob_nas_cong
+```
+
+8. Athma and nausea and vomiting 
+```{r}
+
+asthma_nausea_vomitting <- glm(asthma ~ nausea_vomiting, data = asthma_data, family = binomial)
+
+summary(asthma_nausea_vomitting)
+
+
+coef_ob_naus_vom <- coef(asthma_nausea_vomitting)
+
+odd_ratio_ob_naus_vom <- (exp(coef_ob_naus_vom)-1)*100
+
+odd_ratio_ob_naus_vom
+```
+
+
+9. Asthma and shortness of breath
+
+```{r}
+
+asthma_short_breath <- glm(asthma ~ shortness_breath, data = asthma_data, family = binomial)
+
+summary(asthma_short_breath)
+
+coef_ob_sh_br <- coef(asthma_short_breath)
+
+
+odd_ratio_ob_sh_br <- (exp(coef_ob_sh_br)-1)*100
+
+odd_ratio_ob_sh_br
+```
+
+
+10. Asthma and sore throat
+
+```{r}
+
+asthma_sore_thr <- glm(asthma ~ sore_throat, data = asthma_data, family = binomial)
+
+summary(asthma_sore_thr)
+
+coef_ob_sore_thr <- coef(asthma_sore_thr)
+
+
+odd_ratio_ob_sore_thr <- (exp(coef_ob_sore_thr)-1)*100
+
+odd_ratio_ob_sore_thr
+```
+
+11. Asthma and sputum 
+
+```{r}
+asthma_sputum <- glm(asthma ~ sputum, data = asthma_data, family = binomial)
+
+
+summary(asthma_sputum)
+
+
+coef_ob_sp <- coef(asthma_sputum)
+
+odd_ratio_ob_sp <- (exp(coef_ob_sp)-1)*100
+
+odd_ratio_ob_sp
+
+
+vif(asthma_sputum)
+```
+
+12. Asthma and temperature
+```{r}
+asthma_temperature <- glm(asthma ~ temperature, data = asthma_data, family = binomial)
+
+
+summary(asthma_temperature)
+
+coef_ob_temp <- coef(asthma_temperature)
+
+odd_ratio_ob_temp <- (exp(coef_ob_temp)-1)*100
+
+odd_ratio_ob_temp
+
+vif(asthma_temperature)
+```
+
+
+
+
+
+# Multivariable Logistic Regression 
+
+
+Adding all symptoms that showed to be associated in asthma patients. 
+
+When adjusting for all variables,  patients showing covid-19 symptoms/of patients with positive covid test, the results show strong evidence for an association between variables such as chills, nausea and vomiting, shortness of breath and temperature (38.1-39; 39.1-40) (p ≤ 0.05) in patients with asthma.  
+
+When adjusting for all variables,in patients showing covid-19 symptoms/of patients with positive covid test, in patients with asthma there was: 
+
+- 160  % increase in shortness of breath compared to those who do not suffer of asthma
+- 35 % increase in sputum 
+- 107 % increase in 39.1-41 temperature compared to those who do not suffer of asthma
+- 1 % increase in male patients compared to those at the baseline
+- 1 % increase in age compared
+
+
+
+```{r}
+asthma_model <- glm(asthma ~ chills + cough + diarrhoea + headache + muscle_ache + nausea_vomiting 
+                    + shortness_breath + sputum + temperature, data = asthma_data, family = binomial)
+
+summary(asthma_model)
+
+coef_asthma_model <- coef(asthma_model)
+
+odd_ratio_asthma <- (exp(coef_asthma_model)-1)*100
+
+odd_ratio_asthma
+
+vif(asthma_model)
+
+coef_ob_asthma <- coef(asthma_model)
+# Confidence intervals 
+confint(asthma_model)
+
+#Put the coefficients and confidence intervals onto a useful scale
+
+conf_int_ast <- exp(confint(asthma_model)) 
+conf_int_ast
+
+```
+
+
+

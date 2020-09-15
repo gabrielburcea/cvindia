@@ -1,0 +1,951 @@
+---
+title: "hypertension_18082020_40_59"
+author: "Gabriel Burcea"
+date: "14/09/2020"
+output: word_document
+---
+```{r  include=FALSE, echo=TRUE}
+
+library(tidyverse)
+library(tidymodels)
+library(readr)
+library(dplyr)
+library(corrr)
+library(tidyverse)
+library(conflicted)
+library(tidymodels)
+library(ggrepel)
+library(corrplot)
+library(dplyr)
+library(corrr) 
+library(themis)
+library(rsample)
+library(caret)
+library(forcats)
+library(rcompanion)
+library(MASS)
+library(pROC)
+library(ROCR)
+library(data.table)
+library(ggplot2)
+library(qgraph)
+library(report)
+library(corrplot)
+library(rms)
+
+conflict_prefer("step", "stats")
+
+### ML for Mixed - categorical and numerica data ####
+
+```
+
+
+
+```{r sympt-pos}
+
+data_categ_nosev <- readr::read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_18_08_2020_fully_cleaned_uniq_comorb.csv")
+
+
+covid_tested_levels <- c("positive" = "showing symptoms")
+
+data_age_band <- data_categ_nosev %>%
+   dplyr::mutate(age_band = dplyr::case_when(
+     age == 0 | age <= 19 ~ '0-19',
+     age == 20 | age <= 39 ~ '20-39',
+     age == 40 | age <= 59 ~ '40-59',
+     age >= 60 ~ "60+")) %>%
+  dplyr::filter(number_morbidities <= 1) %>%
+  dplyr::mutate(covid_tested = forcats::fct_recode(covid_tested, !!!covid_tested_levels))
+
+
+data_covid_only <- data_age_band %>%
+#dplyr::filter(number_morbidities <= 1) %>% # added this line on the 09/09/2020 as I want to check the analysis - do I get a different output, See report delivered  ...  compare this with the previous report generated on the date ....
+  dplyr::select(id, age, gender, covid_tested, chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, muscle_ache,
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature, loss_appetite, chest_pain, itchy_eyes, joint_pain, 
+                asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension, heart_disease, lung_condition, liver_disease, kidney_disease, age_band, number_morbidities)%>% 
+  dplyr::filter(covid_tested != "negative") %>%
+  tidyr::drop_na()
+
+
+data_age <- data_covid_only %>% 
+  dplyr::filter(age_band == "40-59")
+
+
+data_categ_covid <- data_age %>%
+  #dplyr::filter(number_morbidities <= 1) %>% # added this line on the 09/09/2020 as I want to check the analysis - do I get a different output, See report delivered  ...  compare this with the previous report generated on the date ....
+ dplyr::select(id, age, gender, covid_tested, chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature, loss_appetite, chest_pain, itchy_eyes, joint_pain, 
+                asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension, heart_disease, lung_condition, liver_disease, kidney_disease) %>%
+  dplyr::filter(covid_tested != "negative") %>%
+  tidyr::drop_na()
+
+
+```
+
+
+
+```{r}
+data_categ_covid$country <- NULL
+data_categ_covid$location <- NULL
+data_categ_covid$date_completed <- NULL
+data_categ_covid$covid_tested <- NULL 
+data_categ_covid$age_band <- NULL
+data_categ_covid$status_cv <- NULL
+data_categ_covid$sneezing <- NULL
+
+
+###########################################################################################
+### Transforming variables in factor format ###############################################
+#data_categ_covid$country <- as.factor(data_categ_covid$country)
+data_categ_covid$chills <- as.factor(data_categ_covid$chills)
+data_categ_covid$cough  <- as.factor(data_categ_covid$cough)
+data_categ_covid$gender <- as.factor(data_categ_covid$gender)
+#data_categ_covid$covid_tested <- as.factor(data_categ_covid$covid_tested)
+data_categ_covid$diarrhoea  <- as.factor(data_categ_covid$diarrhoea)
+data_categ_covid$fatigue  <- as.factor(data_categ_covid$fatigue)
+data_categ_covid$headache   <- as.factor(data_categ_covid$headache)
+data_categ_covid$loss_smell_taste   <- as.factor(data_categ_covid$loss_smell_taste)
+data_categ_covid$muscle_ache  <- as.factor(data_categ_covid$muscle_ache)
+data_categ_covid$nasal_congestion <- as.factor(data_categ_covid$nasal_congestion)
+data_categ_covid$nausea_vomiting  <- as.factor(data_categ_covid$nausea_vomiting)
+#data_categ_covid$self_diagnosis <- as.factor(data_categ_covid$self_diagnosis)
+data_categ_covid$shortness_breath <- as.factor(data_categ_covid$shortness_breath)
+data_categ_covid$sore_throat <- as.factor(data_categ_covid$sore_throat)
+data_categ_covid$sputum <- as.factor(data_categ_covid$sputum)
+data_categ_covid$temperature  <- as.factor(data_categ_covid$temperature)
+data_categ_covid$loss_appetite <- as.factor(data_categ_covid$loss_appetite)
+data_categ_covid$chest_pain <- as.factor(data_categ_covid$chest_pain)
+data_categ_covid$itchy_eyes <- as.factor(data_categ_covid$itchy_eyes)
+data_categ_covid$joint_pain <- as.factor(data_categ_covid$joint_pain)
+
+
+### Transforming variables in numerical format  #########################################################
+data_categ_covid$asthma   <- as.factor(data_categ_covid$asthma)
+data_categ_covid$diabetes_type_two <- as.factor(data_categ_covid$diabetes_type_two)
+data_categ_covid$obesity <- as.factor(data_categ_covid$obesity)
+data_categ_covid$hypertension  <- as.factor(data_categ_covid$hypertension)
+data_categ_covid$heart_disease  <- as.factor(data_categ_covid$heart_disease)
+data_categ_covid$kidney_disease <- as.factor(data_categ_covid$kidney_disease)
+data_categ_covid$lung_condition <- as.factor(data_categ_covid$lung_condition)
+data_categ_covid$liver_disease <- as.factor(data_categ_covid$liver_disease)
+data_categ_covid$diabetes_type_one <- as.factor(data_categ_covid$diabetes_type_one)
+#data_categ_covid$covid_tested <- as.factor(data_categ_nose)
+```
+
+
+
+```{r}
+
+hypertension_data <- data_categ_covid %>%
+  dplyr::select(hypertension,  chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature, joint_pain, chest_pain, itchy_eyes, loss_appetite) %>%
+  tidyr::drop_na()
+
+hypertension_data$hypertension <- as.factor(hypertension_data$hypertension)
+
+```
+
+
+
+
+
+```{r}
+hypertension_count <- hypertension_data %>%
+  tidyr::pivot_longer(cols = 2:17, 
+                      names_to = "symptoms", 
+                      values_to = "yes_no") %>%
+  dplyr::filter(hypertension == "Yes" & yes_no == "Yes") %>%
+  dplyr::group_by(symptoms) %>%
+  dplyr::tally() %>%
+  dplyr::mutate(Percentage = n/sum(n)) %>%
+  dplyr::arrange(desc(n))
+
+start_date = as.Date("2020-04-09", tz = "Europe/London")
+end_date = as.Date("2020-08-18")
+title_stub <- "Age group 40-49: Hypertension across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+
+plot_hypertension_sympt <-
+  ggplot2::ggplot(hypertension_count, ggplot2::aes(x = reorder(symptoms, - Percentage), y = n, fill = n)) +
+  ggplot2::coord_flip() +
+  ggplot2::geom_bar(stat = "identity", position = "dodge") +
+  ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+  ggplot2::scale_x_discrete(limits = unique(hypertension_count$symptoms)) +
+  #ggplot2::theme(legend.position = "bottom") +
+  #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+  ggplot2::theme_minimal() +
+  ggplot2::labs( title = chart_title,
+                 subtitle = "Counts of patients with comorbidities accross symptoms",
+                 y = "Counts",
+                 x = "Symptoms",
+                 caption = "Source: Dataset - Your.md Dataset") +
+  ggplot2::theme(
+    axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+      t = 0,
+      r = 21,
+      b = 0,
+      l = 0
+    )),
+    plot.title = ggplot2::element_text(size = 10, face = "bold"),
+    plot.subtitle = ggplot2::element_text(size = 9),
+    axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+  )
+
+plot_hypertension_sympt
+```
+
+
+# Univariate analysis for hypertension and Covid symptoms
+
+Univariate analysis reveal cough, diarrhea, headache, loss of smell and taste, nasal congestion, muscle ache, shortness of breath, joint pain and temperature are Covid-19 symptoms associated in patients with hypertension.
+
+
+1.Hypertension and chills
+```{r }
+
+
+
+hypertension_data$hypertension <- as.factor(hypertension_data$hypertension)
+hypertension_chills <- glm(hypertension ~ chills, data = hypertension_data, family = binomial)
+
+summary(hypertension_chills)
+
+
+```
+
+
+
+```{r}
+coef_hypertension_chills <- coef(hypertension_chills)
+
+
+```
+
+
+```{r}
+hypertension_chills_or_ci <- exp(cbind(OR = coef(hypertension_chills), confint(hypertension_chills)))
+```
+
+
+
+P-values adjusted 
+
+```{r}
+hypertension_chills_pval <- summary(hypertension_chills)$coefficients[,4]
+
+hypertension_chills_pval <- hypertension_chills_pval[-1]
+
+hypertension_chills_padj <- p.adjust(hypertension_chills_pval, method = "bonferroni")
+
+hypertension_chills_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_chills_or_ci_pval <- cbind(hypertension_chills_or_ci, data.frame(pvalues = hypertension_chills_padj))
+
+knitr::kable(hypertension_chills_or_ci_pval)
+```
+
+
+```{r pressure, echo=FALSE}
+hypertension_cough <- glm(hypertension ~ cough, data = hypertension_data, family = binomial)
+
+summary(hypertension_cough)
+
+
+coef_hypertension_cough <- coef(hypertension_cough)
+
+odd_ratios_ob_co <- exp(coef_hypertension_cough)
+
+odd_ratios_ob_co 
+```
+
+
+```{r}
+hypertension_cough_or_ci <- exp(cbind(OR = coef(hypertension_cough), confint(hypertension_cough)))
+```
+
+
+
+
+P-values adjusted 
+
+```{r}
+hypertension_cough_pval <- summary(hypertension_cough)$coefficients[,4]
+
+hypertension_cough_pval <- hypertension_cough_pval[-1]
+
+hypertension_cough_padj <- p.adjust(hypertension_cough_pval, method = "bonferroni")
+
+hypertension_cough_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_cough_or_ci_pval <- cbind(hypertension_cough_or_ci, data.frame(pvalues = hypertension_cough_padj))
+
+knitr::kable(hypertension_cough_or_ci_pval)
+```
+
+
+
+
+```{r}
+hypertension_diarrhea <- glm(hypertension ~ diarrhoea, data = hypertension_data, family = binomial)
+
+summary(hypertension_diarrhea)
+
+
+# get coef
+coef_ob_diarrhea <- coef(hypertension_diarrhea)
+
+# odd ratios
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
+
+odd_ratio_ob_diar
+```
+
+
+```{r}
+hypertension_diarrhea_or_ci <- exp(cbind(OR = coef(hypertension_diarrhea), confint(hypertension_diarrhea)))
+```
+
+
+P-values adjusted 
+
+```{r}
+hypertension_diarrhea_pval <- summary(hypertension_diarrhea)$coefficients[,4]
+
+hypertension_diarrhea_pval <- hypertension_diarrhea_pval[-1]
+
+hypertension_diarrhea_padj <- p.adjust(hypertension_diarrhea_pval, method = "bonferroni")
+
+hypertension_diarrhea_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_diarrhea_or_ci_pval <- cbind(hypertension_diarrhea_or_ci, data.frame(pvalues = hypertension_diarrhea_padj))
+
+knitr::kable(hypertension_diarrhea_or_ci_pval)
+```
+
+
+
+
+```{r}
+hypertension_headache <- glm(hypertension ~ headache, data = hypertension_data, family = binomial)
+
+summary(hypertension_headache)
+
+```
+
+OR and CI 
+```{r}
+hypertension_headache_or_ci <- exp(cbind(OR = coef(hypertension_headache), confint(hypertension_headache)))
+```
+
+
+
+P-values adjusted 
+
+```{r}
+hypertension_headache_pval <- summary(hypertension_headache)$coefficients[,4]
+
+hypertension_headache_pval <- hypertension_headache_pval[-1]
+
+hypertension_headache_padj <- p.adjust(hypertension_headache_pval, method = "bonferroni")
+
+hypertension_headache_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_headache_or_ci_pval <- cbind(hypertension_headache_or_ci, data.frame(pvalues = hypertension_headache_padj))
+
+knitr::kable(hypertension_headache_or_ci_pval)
+```
+
+
+
+
+
+
+```{r}
+
+hypertension_loss_smell <- glm(hypertension ~ loss_smell_taste, data = hypertension_data, family = binomial)
+
+
+summary(hypertension_loss_smell)
+
+
+```
+
+
+OR and CI 
+```{r}
+hypertension_loss_smell_or_ci <-    exp(cbind(OR = coef(hypertension_loss_smell), confint(hypertension_loss_smell)))
+```
+
+
+
+
+
+```{r}
+hypertension_loss_smell_pval <- summary(hypertension_loss_smell)$coefficients[,4]
+
+hypertension_loss_smell_pval <- hypertension_loss_smell_pval[-1]
+
+hypertension_loss_smell_padj <- p.adjust(hypertension_loss_smell_pval, method = "bonferroni")
+
+hypertension_loss_smell_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_loss_smell_or_ci_pval <- cbind(hypertension_loss_smell_or_ci, data.frame(pvalues = hypertension_loss_smell_padj))
+
+knitr::kable(hypertension_loss_smell_or_ci_pval)
+```
+
+
+
+
+
+```{r}
+library(fmsb)
+
+hypertension_muscle_ache <- glm(hypertension ~ muscle_ache, data = hypertension_data, family = binomial)
+ 
+summary(hypertension_muscle_ache)
+
+
+
+
+coef_ob_muscle_ac <- coef(hypertension_muscle_ache)
+
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
+
+odd_ratio_ob_los
+
+```
+
+
+OR and CI 
+```{r}
+hypertension_muscle_ache_or_ci <- exp(cbind(OR = coef(hypertension_muscle_ache), confint(hypertension_muscle_ache)))
+```
+
+
+
+
+```{r}
+hypertension_muscle_ache_pval <- summary(hypertension_muscle_ache)$coefficients[,4]
+
+hypertension_muscle_ache_pval <- hypertension_muscle_ache_pval[-1]
+
+hypertension_muscle_ache_padj <- p.adjust(hypertension_muscle_ache_pval, method = "bonferroni")
+
+hypertension_muscle_ache_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_muscle_ache_or_ci_pval <- cbind(hypertension_muscle_ache_or_ci, data.frame(pvalues = hypertension_muscle_ache_padj))
+
+knitr::kable(hypertension_muscle_ache_or_ci_pval)
+```
+
+
+
+```{r}
+
+hypertension_nasal_cong <- glm(hypertension ~ nasal_congestion, data = hypertension_data, family = binomial)
+
+summary(hypertension_nasal_cong)
+
+
+coef_ob_nas_cong <- coef(hypertension_nasal_cong)
+
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
+
+odd_ratio_ob_nas_cong
+```
+
+
+
+OR and CI 
+```{r}
+hypertension_nasal_cong_or_ci <- exp(cbind(OR = coef(hypertension_nasal_cong), confint(hypertension_nasal_cong)))
+```
+
+
+
+```{r}
+hypertension_nasal_cong_pval <- summary(hypertension_nasal_cong)$coefficients[,4]
+
+hypertension_nasal_cong_pval <- hypertension_nasal_cong_pval[-1]
+
+hypertension_nasal_cong_padj <- p.adjust(hypertension_nasal_cong_pval, method = "bonferroni")
+
+hypertension_nasal_cong_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_nasal_cong_or_ci_pval <- cbind(hypertension_nasal_cong_or_ci, data.frame(pvalues = hypertension_nasal_cong_padj))
+
+knitr::kable(hypertension_nasal_cong_or_ci_pval)
+```
+
+
+
+
+```{r}
+
+hypertension_nausea_vomitting <- glm(hypertension ~ nausea_vomiting, data = hypertension_data, family = binomial)
+
+summary(hypertension_nausea_vomitting)
+
+
+coef_ob_naus_vom <- coef(hypertension_nausea_vomitting)
+
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
+
+odd_ratio_ob_naus_vom
+```
+
+
+OR and CI 
+```{r}
+hypertension_nausea_vomitting_or_ci <- exp(cbind(OR = coef(hypertension_nausea_vomitting), confint(hypertension_nausea_vomitting)))
+```
+
+
+
+```{r}
+hypertension_nausea_vomitting_pval <- summary(hypertension_nausea_vomitting)$coefficients[,4]
+
+hypertension_nausea_vomitting_pval <- hypertension_nausea_vomitting_pval[-1]
+
+hypertension_nausea_vomitting_padj <- p.adjust(hypertension_nausea_vomitting_pval, method = "bonferroni")
+
+hypertension_nausea_vomitting_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_nausea_vomitting_or_ci_pval <- cbind(hypertension_nausea_vomitting_or_ci, data.frame(pvalues = hypertension_nausea_vomitting_padj))
+
+knitr::kable(hypertension_nausea_vomitting_or_ci_pval)
+```
+
+
+
+
+
+```{r}
+
+hypertension_short_breath <- glm(hypertension ~ shortness_breath, data = hypertension_data, family = binomial)
+
+summary(hypertension_short_breath)
+
+
+```
+
+
+OR and CI 
+```{r}
+hypertension_short_breath_or_ci <- exp(cbind(OR = coef(hypertension_short_breath), confint(hypertension_short_breath)))
+```
+
+
+
+
+```{r}
+hypertension_short_breath_pval <- summary(hypertension_short_breath)$coefficients[,4]
+
+hypertension_short_breath_pval <- hypertension_short_breath_pval[-1]
+
+hypertension_short_breath_padj <- p.adjust(hypertension_short_breath_pval, method = "bonferroni")
+
+hypertension_short_breath_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_short_breath_or_ci_pval <- cbind(hypertension_short_breath_or_ci, data.frame(pvalues = hypertension_short_breath_padj))
+
+knitr::kable(hypertension_short_breath_or_ci_pval)
+```
+
+
+
+
+
+
+
+```{r}
+
+hypertension_sore_thr <- glm(hypertension ~ sore_throat, data = hypertension_data, family = binomial)
+
+summary(hypertension_sore_thr)
+
+```
+
+
+
+OR and CI 
+```{r}
+hypertension_sore_thr_or_ci <- exp(cbind(OR = coef(hypertension_sore_thr), confint(hypertension_sore_thr)))
+```
+
+
+
+
+```{r}
+hypertension_sore_thr_pval <- summary(hypertension_sore_thr)$coefficients[,4]
+
+hypertension_sore_thr_pval <- hypertension_sore_thr_pval[-1]
+
+hypertension_sore_thr_padj <- p.adjust(hypertension_sore_thr_pval, method = "bonferroni")
+
+hypertension_sore_thr_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_sore_thr_or_ci_pval <- cbind(hypertension_sore_thr_or_ci, data.frame(pvalues = hypertension_sore_thr_padj))
+
+knitr::kable(hypertension_sore_thr_or_ci_pval)
+```
+
+
+
+
+
+
+```{r}
+hypertension_sputum <- glm(hypertension ~ sputum, data = hypertension_data, family = binomial)
+
+
+summary(hypertension_sputum)
+
+
+```
+
+
+
+OR and CI 
+```{r}
+hypertension_sputum_or_ci <- exp(cbind(OR = coef(hypertension_sputum), confint(hypertension_sputum)))
+```
+
+
+
+
+```{r}
+hypertension_sputum_pval <- summary(hypertension_sputum)$coefficients[,4]
+
+hypertension_sputum_pval <- hypertension_sputum_pval[-1]
+
+hypertension_sputum_padj <- p.adjust(hypertension_sputum_pval, method = "bonferroni")
+
+hypertension_sputum_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_sputum_or_ci_pval <- cbind(hypertension_sputum_or_ci, data.frame(pvalues = hypertension_sputum_padj))
+
+knitr::kable(hypertension_sputum_or_ci_pval)
+```
+
+
+```{r}
+hypertension_temperature <- glm(hypertension ~ temperature, data = hypertension_data, family = binomial)
+
+
+summary(hypertension_temperature)
+
+
+```
+
+
+
+OR and CI 
+```{r}
+hypertension_temperature_or_ci <- exp(cbind(OR = coef(hypertension_temperature), confint(hypertension_temperature)))
+```
+
+
+
+
+```{r}
+hypertension_temperature_pval <- summary(hypertension_temperature)$coefficients[,4]
+
+hypertension_temperature_pval <- hypertension_temperature_pval[-1]
+
+hypertension_temperature_padj <- p.adjust(hypertension_temperature_pval, method = "bonferroni")
+
+hypertension_temperature_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_temperature_or_ci_pval <- cbind(hypertension_temperature_or_ci, data.frame(pvalues = hypertension_temperature_padj))
+
+knitr::kable(hypertension_temperature_or_ci_pval)
+```
+
+
+
+```{r, itchy_eyes}
+hypertension_itchy_eyes <- glm(hypertension ~ itchy_eyes, data = hypertension_data, family = binomial)
+
+summary(hypertension_itchy_eyes)
+
+```
+
+
+
+OR and CI 
+```{r}
+hypertension_itchy_eyes_or_ci <- exp(cbind(OR = coef(hypertension_itchy_eyes), confint(hypertension_itchy_eyes)))
+```
+
+
+
+```{r}
+hypertension_itchy_eyes_pval <- summary(hypertension_itchy_eyes)$coefficients[,4]
+
+hypertension_itchy_eyes_pval <- hypertension_itchy_eyes_pval[-1]
+
+hypertension_itchy_eyes_padj <- p.adjust(hypertension_itchy_eyes_pval, method = "bonferroni")
+
+hypertension_itchy_eyes_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_itchy_eyes_or_ci_pval <- cbind(hypertension_itchy_eyes_or_ci, data.frame(pvalues = hypertension_itchy_eyes_padj))
+
+knitr::kable(hypertension_itchy_eyes_or_ci_pval)
+```
+
+
+
+```{r, chest_pain}
+hypertension_chest_pain <- glm(hypertension ~ chest_pain, data = hypertension_data, family = binomial)
+
+summary(hypertension_chest_pain)
+```
+
+OR and CI 
+```{r}
+hypertension_chest_pain_or_ci <- exp(cbind(OR = coef(hypertension_chest_pain), confint(hypertension_chest_pain)))
+```
+
+
+
+
+```{r}
+hypertension_chest_pain_pval <- summary(hypertension_chest_pain)$coefficients[,4]
+
+hypertension_chest_pain_pval <- hypertension_chest_pain_pval[-1]
+
+hypertension_chest_pain_padj <- p.adjust(hypertension_chest_pain_pval, method = "bonferroni")
+
+hypertension_chest_pain_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_chest_pain_or_ci_pval <- cbind(hypertension_chest_pain_or_ci, data.frame(pvalues = hypertension_chest_pain_padj))
+
+knitr::kable(hypertension_chest_pain_or_ci_pval)
+```
+
+
+
+```{r}
+hypertension_loss_appetite <- glm(hypertension ~ loss_appetite, data = hypertension_data, family = binomial)
+
+summary(hypertension_loss_appetite)
+```
+
+
+OR and CI 
+```{r}
+hypertension_loss_appetite_or_ci <- exp(cbind(OR = coef(hypertension_loss_appetite), confint(hypertension_loss_appetite)))
+```
+
+
+
+
+```{r}
+hypertension_loss_appetite_pval <- summary(hypertension_loss_appetite)$coefficients[,4]
+
+hypertension_loss_appetite_pval <- hypertension_loss_appetite_pval[-1]
+
+hypertension_loss_appetite_padj <- p.adjust(hypertension_loss_appetite_pval, method = "bonferroni")
+
+hypertension_loss_appetite_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_loss_appetite_or_ci_pval <- cbind(hypertension_loss_appetite_or_ci, data.frame(pvalues = hypertension_loss_appetite_padj))
+
+knitr::kable(hypertension_loss_appetite_or_ci_pval)
+```
+
+
+
+```{r, joint_pain}
+hypertension_joint_pain <- glm(hypertension ~ joint_pain, data = hypertension_data, family = binomial)
+
+
+summary(hypertension_joint_pain)
+```
+
+
+
+OR and CI 
+```{r}
+hypertension_joint_pain_or_ci <- exp(cbind(OR = coef(hypertension_joint_pain), confint(hypertension_joint_pain)))
+```
+
+
+
+```{r}
+hypertension_joint_pain_pval <- summary(hypertension_joint_pain)$coefficients[,4]
+
+hypertension_joint_pain_pval <- hypertension_joint_pain_pval[-1]
+
+hypertension_joint_pain_padj <- p.adjust(hypertension_joint_pain_pval, method = "bonferroni")
+
+hypertension_joint_pain_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_joint_pain_or_ci_pval <- cbind(hypertension_joint_pain_or_ci, data.frame(pvalues = hypertension_joint_pain_padj))
+
+knitr::kable(hypertension_joint_pain_or_ci_pval)
+```
+
+
+
+# Multivariable analysis for hypertension 
+
+
+Adding all variables that showed an association with the hypertension variable. 
+
+When adjusting for all variables,  patients showing covid-19 symptoms/of patients with positive covid test, the results show strong evidence for an association between variables such as cough,  muscle ache, shortness of breath, sputum and temperature (37.1- 38 ; 38.1-39) (p ≤ 0.05) in patients with hypertension.  
+When adjusting for all variables,in patients showing covid-19 symptpms/of patients with positive covid test, in patients with hypertension there was: 
+- 24 % increase in odds of experiencing cough  compared to those who do not suffer of hypertension
+- 15 % increase in diarrhea compared to those who do not suffer of hypertension
+- 12 % increase in muscle ache compared to those who do not suffer of hypertension
+- 5 % increase in sputum compared to those who do not suffer of hypertension
+- 51 % increase in 38.1-39 in temperature to those who do not suffer of hypertension
+- 21 % increase in 39.1-41 in temperature compared to those who do not suffer of hypertension
+
+
+Multivariable analysis for hypertension
+
+When adjusting for all variables that showed to be associated with hypertension, patients showing covid-19 symptoms/of patients with positive Covid -19 test, the results show strong evidence for an association with: joint pain, muscle ache, diarrhea, cough (p < 0.5).
+
+
+
+```{r}
+hypertension_model <- glm(hypertension ~   shortness_breath + sore_throat + temperature + joint_pain,  data = hypertension_data, family = binomial)
+
+summary(hypertension_model)
+
+```
+
+
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(hypertension_model), confint(hypertension_model))))
+```
+
+
+
+```{r}
+# odds ratio and 95% CL
+
+hypertension_model_or_ci <- exp(cbind(OR = coef(hypertension_model), confint(hypertension_model)))
+
+hypertension_model_or_ci
+```
+
+
+
+```{r}
+hypertension_model_pval <- summary(hypertension_model)$coefficients[,4]
+
+
+
+hypertension_model_padj <- p.adjust(hypertension_model_pval, method = "bonferroni")
+
+hypertension_model_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+hypertension_model_or_ci_pval <- cbind(hypertension_model_or_ci, data.frame(pvalues = hypertension_model_padj))
+
+knitr::kable(hypertension_model_or_ci_pval)
+```
+
+
+Multicolinearity 
+
+```{r}
+vif(hypertension_model)
+```
+
+
+
+
+
+

@@ -1,0 +1,564 @@
+---
+title: "Liver_disease_18_08_2020_data"
+author: "Gabriel Burcea"
+date: "04/09/2020"
+output: word_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+library(tidyverse)
+library(magrittr)
+```
+
+
+```{r}
+library(tidymodels)
+library(readr)
+library(dplyr)
+library(corrr)
+library(tidyverse)
+library(conflicted)
+library(tidymodels)
+library(ggrepel)
+library(corrplot)
+library(dplyr)
+library(corrr) 
+library(themis)
+library(rsample)
+library(caret)
+library(forcats)
+library(rcompanion)
+library(MASS)
+library(pROC)
+library(ROCR)
+library(data.table)
+library(ggplot2)
+library(qgraph)
+library(report)
+library(corrplot)
+library(rms)
+
+conflict_prefer("step", "stats")
+
+### ML for Mixed - categorical and numerica data ####
+```
+
+
+```{r sympt-pos}
+
+data_categ_nosev <- readr::read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_18_08_2020_fully_cleaned_uniq_comorb.csv")
+
+data_categ_covid <- data_categ_nosev %>%
+  dplyr::filter(covid_tested != 'none') %>%
+  dplyr::mutate(status_cv = dplyr::case_when(covid_tested == 'showing symptoms' ~ 0,
+                                             covid_tested == 'positive' ~ 1)) %>%
+  tidyr::drop_na()
+
+```
+
+
+
+
+```{r}
+
+data_categ_covid$country <- NULL
+data_categ_covid$location <- NULL
+data_categ_covid$date_completed <- NULL
+data_categ_covid$covid_tested <- NULL 
+data_categ_covid$age_band <- NULL
+data_categ_covid$status_cv <- NULL
+data_categ_covid$sneezing <- NULL
+
+
+###########################################################################################
+### Transforming variables in factor format ###############################################
+#data_categ_covid$country <- as.factor(data_categ_covid$country)
+data_categ_covid$chills <- as.factor(data_categ_covid$chills)
+data_categ_covid$cough  <- as.factor(data_categ_covid$cough)
+data_categ_covid$gender <- as.factor(data_categ_covid$gender)
+#data_categ_covid$covid_tested <- as.factor(data_categ_covid$covid_tested)
+data_categ_covid$diarrhoea  <- as.factor(data_categ_covid$diarrhoea)
+data_categ_covid$fatigue  <- as.factor(data_categ_covid$fatigue)
+data_categ_covid$headache   <- as.factor(data_categ_covid$headache)
+data_categ_covid$loss_smell_taste   <- as.factor(data_categ_covid$loss_smell_taste)
+data_categ_covid$muscle_ache  <- as.factor(data_categ_covid$muscle_ache)
+data_categ_covid$nasal_congestion <- as.factor(data_categ_covid$nasal_congestion)
+data_categ_covid$nausea_vomiting  <- as.factor(data_categ_covid$nausea_vomiting)
+data_categ_covid$self_diagnosis <- as.factor(data_categ_covid$self_diagnosis)
+data_categ_covid$shortness_breath <- as.factor(data_categ_covid$shortness_breath)
+data_categ_covid$sore_throat <- as.factor(data_categ_covid$sore_throat)
+data_categ_covid$sputum <- as.factor(data_categ_covid$sputum)
+data_categ_covid$temperature  <- as.factor(data_categ_covid$temperature)
+data_categ_covid$loss_appetite <- as.factor(data_categ_covid$loss_appetite)
+data_categ_covid$chest_pain <- as.factor(data_categ_covid$chest_pain)
+data_categ_covid$itchy_eyes <- as.factor(data_categ_covid$itchy_eyes)
+data_categ_covid$joint_pain <- as.factor(data_categ_covid$joint_pain)
+
+
+### Transforming variables in numerical format  #########################################################
+data_categ_covid$asthma   <- as.factor(data_categ_covid$asthma)
+data_categ_covid$diabetes_type_two <- as.factor(data_categ_covid$diabetes_type_two)
+data_categ_covid$obesity <- as.factor(data_categ_covid$obesity)
+data_categ_covid$hypertension  <- as.factor(data_categ_covid$hypertension)
+data_categ_covid$heart_disease  <- as.factor(data_categ_covid$heart_disease)
+data_categ_covid$kidney_disease <- as.factor(data_categ_covid$kidney_disease)
+data_categ_covid$lung_condition <- as.factor(data_categ_covid$lung_condition)
+data_categ_covid$liver_disease <- as.factor(data_categ_covid$liver_disease)
+data_categ_covid$diabetes_type_one <- as.factor(data_categ_covid$diabetes_type_one)
+#data_categ_covid$covid_tested <- as.factor(data_categ_nose)
+```
+
+
+
+```{r}
+liver_data <- data_categ_covid %>%
+  dplyr::select(liver_disease, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature, joint_pain, itchy_eyes, chest_pain, loss_appetite) %>%
+  tidyr::drop_na()
+```
+
+```{r}
+
+liver_count <- liver_data %>%
+  tidyr::pivot_longer(cols = 2:17, 
+                      names_to = "symptoms", 
+                      values_to = "yes_no") %>%
+  dplyr::filter(liver_disease == "Yes" & yes_no == "Yes") %>%
+  dplyr::group_by(symptoms) %>%
+  dplyr::tally() %>%
+  dplyr::mutate(Percentage = n/sum(n)) %>%
+  dplyr::arrange(desc(n))
+
+start_date = as.Date("2020-04-09", tz = "Europe/London")
+end_date = as.Date("2020-08-18")
+title_stub <- "Liver disease across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+
+plot_liver_sympt <-
+  ggplot2::ggplot(liver_count, ggplot2::aes(x = reorder(symptoms, - Percentage), y = n, fill = n)) +
+  ggplot2::coord_flip() +
+  ggplot2::geom_bar(stat = "identity", position = "dodge") +
+  ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+  ggplot2::scale_x_discrete(limits = unique(liver_count$symptoms)) +
+  #ggplot2::theme(legend.position = "bottom") +
+  #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+  ggplot2::theme_minimal() +
+  ggplot2::labs( title = chart_title,
+                 subtitle = "Counts of patients with comorbidities accross symptoms",
+                 y = "Counts",
+                 x = "Symptoms",
+                 caption = "Source: Dataset - Your.md Dataset") +
+  ggplot2::theme(
+    axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+      t = 0,
+      r = 21,
+      b = 0,
+      l = 0
+    )),
+    plot.title = ggplot2::element_text(size = 10, face = "bold"),
+    plot.subtitle = ggplot2::element_text(size = 9),
+    axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+  )
+
+plot_liver_sympt
+
+```
+
+
+# Univariate analysis for liver disease and Covid-19 symptoms
+
+Asociated Covid symptoms in respondents with liver disease are: chills, diarhoea, loss of smell and taste, muscle ache, nasal congestion, nausea and vomiting, sputum and temperature
+
+
+1. Liver disease and chills 
+```{r }
+
+liver_chills <- glm(liver_disease ~ chills, data = liver_data, family = binomial)
+
+summary(liver_chills)
+
+
+coef_liver_chills <- coef(liver_chills)
+
+# odd ratios 
+odd_ratios_ob_ch <- exp(coef_liver_chills)
+odd_ratios_ob_ch 
+
+```
+
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_chills), confint(liver_chills))))
+```
+
+
+
+
+2. Liver disease and cough
+
+```{r  echo=FALSE}
+liver_cough <- glm(liver_disease ~ cough, data = liver_data, family = binomial)
+
+summary(liver_cough)
+
+
+coef_liver_cough <- coef(liver_cough)
+
+odd_ratios_ob_co <- exp(coef_liver_cough)
+
+odd_ratios_ob_co 
+```
+
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_cough), confint(liver_cough))))
+```
+
+
+
+
+
+
+3. Liver disease and diarhoea 
+```{r}
+liver_diarrhea <- glm(liver_disease ~ diarrhoea, data = liver_data, family = binomial)
+
+summary(liver_diarrhea)
+
+
+# get coef
+coef_ob_diarrhea <- coef(liver_diarrhea)
+
+# odd ratios
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
+
+odd_ratio_ob_diar
+```
+
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_diarrhea), confint(liver_diarrhea))))
+```
+
+
+
+4. Liver disease and headache 
+
+```{r}
+liver_headache <- glm(liver_disease ~ headache, data = liver_data, family = binomial)
+
+summary(liver_headache)
+
+coef_ob_head <- coef(liver_headache)
+
+odd_ratio_ob_head <- exp(coef_ob_head)
+
+odd_ratio_ob_head
+```
+
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_headache), confint(liver_headache))))
+```
+
+
+
+
+5. Liver disease and loss of smell and taste
+
+```{r}
+
+liver_loss_smell <- glm(liver_disease ~ loss_smell_taste, data = liver_data, family = binomial)
+
+
+summary(liver_loss_smell)
+
+coef_ob_loss_smell <- coef(liver_loss_smell)
+
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
+
+odd_ratio_ob_los
+```
+
+
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_loss_smell), confint(liver_loss_smell))))
+```
+
+
+
+
+
+
+6. Liver disease and muscle ache
+```{r}
+
+
+liver_muscle_ache <- glm(liver_disease ~ muscle_ache, data = liver_data, family = binomial)
+ 
+summary(liver_muscle_ache)
+
+coef_ob_muscle_ac <- coef(liver_muscle_ache)
+
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
+
+odd_ratio_ob_los
+
+```
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_muscle_ache), confint(liver_muscle_ache))))
+```
+
+
+
+
+7. Liver disease and nasal congestion
+
+```{r}
+
+liver_nasal_cong <- glm(liver_disease ~ nasal_congestion, data = liver_data, family = binomial)
+
+summary(liver_nasal_cong)
+
+
+coef_ob_nas_cong <- coef(liver_nasal_cong)
+
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
+
+odd_ratio_ob_nas_cong
+```
+
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_nasal_cong), confint(liver_nasal_cong))))
+```
+
+
+
+
+8. Liver disease and vomiting 
+```{r}
+
+liver_nausea_vomitting <- glm(liver_disease ~ nausea_vomiting, data = liver_data, family = binomial)
+
+summary(liver_nausea_vomitting)
+
+
+coef_ob_naus_vom <- coef(liver_nausea_vomitting)
+
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
+
+odd_ratio_ob_naus_vom
+```
+
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_nausea_vomitting), confint(liver_nausea_vomitting))))
+```
+
+
+
+
+
+9. Liver disease and shortness of breath
+
+```{r}
+
+liver_short_breath <- glm(liver_disease ~ shortness_breath, data = liver_data, family = binomial)
+
+summary(liver_short_breath)
+
+coef_ob_sh_br <- coef(liver_short_breath)
+
+
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
+
+odd_ratio_ob_sh_br
+```
+
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_short_breath), confint(liver_short_breath))))
+```
+
+
+
+9. Liver disease and sore throat
+```{r}
+
+liver_sore_thr <- glm(liver_disease ~ sore_throat, data = liver_data, family = binomial)
+
+summary(liver_sore_thr)
+
+coef_ob_sore_thr <- coef(liver_sore_thr)
+
+
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
+
+odd_ratio_ob_sore_thr
+```
+
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_sore_thr), confint(liver_sore_thr))))
+```
+
+
+
+
+11. Liver disease and sputum 
+
+```{r}
+liver_sputum <- glm(liver_disease ~ sputum, data = liver_data, family = binomial)
+
+
+summary(liver_sputum)
+
+
+coef_ob_sp <- coef(liver_sputum)
+
+odd_ratio_ob_sp <- exp(coef_ob_sp)
+
+odd_ratio_ob_sp
+
+vif(liver_sputum)
+```
+
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_sputum), confint(liver_sputum))))
+```
+
+
+
+
+12. Liver disease and temperature 
+```{r}
+liver_temperature <- glm(liver_disease ~ temperature, data = liver_data, family = binomial)
+
+
+summary(liver_temperature)
+
+coef_ob_temp <- coef(liver_temperature)
+
+odd_ratio_ob_temp <- exp(coef_ob_temp)
+
+odd_ratio_ob_temp
+
+vif(liver_temperature)
+```
+
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_temperature), confint(liver_temperature))))
+```
+
+
+
+
+```{r}
+liver_itchy <- glm(liver_disease ~ itchy_eyes, data = liver_data, family = binomial)
+
+summary(liver_itchy)
+```
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_itchy), confint(liver_itchy))))
+```
+
+
+
+
+
+```{r }
+
+liver_chest <- glm(liver_disease ~ chest_pain, data = liver_data, family = binomial)
+
+summary(liver_chest)
+
+```
+
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_chest), confint(liver_chest))))
+```
+
+
+
+```{r }
+
+liver_joint_p <- glm(liver_disease ~ joint_pain, data = liver_data, family = binomial)
+
+summary(liver_joint_p)
+```
+
+
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_joint_p), confint(liver_joint_p))))
+```
+
+
+
+
+
+```{r }
+liver_loss_apopetite <- glm(liver_disease ~ loss_appetite, data = liver_data, family = binomial)
+
+summary(liver_loss_apopetite)
+
+```
+
+
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_loss_apopetite), confint(liver_loss_apopetite))))
+```
+
+
+
+# Multivariate analysis for liver disease   
+        
+When adjusting for the variables, in patients showing covid-19 symptoms/of patients with positive covid test the results show strong evidence for an association between variables such as chills, nausea and vomiting, and temperature (38.1-39; 39.1-40) (p ≤ 0.05) for patients with liver disease.  
+When adjusting for all variables,in patients showing covid-19 symptpms/of patients with positive covid test, in patients with liver disease there was: 
+- 103 % increase in odds of experiencing chills  compared to those who do not suffer of liver disease
+- 13 % increase in loss of smell and taste compared to those who do not suffer of liver disease
+- 15 % increase in muscle ache compred to those who do not suffer of liver disease
+- 272 % increase in nausea and vomiting compared to those who do not suffer of liver disease 
+-17 % increase in nasal congestion compared to those who do not suffer of liver disease
+- 14 % increase in 37.5-38 temperature compared to those who do not suffer of liver disease
+- 98 % increase in 38.1-39 temperature compared to those who do not suffer of liver disease
+- 338 % increase ?? in 39.1-41 temperature
+- 21 % increase in sputum compared to those who do not suffer of liver disease
+
+
+```{r}
+liver_model <- glm(liver_disease ~ chills + cough + loss_smell_taste + muscle_ache +  nasal_congestion + 
+                     temperature + chest_pain + joint_pain + loss_appetite, data = liver_data, family = binomial)
+
+summary(liver_model)
+```
+
+```{r}
+knitr::kable(exp(cbind(OR = coef(liver_model), confint(liver_model))))
+```
+
+
+
+Multicolinearity 
+
+```{r}
+vif(liver_model)
+```
+

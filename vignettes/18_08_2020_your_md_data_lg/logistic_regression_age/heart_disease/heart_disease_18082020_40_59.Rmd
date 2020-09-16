@@ -71,7 +71,7 @@ data_covid_only <- data_age_band %>%
 
 
 data_age <- data_covid_only %>% 
-  dplyr::filter(age_band == "60+")
+  dplyr::filter(age_band == "40-59")
 
 
 data_categ_covid <- data_age %>%
@@ -161,7 +161,7 @@ heart_count <- heart_disease_data %>%
 
 start_date = as.Date("2020-04-09", tz = "Europe/London")
 end_date = as.Date("2020-08-18")
-title_stub <-  "Age Group 60+: Heart Disease across symptoms\n"
+title_stub <-  "Age Group 40=59: Heart Disease across symptoms\n"
 start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
 end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
 chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
@@ -882,7 +882,7 @@ knitr::kable(heart_disease_joint_pain_or_ci_pval)
  
 ```{r}
 
-heart_disease_model <- glm(heart_disease ~  chest_pain + diarrhoea, data = heart_disease_data, family = binomial)
+heart_disease_model <- glm(heart_disease ~  chest_pain + loss_appetite, data = heart_disease_data, family = binomial)
 
 summary(heart_disease_model)
 ```

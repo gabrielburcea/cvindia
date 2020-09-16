@@ -162,7 +162,7 @@ hypertension_count <- hypertension_data %>%
 
 start_date = as.Date("2020-04-09", tz = "Europe/London")
 end_date = as.Date("2020-08-18")
-title_stub <- "Age group 40-49: Hypertension across symptoms\n"
+title_stub <- "Age group 60+ : Hypertension across symptoms\n"
 start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
 end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
 chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)

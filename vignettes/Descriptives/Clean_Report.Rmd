@@ -1,0 +1,3502 @@
+---
+title: "Covid-19 Symptom Mapping. Descriptive analytics and Logistic Regresssion"
+output:
+  word_document:
+    toc: yes
+  html_document:
+    df_print: paged
+    toc: yes
+  pdf_document:
+    number_sections: yes
+    toc: yes
+code_folding: hide
+always_allow_html: true
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+
+library(magrittr)
+```
+
+Several approaches were taken in order to achieve the following analysis. 
+
+I. First batch of analysis is descriptive in nature. It is an attempt in Covid-19 symptom mapping.
+II. With the first step findings achieved, second step focuses on whether there are differences in Covid-19 symptom in different comorbidity groups of respondents. Univariate analysis and multivariate logistic regression has aid the second stage analysis. 
+
+
+
+
+```{r import-data, cache = TRUE, echo=TRUE}
+
+data_select <- readr::read_csv("/Users/gabrielburcea/Rprojects/data/data_descr_15062020.csv")
+
+data_select %>% dplyr::distinct(covid_tested)
+#data_map <- readr::read_csv("../Rprojects/data/PivotMappe060520r.csv")
+
+
+```
+
+
+
+```{r world-map, echo = F, results='asis', fig.height=5, fig.width=6, cache=TRUE}
+
+# world_map <- cvindia::count_mapp_world(data = data_select, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"),
+#                          end_date = as.Date("2020-05-09", format = "%Y-%m-%d" ), plot_chart = TRUE)
+# 
+# world_map
+```
+
+```{r world-map-numbers, echo = F,  results='asis',  fig.height=5, fig.width=9, cache=TRUE}
+
+# world_map <- cvindia::count_mapp_world(data = data_map, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"),
+#                          end_date = as.Date("2020-05-09", format = "%Y-%m-%d" ), plot_chart = FALSE)
+# 
+# knitr::kable(world_map)
+
+```
+
+## I. Descriptive analytics
+
+Exploratory questions of interest are: 
+1. How does symptom profile map to mild/moderate/severe? 
+2. Does symptom profile differ by underlying co-morbidity? 
+
+Answering to first question:
+1. How does symptom profile map to mild/moderate/severe? 
+
+We choose to look at the most common symptoms according to UK guidelines in patients who reported that they had a Covid 19
+positive test. We look at these symptoms according to whether they were reported as mild/moderate/severe
+```{r symptoms_covid_in_resp, echo = F, results='asis',  fig.height=2, fig.width=7, cache=TRUE}
+symtoms_covid_in_resp <- cvindia::symptom_profile_covid_tested(data = data_select, start_date = as.Date("2020-04-01", format = "%Y-%m-%d"), 
+                                           end_date = as.Date("2020-09-01", format = "%Y-%m-%d"), plot_chart = TRUE)
+symtoms_covid_in_resp
+```
+Cough, followed by muscle ache are the most symptoms in patient who declared they had a Covid-19 positive test. Loss of smell and shorthness of breath are next. Yet, as observed there are different levels of severity, were mild form of symptoms are reported.  
+
+```{r symptoms_covid_in_resp_numbers, echo = F, results='asis',  fig.height=5, fig.width=9, cache=TRUE}
+symtoms_covid_in_resp <- cvindia::symptom_profile_covid_tested(data = data_select, start_date = as.Date("2020-04-01", format = "%Y-%m-%d"), 
+                                           end_date = as.Date("2020-09-01", format = "%Y-%m-%d"), plot_chart = FALSE)
+
+sympt_cov_in_resp_n <- dplyr::top_n(symtoms_covid_in_resp, 10)
+
+knitr::kable(dplyr::top_n(sympt_cov_in_resp_n, 10))
+```
+
+The next barchart takes into accound all other symptoms for the purpose of comparison. However, fatigue seems to have the highest countS, followed by the most common symptoms of Covid-19. 
+
+```{r symptom_profile_all_symptoms, echo = F, results='asis', fig.height=2, fig.width=7, cache=TRUE}
+all_syptpms_frequency <- cvindia::symptom_profile_frequency_plot(data = data_select, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
+                                            end_date = as.Date("2020-05-09", format = "%Y-%m-%d"),
+                                            plot_chart = TRUE)
+
+all_syptpms_frequency
+
+```
+
+Table bellow shows the first ten most occurring symptoms taking into account the level of severity. However, the most common symptoms expressed in level of severity are Cough as a mild for, shortness of breath, fatigue, muscle ache and headache, all in a mild form.
+
+```{r symptom_profile_all_symptoms_numbers, echo= F, results='asis',   fig.height=2, fig.width=9, cache=TRUE}
+all_syptpms_numbers <- cvindia::symptom_profile_frequency_plot(data = data_select, start_date = as.Date("2020-04-09", format = "%Y-%m-%d"), 
+                                            end_date = as.Date("2020-05-09", format = "%Y-%m-%d"),
+                                            plot_chart = FALSE)
+
+all_sympt_numb <- dplyr::top_n(all_syptpms_numbers, 10)
+
+
+ten_most_occuring_symptoms <- dplyr::top_n(all_sympt_numb, 10)
+
+knitr::kable(ten_most_occuring_symptoms)
+```
+
+
+Most people who are completing are reporting their symptoms as mild. However, this are non-generalizable cohort. 
+
+```{r self-diagnosis, echo=F, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+diagn_mild_mod_severe <- cvindia::self_diagnosis_mild_mod_severe(data = data_select, start_date = as.Date("2020-04-09"), end_date = as.Date("2020-05-09"), plot_chart = TRUE, title = "Self Report")
+
+diagn_mild_mod_severe
+```
+
+
+
+
+```{r mild_mod_severe,  echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+self_reported <- cvindia::self_diagnosis_mild_mod_severe(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = FALSE, title = "Test")
+
+
+self_reported_n <- dplyr::top_n(self_reported, 10)
+
+knitr::kable(self_reported_n)
+
+```
+
+
+
+Respondents who tested covid positive have reported the 37.5-38 temperature as the most frequent. 
+
+```{r temperature, echo=FALSE, results='asis', fig.height=2, fig.width=7, cache=TRUE}
+temperature <-  cvindia::temparature_covid_tested(data = data_sel, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = TRUE)
+
+temperature
+```
+
+
+
+```{r temperature_numbers, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+temperature <-  cvindia::temparature_covid_tested(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = FALSE)
+
+temperature
+
+```
+
+The bellow barchart maps the patients who claimed their symptoms were overall mild. What symptoms did they have? 
+The most prevalent symptoms are cough, fatigue, sore throat, sputum and muscle ache. 
+
+```{r mild_symptom, echo=FALSE, results='asis', fig.height=2, fig.width=7, cache=TRUE}
+mild <- cvindia::symptom_profile_mild(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = TRUE)
+
+mild
+```
+
+
+The most prevalent symptoms are cough, fatigue, sore throat, sputum and muscle ache. 
+```{r mild_symptom_numbers, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+mild <- cvindia::symptom_profile_mild(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = FALSE)
+
+knitr::kable(dplyr::top_n(mild, 10))
+
+```
+
+Bellow chart is mapping the patients claiming their symptoms were overall moderate. What symptoms did they have?
+
+```{r moderate,echo=FALSE, results='asis', fig.height=2, fig.width=5, cache=TRUE }
+moderate <- cvindia::moderate_manifestation_plot(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = TRUE)
+
+moderate
+```
+
+
+Shortness of breath, cough, sputum fatigue as a mild form followed by moderate fatigue are the first 5 symptoms declared by the respondents of Your.md app. 
+```{r moderate-numbers,echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE }
+moderate <- cvindia::moderate_manifestation_plot(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = FALSE)
+
+moderate_n <- dplyr::top_n(moderate, 10)
+knitr::kable(moderate_n)
+```
+
+
+
+Bellow chart is mapping the patients claiming their symptoms were overall severe, What symptoms did they have?
+
+```{r severe, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+severe <- cvindia::severe_manifestation_plot(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = TRUE)
+
+severe
+```
+
+Cough, sputum, sore throat, shortness of breath and headache in mild form are the first 5 symptoms. 
+```{r severe-numbers, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+severe <- cvindia::severe_manifestation_plot(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = FALSE)
+
+severe_n <- dplyr::top_n(severe, 10)
+
+knitr::kable(severe_n)
+```
+
+As a conclusion we may pressume a symptom trajectory in covid-19 positive tested. Mild sore throat which then progresses to a cough, and shortness of breath? 
+
+
+2. Does symptom profile differ by underlying co-morbidity? 
+
+The bar chart bellow shows symptom across co-morbidity groups. By observing the obesity and hypertensive patients, although we see a similar pattern in symptom manifestation, there are slight differences when it comes to sputum and sore throat. In hypertensive respondents sore throat is more prominent than in obese respondents, which are experiencing more sputum. This is not the same with respondent with asthma, which are experiencing sputum and shortness of breath, where sore throat comes on the fourth place, after muscle ache. 
+
+
+```{r,comorb_cov_sympt, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+
+data_select <- read_csv("/Users/gabrielburcea/Rprojects/data/PivotMappe060520r.csv")
+
+
+comorb_cov_sympt <- cvindia::comorbidities_symptoms(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = TRUE)
+
+
+comorb_cov_sympt
+
+```
+
+```{r}
+no_cov <- function(data,start_date = as.Date("2020-04-09", tz = "Europe/London"),
+                              end_date = as.Date("2020-05-06",tz = "Europe/London"), plot_chart = TRUE){
+  
+  
+  show_sympt_cov <- data %>%
+    dplyr::select(id, covid_tested, chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, muscle_ache, nasal_congestion, nausea_vomiting, 
+                  shortness_breath, sore_throat, sputum, temperature) %>%
+    tidyr::pivot_longer(cols=3:15, names_to="Symptom", values_to="Answer") %>%
+    dplyr::filter(covid_tested == 'none') %>%
+    dplyr::group_by(Symptom, Answer) %>%
+    dplyr::summarise(Count = n()) %>%
+    dplyr::mutate(Percent = Count/sum(Count)) %>%
+    dplyr::filter(Symptom != 'temperature')
+  
+  
+  title_stub <- "Symptoms in respondents with no covid\n"
+  start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+  end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+  chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+  plot_show_symptoms <-
+    ggplot2::ggplot(show_sympt_cov, ggplot2::aes(x = reorder(Symptom,-Count), Count, fill = Answer)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_x_discrete(limits = unique(show_sympt_cov$Symptom)) +
+    ggplot2::theme(legend.position = "bottom") +
+    ggplot2::scale_fill_brewer(palette="Oranges")+
+    ggplot2::theme_minimal() +
+    ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of symptoms in respondents with no Covid-19",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      legend.position = "bottom",
+      legend.box = "horizontal",
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+  
+  plot_show_symptoms
+  
+  if(plot_chart == TRUE){
+    
+    
+    plot_show_symptoms
+    
+  }else{
+    
+    show_sympt_cov
+    
+  }
+}
+```
+
+
+```{r}
+library(tidyverse)
+
+
+cov_sympt_plot <- cvindia::no_cov(data = data_no_sev,start_date = as.Date("2020-04-09", tz = "Europe/London"),
+                              end_date = as.Date("2020-05-06",tz = "Europe/London"), plot_chart = TRUE)
+
+plotly::ggplotly(cov_sympt_plot)
+```
+
+
+
+```{r, comorb_cov_sympt_num, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+
+
+
+comorb_cov_sympt_num <- cvindia::comorbidities_symptoms(data = data_select, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = FALSE)
+
+
+comorb_cov_sympt_num
+
+
+#knitr::kable(dplyr::top_n(comorb_cov_sympt_num,10))
+```
+
+
+```{r, comorb_cov_sympt_num, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+```
+
+```{r, hypertension, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+
+
+
+hypertension_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "High Blood Pressure (hypertension)") %>%
+  dplyr::arrange(desc(Count))
+
+
+start_date <- as.Date("2020-04-09")
+end_date <- as.Date("2020-05-09")
+
+title_stub <- "Hypertension across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+
+                  
+plot_hypertension_sympt <-
+    ggplot2::ggplot(hypertension_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(hypertension_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+  
+
+plotly::ggplotly(plot_hypertension_sympt)
+
+```
+
+
+```{r, obesity, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+obesity_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "Obesity") %>%
+  dplyr::arrange(desc(Count))
+
+
+title_stub <- "Obesity across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+plot_obesity_sympt <-
+    ggplot2::ggplot(obesity_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(obesity_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+  
+
+plotly::ggplotly(plot_obesity_sympt)
+
+```
+
+```{r, asthma, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+asthma_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "Asthma (managed with an inhaler)") %>%
+  dplyr::arrange(desc(Count))
+
+
+title_stub <- "Asthma across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+plot_asthma_sympt <-
+   ggplot2::ggplot(asthma_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(asthma_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+  
+
+plotly::ggplotly(plot_asthma_sympt)
+
+
+```
+
+
+```{r, lung, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE }
+lung_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "Long-Standing Lung Condition") %>%
+  dplyr::arrange(desc(Count))
+
+
+title_stub <- "Long-Standing Lung Condition across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+plot_lung_sympt <-
+    ggplot2::ggplot(lung_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(lung_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+
+
+plotly::ggplotly(plot_lung_sympt)
+```
+
+```{r}
+heart_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "Long-Standing Heart Disease") %>%
+  dplyr::arrange(desc(Count))
+
+
+title_stub <- "Long-Standing Heart Disease across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+plot_heart_sympt <-
+    ggplot2::ggplot(heart_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(heart_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+
+
+plotly::ggplotly(plot_heart_sympt)
+
+```
+
+```{r}
+
+kidney_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "Long-Standing Kidney Disease") %>%
+  dplyr::arrange(desc(Count))
+
+
+title_stub <- "Long-Standing Kidney Disease across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+plot_kidney_sympt <-
+    ggplot2::ggplot(kidney_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(kidney_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+
+
+plotly::ggplotly(plot_kidney_sympt)
+
+
+```
+
+```{r}
+liver_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "Long-Standing Liver Disease") %>%
+  dplyr::arrange(desc(Count))
+
+
+title_stub <- "Long-Standing Liver Disease across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+plot_liver_num <-
+    ggplot2::ggplot(liver_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(liver_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+
+
+plotly::ggplotly(plot_liver_num)
+```
+
+
+```{r}
+diab_type_one_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "Diabetes Type 1 (controlled by insulin)") %>%
+  dplyr::arrange(desc(Count))
+
+
+title_stub <- "Diabetes Type 1 across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+plot_diab_1_num <-
+    ggplot2::ggplot(diab_type_one_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(diab_type_one_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+
+
+plotly::ggplotly(plot_diab_1_num)
+```
+
+```{r}
+	
+diab_type_two_num <- comorb_cov_sympt_num %>%
+  dplyr::filter(Morbidity == "Diabetes Type 2") %>%
+  dplyr::arrange(desc(Count))
+
+
+title_stub <- "Diabetes Type 2 across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  
+  
+plot_diab_2_num <-
+    ggplot2::ggplot(diab_type_two_num, ggplot2::aes(x = Symptom, y = Count, fill = Count)) +
+    ggplot2::coord_flip() +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+    ggplot2::scale_x_discrete(limits = unique(diab_type_two_num$Symptom)) +
+    #ggplot2::theme(legend.position = "bottom") +
+    #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs( title = chart_title,
+                   subtitle = "Counts of patients with comorbidities accross symptoms",
+                   y = "Counts",
+                   x = "Symptoms",
+                   caption = "Source: Dataset - Your.md Dataset") +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+        t = 0,
+        r = 21,
+        b = 0,
+        l = 0
+      )),
+      plot.title = ggplot2::element_text(size = 10, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+    )
+
+
+plotly::ggplotly(plot_diab_2_num)
+
+```
+
+
+
+## II. Association analysis. 
+
+Second stage of analysis attempts to analyse whether there are difference in Covid-19 symptom manifestation in different comorbidity groups. 
+As mentioned above, I am stratifying respondents with showing symptoms and those who tested positive. Yet, before we go into actual analysis, correlation of variables is undertaken next. 
+
+
+With the first step being achieved, second step focuses on whether there are differences in Covid-19 symptom in different comorbidity groups.   Univariate analysis and multivariate logistic regression has aid the second stage analysis. Before the actual analysis it is worth having a look on how I've stratified the patients for the study. 
+
+For the second part, in order to reach the goal of this study, I have stratified patients into two different groups. Patients who showed symptoms but haven't been tested and patients that have been Covid tested positive. The rest of respondents were filtered out of the dataset as this group isn't a relevant group. With the stratification in place, we've got from  60812 respondents, with the stratification of patients, I've got to 9436 respondents. Nevertheless, 8752 are showing symptoms whilst those tested are 707. The groups were recoded into tested and not tested. It is worth mentioning on the class imbalance in this dataset.
+
+```{r sympt-pos}
+
+data_categ_nosev <- readr::read_csv("/Users/gabrielburcea/Rprojects/data/data_no_sev_stats.csv")
+
+data_categ_nosev <- data_categ_nosev %>%
+  dplyr::filter(covid_tested != 'none') %>%
+  dplyr::mutate(status_cv = dplyr::case_when(covid_tested == 'showing symptoms' ~ 0,
+                                             covid_tested == 'positive' ~ 1)) %>%
+  tidyr::drop_na()
+
+show_sympt_positive <- data_categ_nosev %>%
+  dplyr::select(id, status_cv) %>%
+  dplyr::group_by(status_cv) %>%
+  dplyr::tally()
+
+knitr::kable(show_sympt_positive)
+```
+
+
+How many male and female we have in our dataset? There are 5083 male accounting for 53 percent whilst female are 4321 accounting for 45 percent. Also, we have very low percent of other group.
+
+
+```{r, gender-pie, echo=F, results= 'asis', fig.height=5, fig.width=7}
+data_categ_nosev <- readr::read_csv("/Users/gabrielburcea/Rprojects/data/data_no_sev_stats.csv")
+
+gender_tb <- data_categ_nosev %>%
+  dplyr::select(ID, gender) %>%
+  dplyr::group_by(gender) %>%
+  dplyr::tally() %>%
+  dplyr::mutate(percent = n/sum(n))
+
+gender_tb
+
+bp <- ggplot2::ggplot(gender_tb, ggplot2::aes(x = "", y = percent, fill = gender)) + 
+  ggplot2::geom_bar(width = 1, stat = "identity")
+
+pie <- bp + ggplot2::coord_polar("y", start = 0) + 
+  ggplot2::scale_fill_brewer(palette = "Blues") +
+  ggplot2::theme(axis.text.x = ggplot2::element_blank())
+
+pie
+```
+
+
+```{r gender_pie_numbers, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+gender_pie_numbers <- cvindia::gender_distrib(data = data_categ_nosev, start_date = as.Date("2020-04-09"), 
+                                                    end_date = as.Date("2020-05-09"), plot_chart = FALSE)
+
+knitr::kable(gender_pie_numbers)
+```
+
+
+Overview of groups of respondents with symptoms and tested positive. 
+
+Looking at respondents who are covid positive and the symptoms. 
+
+```{r, cov-sympt-plot, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+cov_sympt_plot <- cvindia::covid_positive(data = data_categ_nosev,start_date = as.Date("2020-04-09", tz = "Europe/London"),
+                              end_date = as.Date("2020-05-06",tz = "Europe/London"), plot_chart = TRUE)
+
+cov_sympt_plot
+```
+
+
+
+```{r, cov-sympt-plot-numbers, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+cov_sympt_plot <- cvindia::covid_positive(data = data_categ_nosev,start_date = as.Date("2020-04-09", tz = "Europe/London"),
+                              end_date = as.Date("2020-05-06",tz = "Europe/London"), plot_chart = FALSE)
+
+knitr::kable(dplyr::top_n(cov_sympt_plot, 10))
+```
+
+
+Looking at respondents who declared showing symptoms yet no covid test were taken. 
+
+
+```{r,show-sympt, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE }
+show_symp <- cvindia::show_symptoms_cov(data = data_categ_nosev , start_date = as.Date("2020-04-09", tz = "Europe/London"),
+                              end_date = as.Date("2020-05-06",tz = "Europe/London"), plot_chart = TRUE)
+
+show_symp
+```
+
+
+```{r, show_symp_num, echo=FALSE, results='asis', fig.height=5, fig.width=9, cache=TRUE}
+
+show_symp_num <- cvindia::show_symptoms_cov(data = data_categ_nosev , start_date = as.Date("2020-04-09", tz = "Europe/London"),
+                              end_date = as.Date("2020-05-06",tz = "Europe/London"), plot_chart = FALSE)
+
+show_symp_num <- knitr::kable(dplyr::top_n(show_symp_num, 10))
+
+show_symp_num
+
+```
+
+
+
+```{r  include=FALSE, echo=TRUE}
+
+
+library(tidymodels)
+library(readr)
+library(dplyr)
+library(corrr)
+library(tidyverse)
+library(conflicted)
+library(tidymodels)
+library(ggrepel)
+library(corrplot)
+library(dplyr)
+library(corrr) 
+library(themis)
+library(rsample)
+library(caret)
+library(forcats)
+library(rcompanion)
+library(MASS)
+library(pROC)
+library(ROCR)
+library(data.table)
+library(ggplot2)
+
+conflict_prefer("step", "stats")
+
+### ML for Mixed - categorical and numerica data ####
+
+```
+
+
+
+```{r}
+
+###########################################################################################
+### Transforming variables in factor format ###############################################
+#data_categ_nosev$country <- as.factor(data_categ_nosev$country)
+data_categ_nosev$chills <- as.factor(data_categ_nosev$chills)
+data_categ_nosev$cough  <- as.factor(data_categ_nosev$cough)
+data_categ_nosev$gender <- as.factor(data_categ_nosev$gender)
+data_categ_nosev$covid_tested <- as.factor(data_categ_nosev$covid_tested)
+data_categ_nosev$diarrhoea  <- as.factor(data_categ_nosev$diarrhoea)
+data_categ_nosev$fatigue  <- as.factor(data_categ_nosev$fatigue)
+data_categ_nosev$headache   <- as.factor(data_categ_nosev$headache)
+data_categ_nosev$loss_smell_taste   <- as.factor(data_categ_nosev$loss_smell_taste)
+data_categ_nosev$muscle_ache  <- as.factor(data_categ_nosev$muscle_ache)
+data_categ_nosev$nasal_congestion <- as.factor(data_categ_nosev$nasal_congestion)
+data_categ_nosev$nausea_vomiting  <- as.factor(data_categ_nosev$nausea_vomiting)
+data_categ_nosev$self_diagnosis <- as.factor(data_categ_nosev$self_diagnosis)
+data_categ_nosev$shortness_breath <- as.factor(data_categ_nosev$shortness_breath)
+data_categ_nosev$sore_throat <- as.factor(data_categ_nosev$sore_throat)
+data_categ_nosev$sputum <- as.factor(data_categ_nosev$sputum)
+data_categ_nosev$temperature  <- as.factor(data_categ_nosev$temperature)
+data_categ_nosev$health_care_worker <- as.factor(data_categ_nosev$health_care_worker)
+data_categ_nosev$care_home_worker <- as.factor(data_categ_nosev$care_home_worker)
+### Transforming variables in numerical format  #########################################################
+data_categ_nosev$asthma   <- as.factor(data_categ_nosev$asthma)
+data_categ_nosev$diabetes_type_two <- as.factor(data_categ_nosev$diabetes_type_two)
+data_categ_nosev$obesity <- as.factor(data_categ_nosev$obesity)
+data_categ_nosev$hypertension  <- as.factor(data_categ_nosev$hypertension)
+data_categ_nosev$heart_disease  <- as.factor(data_categ_nosev$heart_disease)
+data_categ_nosev$kidney_disease <- as.factor(data_categ_nosev$kidney_disease)
+data_categ_nosev$lung_condition <- as.factor(data_categ_nosev$lung_condition)
+data_categ_nosev$liver_disease <- as.factor(data_categ_nosev$liver_disease)
+data_categ_nosev$diabetes_type_one <- as.factor(data_categ_nosev$diabetes_type_one)
+data_categ_nosev$how_unwell <- as.numeric(data_categ_nosev$how_unwell)
+data_categ_nosev$number_days_symptoms <- as.numeric(data_categ_nosev$number_days_symptoms)
+data_categ_nosev$age <- as.numeric(data_categ_nosev$age)
+data_categ_nosev$age_band <- as.factor(data_categ_nosev$age_band)
+data_categ_nosev$temperature <- as.factor(data_categ_nosev$temperature)
+#data_categ_nosev$covid_tested <- as.factor(data_categ_nose
+```
+
+
+# Correlations 
+
+Correlations matrix is done on numerical variables. However, I have transformed the categorical variables into numerical ones, as I cannot correlate all categorical variables once. Additionally, the correlation is done on original dataset and not on the 9436 datasets since a lot of respondents that declared they have no covid have reported some covid symptoms. However, this has to be discussed more in detail and wait for a bigger dataset. 
+
+From the correlation matrix, it is noticed, fatigue and muscle ache seem to be correlated, but only with 0.43550, the highest correlation. Yet, for the highest correlation, it is not even passing the 0.5. However, I choose to take out of the analysis the fatigue variable. 
+
+
+```{r corelations, echo=F, results= 'asis', fig.height=5, fig.width=7}
+###################################
+#######Corelations ################
+
+
+data_num_with_severity <- read_csv("/Users/gabrielburcea/Rprojects/data/data_numerical.csv")
+
+
+data_num_with_severity$ID <- NULL
+data_num_with_severity$covid_tested <- NULL
+data_num_with_severity$country <- NULL
+data_num_with_severity$gender <- NULL
+data_num_with_severity$age <- NULL
+
+correlation_num_dt <- data_num_with_severity %>% 
+dplyr::select_if(is.numeric) %>%
+  corrr::correlate(x = .,
+                   method = "spearman", 
+                   quiet = TRUE) %>%
+  corrr::rearrange(x =., 
+                   method = "MDS", 
+                   absolute = FALSE)
+
+knitr::kable(dplyr::top_n(correlation_num_dt,10))
+
+
+rplot_labs_v1 <- ggplot2::labs(
+  title = "Correlations - symptoms and comorbidities", 
+  subtitle = "Symptoms and Commorbidities", 
+  caption = "Data accessed from Your.md")
+
+#As we can see, the hue of the color and the size of the point indicate the level of the correlation
+
+correlated_vars_plot <- correlation_num_dt %>%
+  corrr::rplot(rdf = ., shape = 19, 
+               colors = c("yellow", 
+                          "purple")) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
+  rplot_labs_v1
+
+correlated_vars_plot
+
+
+```
+
+
+
+
+
+```{r}
+
+library(tidymodels)
+library(readr)
+library(dplyr)
+library(corrr)
+library(tidyverse)
+library(conflicted)
+library(tidymodels)
+library(ggrepel)
+library(corrplot)
+library(dplyr)
+library(corrr) 
+library(themis)
+library(rsample)
+library(caret)
+library(forcats)
+library(rcompanion)
+library(MASS)
+library(pROC)
+library(ROCR)
+library(data.table)
+library(ggplot2)
+library(tidyverse)
+library(rms)
+
+
+
+conflict_prefer("step", "stats")
+```
+
+
+
+
+```{r}
+data_categ_nosev <- readr::read_csv("/Users/gabrielburcea/Rprojects/stats_data_whole/data_categ_no_sev.csv")
+
+
+level_key_temperature <- 
+  c("38.1-39" = "38.2-39",
+    "38.1-39" = "Temperature",
+    '37' = 'No')
+
+data_categ_nosev <- readr::read_csv("/Users/gabrielburcea/Rprojects/stats_data_whole/data_categ_no_sev.csv")
+
+data_categ_nosev <- data_categ_nosev %>%
+  dplyr::filter(covid_tested != 'none') %>%
+  dplyr::mutate(status_cv = dplyr::case_when(
+                                             covid_tested == 'showing symptoms' ~ 0,
+                                             covid_tested == 'positive' ~ 1), 
+                number_comorbidities = dplyr::case_when(number_morbidities == 1 ~ 'one', 
+                                                        number_morbidities >= 2 ~ 'more than 2'), 
+                temperature = forcats::fct_recode(temperature, !!!level_key_temperature)) %>%
+  
+  tidyr::drop_na()
+
+data_categ_nosev <- data_categ_nosev %>% dplyr::rename(id = ID)
+
+show_sympt_positive <- data_categ_nosev %>%
+  dplyr::select(id, status_cv) %>%
+  dplyr::group_by(status_cv) %>%
+  dplyr::tally()
+
+knitr::kable(show_sympt_positive)
+
+data_categ_nosev$gender <- as.factor(data_categ_nosev$gender)
+#data_categ_nosev$country <- as.factor(data_categ_nosev$country)
+data_categ_nosev$chills <- as.factor(data_categ_nosev$chills)
+data_categ_nosev$cough  <- as.factor(data_categ_nosev$cough)
+data_categ_nosev$diarrhoea  <- as.factor(data_categ_nosev$diarrhoea)
+data_categ_nosev$fatigue  <- as.factor(data_categ_nosev$fatigue)
+data_categ_nosev$headache   <- as.factor(data_categ_nosev$headache)
+data_categ_nosev$loss_smell_taste   <- as.factor(data_categ_nosev$loss_smell_taste)
+data_categ_nosev$muscle_ache  <- as.factor(data_categ_nosev$muscle_ache)
+data_categ_nosev$nasal_congestion <- as.factor(data_categ_nosev$nasal_congestion)
+data_categ_nosev$nausea_vomiting  <- as.factor(data_categ_nosev$nausea_vomiting)
+data_categ_nosev$self_diagnosis <- as.factor(data_categ_nosev$self_diagnosis)
+data_categ_nosev$shortness_breath <- as.factor(data_categ_nosev$shortness_breath)
+data_categ_nosev$sore_throat <- as.factor(data_categ_nosev$sore_throat)
+data_categ_nosev$sputum <- as.factor(data_categ_nosev$sputum)
+data_categ_nosev$temperature  <- as.factor(data_categ_nosev$temperature)
+data_categ_nosev$health_care_worker <- as.factor(data_categ_nosev$health_care_worker)
+data_categ_nosev$care_home_worker <- as.factor(data_categ_nosev$care_home_worker)
+
+data_categ_nosev$asthma   <- as.factor(data_categ_nosev$asthma)
+data_categ_nosev$diabetes_type_two <- as.factor(data_categ_nosev$diabetes_type_two)
+data_categ_nosev$obesity <- as.factor(data_categ_nosev$obesity)
+data_categ_nosev$hypertension  <- as.factor(data_categ_nosev$hypertension)
+data_categ_nosev$heart_disease  <- as.factor(data_categ_nosev$heart_disease)
+data_categ_nosev$kidney_disease <- as.factor(data_categ_nosev$kidney_disease)
+data_categ_nosev$lung_condition <- as.factor(data_categ_nosev$lung_condition)
+data_categ_nosev$liver_disease <- as.factor(data_categ_nosev$liver_disease)
+data_categ_nosev$diabetes_type_one <- as.factor(data_categ_nosev$diabetes_type_one)
+data_categ_nosev$how_unwell <- as.factor(data_categ_nosev$how_unwell)
+data_categ_nosev$age <- as.factor(data_categ_nosev$age)
+data_categ_nosev$covid_tested <- as.factor(data_categ_nosev$covid_tested)
+
+
+
+
+```
+
+
+
+
+```{r}
+obesity_data <- data_categ_nosev %>%
+  dplyr::select(obesity, gender, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+```
+
+
+## Univariate analysis 
+
+Univariate analysis reveal that cough, diarhea, muscle ache, nausea and vomiting, sputum, temperature are associated factors in obese patients. 
+
+
+```{r }
+
+obesity_chills <- glm(obesity ~ chills, data = obesity_data, family = binomial)
+
+summary(obesity_chills)
+
+
+coef_obesity_chills <- coef(obesity_chills)
+
+# odd ratios 
+odd_ratios_ob_ch <- exp(coef_obesity_chills)
+odd_ratios_ob_ch 
+
+```
+
+
+
+
+```{r pressure, echo=FALSE}
+obesity_cough <- glm(obesity ~ cough, data = obesity_data, family = binomial)
+
+summary(obesity_cough)
+
+
+coef_obesity_cough <- coef(obesity_cough)
+
+odd_ratios_ob_co <- exp(coef_obesity_cough)
+
+odd_ratios_ob_co 
+```
+
+
+
+
+```{r}
+obesity_diarrhea <- glm(obesity ~ diarrhoea, data = obesity_data, family = binomial)
+
+summary(obesity_diarrhea)
+
+
+# get coef
+coef_ob_diarrhea <- coef(obesity_diarrhea)
+
+# odd ratios
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
+
+odd_ratio_ob_diar
+```
+
+
+
+
+
+```{r}
+obesity_headache <- glm(obesity ~ headache, data = obesity_data, family = binomial)
+
+summary(obesity_headache)
+
+coef_ob_head <- coef(obesity_headache)
+
+odd_ratio_ob_head <- exp(coef_ob_head)
+
+odd_ratio_ob_head
+```
+
+
+
+
+```{r}
+
+obesity_loss_smell <- glm(obesity ~ loss_smell_taste, data = obesity_data, family = binomial)
+
+
+summary(obesity_loss_smell)
+
+
+
+coef_ob_loss_smell <- coef(obesity_loss_smell)
+
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
+
+odd_ratio_ob_los
+```
+
+
+```{r}
+library(fmsb)
+
+obesity_muscle_ache <- glm(obesity ~ muscle_ache, data = obesity_data, family = binomial)
+ 
+summary(obesity_muscle_ache)
+
+
+
+
+coef_ob_muscle_ac <- coef(obesity_muscle_ache)
+
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
+
+odd_ratio_ob_los
+
+```
+
+
+```{r}
+
+obesity_nasal_cong <- glm(obesity ~ nasal_congestion, data = obesity_data, family = binomial)
+
+summary(obesity_nasal_cong)
+
+
+coef_ob_nas_cong <- coef(obesity_nasal_cong)
+
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
+
+odd_ratio_ob_nas_cong
+```
+
+
+```{r}
+
+obesity_nausea_vomitting <- glm(obesity ~ nausea_vomiting, data = obesity_data, family = binomial)
+
+summary(obesity_nausea_vomitting)
+
+
+coef_ob_naus_vom <- coef(obesity_nausea_vomitting)
+
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
+
+odd_ratio_ob_naus_vom
+```
+
+
+
+```{r}
+
+obesity_short_breath <- glm(obesity ~ shortness_breath, data = obesity_data, family = binomial)
+
+summary(obesity_short_breath)
+
+coef_ob_sh_br <- coef(obesity_short_breath)
+
+
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
+
+odd_ratio_ob_sh_br
+```
+
+
+```{r}
+
+obesity_sore_thr <- glm(obesity ~ sore_throat, data = obesity_data, family = binomial)
+
+summary(obesity_sore_thr)
+
+coef_ob_sore_thr <- coef(obesity_sore_thr)
+
+
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
+
+odd_ratio_ob_sore_thr
+```
+
+
+```{r}
+obesity_sputum <- glm(obesity ~ sputum, data = obesity_data, family = binomial)
+
+
+summary(obesity_sputum)
+
+
+coef_ob_sp <- coef(obesity_sputum)
+
+odd_ratio_ob_sp <- exp(coef_ob_sp)
+
+odd_ratio_ob_sp
+
+vif(obesity_sputum)
+```
+
+
+```{r}
+obesity_temperature <- glm(obesity ~ temperature, data = obesity_data, family = binomial)
+
+
+summary(obesity_temperature)
+
+coef_ob_temp <- coef(obesity_temperature)
+
+odd_ratio_ob_temp <- exp(coef_ob_temp)
+
+odd_ratio_ob_temp
+
+vif(obesity_temperature)
+```
+
+
+Adding all variables that showed an association with obesity. 
+
+When adjusting for all variables,  patients showing covid-19 symptoms/of patients with positive covid test, the results show strong evidence for an association between variables such as cough, diarrhea, sputum and temperature (37.5-38) (p ≤ 0.05) in obese respondents.
+When adjusting for all variables,in patients showing covid-19 symptpms/of patients with positive covid test, in obese respondents there was: 
+- 15 % increase in odds of experiencing cough compared to those who aren't obese
+- 35 % increase in diarrhea compared to those who aren't obese
+- 23 % increase in soutum compared to those who aren't obese
+- 24 % decrease ??? in 37.5-38 temperature compared to those who do not suffer of heart disease
+
+
+
+
+```{r}
+obesity_model <- glm(obesity ~ cough + diarrhoea + shortness_breath + temperature, data = obesity_data, family = binomial)
+
+summary(obesity_model)
+
+
+# odds ratio and 95% CL
+
+exp(cbind(OR = coef(obesity_model), confint(obesity_model)))
+
+vif(obesity_model)
+
+
+
+```
+
+```{r}
+
+
+
+
+```
+
+
+```{r}
+
+asthma_data <- data_categ_nosev %>%
+  dplyr::select(asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension, heart_disease, lung_condition, 
+                liver_disease, kidney_disease, gender, age, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature, covid_tested) %>%
+  tidyr::drop_na()
+
+```
+
+```{r}
+
+asthma_covid <- asthma_data %>%
+  dplyr::select(asthma, covid_tested) %>%
+  dplyr::group_by(asthma, covid_tested) %>%
+  dplyr::tally()
+
+asthma_covid
+
+```
+
+
+## Univariate analysis for asthma
+
+Unvivariate analysis reveal chills, cough, diarrhea, headache, muschle ache, sore throat, nausea and vomiting, shortness of breath, sputum, temperature are the associated Covid symptoms in respondents with asthma. 
+
+
+1. Asthma and chills
+```{r asthma-chills}
+
+asthma_chills <- glm(asthma ~ chills, data = asthma_data, family = binomial)
+
+summary(asthma_chills)
+
+
+coef_asthma_chills <- coef(asthma_chills)
+
+# odd ratios 
+odd_ratios_ob_ch <- exp(coef_asthma_chills)
+odd_ratios_ob_ch 
+
+```
+
+2. Asthma and cough
+```{r asthma_cough, echo=FALSE}
+asthma_cough <- glm(asthma ~ cough, data = asthma_data, family = binomial)
+
+summary(asthma_cough)
+
+
+coef_asthma_cough <- coef(asthma_cough)
+
+odd_ratios_ob_co <- exp(coef_asthma_cough)
+
+odd_ratios_ob_co 
+```
+
+
+3. Asthma and diarrhea
+```{r asthma_diarrhea}
+asthma_diarrhea <- glm(asthma ~ diarrhoea, data = asthma_data, family = binomial)
+
+summary(asthma_diarrhea)
+
+
+# get coef
+coef_ob_diarrhea <- coef(asthma_diarrhea)
+
+# odd ratios
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
+
+odd_ratio_ob_diar
+```
+
+
+4. Asthma and headache
+
+```{r asthma_headache}
+asthma_headache <- glm(asthma ~ headache, data = asthma_data, family = binomial)
+
+summary(asthma_headache)
+
+coef_ob_head <- coef(asthma_headache)
+
+odd_ratio_ob_head <- exp(coef_ob_head)
+
+odd_ratio_ob_head
+```
+
+5. Asthma and loss of smell and taste
+
+
+```{r asthma_loss_smell}
+
+asthma_loss_smell <- glm(asthma ~ loss_smell_taste, data = asthma_data, family = binomial)
+
+
+summary(asthma_loss_smell)
+
+coef_ob_loss_smell <- coef(asthma_loss_smell)
+
+odd_ratio_ob_los <- (exp(coef_ob_loss_smell)-1)*100
+
+odd_ratio_ob_los
+```
+
+
+6. Asthma and muscle ache
+
+```{r asthma_muscle_ache}
+
+
+asthma_muscle_ache <- glm(asthma ~ muscle_ache, data = asthma_data, family = binomial)
+ 
+summary(asthma_muscle_ache)
+
+coef_ob_muscle_ac <- coef(asthma_muscle_ache)
+
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
+
+odd_ratio_ob_los
+
+```
+
+7. Asthma and nasal congestion
+
+```{r asthma_nasal_cong }
+
+asthma_nasal_cong <- glm(asthma ~ nasal_congestion, data = asthma_data, family = binomial)
+
+summary(asthma_nasal_cong)
+
+
+coef_ob_nas_cong <- coef(asthma_nasal_cong)
+
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
+
+odd_ratio_ob_nas_cong
+```
+
+8. Athma and nausea and vomiting 
+```{r asthma_nausea_vomitting}
+
+asthma_nausea_vomitting <- glm(asthma ~ nausea_vomiting, data = asthma_data, family = binomial)
+
+summary(asthma_nausea_vomitting)
+
+
+coef_ob_naus_vom <- coef(asthma_nausea_vomitting)
+
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
+
+odd_ratio_ob_naus_vom
+```
+
+
+9. Asthma and shortness of breath
+
+```{r asthma_short_breath}
+
+asthma_short_breath <- glm(asthma ~ shortness_breath, data = asthma_data, family = binomial)
+
+summary(asthma_short_breath)
+
+coef_ob_sh_br <- coef(asthma_short_breath)
+
+
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
+
+odd_ratio_ob_sh_br
+```
+
+```{r}
+
+```
+
+
+10. Asthma and sore throat
+
+```{r asthma_sore_thr}
+
+asthma_sore_thr <- glm(asthma ~ sore_throat, data = asthma_data, family = binomial)
+
+summary(asthma_sore_thr)
+
+coef_ob_sore_thr <- coef(asthma_sore_thr)
+
+
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
+
+odd_ratio_ob_sore_thr
+```
+
+11. Asthma and sputum 
+
+```{r asthma_sputum, echo=FALSE}
+asthma_sputum <- glm(asthma ~ sputum, data = asthma_data, family = binomial)
+
+
+summary(asthma_sputum)
+
+
+coef_ob_sp <- coef(asthma_sputum)
+
+odd_ratio_ob_sp <- exp(coef_ob_sp)
+
+odd_ratio_ob_sp
+
+
+vif(asthma_sputum)
+```
+
+12. Asthma and temperature
+```{r asthma_temperature, echo=FALSE}
+asthma_temperature <- glm(asthma ~ temperature, data = asthma_data, family = binomial)
+
+summary(asthma_temperature)
+
+```
+
+
+# Multivariable Logistic Regression for Asthma
+
+
+Adding all symptoms that showed to be associated in asthma patients. 
+
+When adjusting for all variables,  patients showing covid-19 symptoms/of patients with positive covid test, the results show strong evidence for an association between variables such as chills, nausea and vomiting, shortness of breath and temperature (38.1-39; 39.1-40) (p ≤ 0.05) in patients with asthma.  
+
+When adjusting for all variables,in patients showing covid-19 symptoms/of patients with positive covid test, in patients with asthma there was: 
+
+- 160  % increase in shortness of breath compared to those who do not suffer of asthma
+- 35 % increase in sputum 
+- 107 % increase in 39.1-41 temperature compared to those who do not suffer of asthma
+- 1 % increase in male patients compared to those at the baseline
+- 1 % increase in age compared
+
+
+
+```{r asthma_model, echo=FALSE}
+asthma_model <- glm(asthma ~ chills + cough + diarrhoea + headache + muscle_ache + nausea_vomiting 
+                    + shortness_breath + sputum + temperature, data = asthma_data, family = binomial)
+
+summary(asthma_model)
+
+
+```
+
+Odd Ratios and 95 % CL for Asthma model 
+
+```{r}
+# odds ratios and 95% CL
+
+exp(cbind(OR = coef(asthma_model), confint(asthma_model)))
+```
+
+
+```{r}
+diabetes_type_one_data <- data_categ_nosev %>%
+  dplyr::select(diabetes_type_one, gender,  chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+```
+
+## Univariate analysis for diabetes type one 
+
+The univariate analysis real that symptoms such as headaches, nasal congestion, sore throat, temperature (39.1-41) are associated with diabetes type one. 
+```{r diabetes_type_one_chills, echo=FALSE}
+
+diabetes_type_one_chills <- glm(diabetes_type_one ~ chills, data = diabetes_type_one_data, family = binomial)
+
+summary(diabetes_type_one_chills)
+
+
+coef_diabetes_type_one_chills <- coef(diabetes_type_one_chills)
+
+# odd ratios 
+odd_ratios_ob_ch <- exp(coef_diabetes_type_one_chills)
+odd_ratios_ob_ch 
+
+```
+
+
+1. Diabetes type one with cough
+
+```{r diabetes_type_one_cough, echo=FALSE}
+diabetes_type_one_cough <- glm(diabetes_type_one ~ cough, data = diabetes_type_one_data, family = binomial)
+
+summary(diabetes_type_one_cough)
+
+
+coef_diabetes_type_one_cough <- coef(diabetes_type_one_cough)
+
+odd_ratios_ob_co <- exp(coef_diabetes_type_one_cough)
+
+odd_ratios_ob_co 
+```
+
+
+2. Diabetes type one with diarrhea
+
+
+```{r diabetes_type_one_diarrhea}
+diabetes_type_one_diarrhea <- glm(diabetes_type_one ~ diarrhoea, data = diabetes_type_one_data, family = binomial)
+
+summary(diabetes_type_one_diarrhea)
+
+
+# get coef
+coef_ob_diarrhea <- coef(diabetes_type_one_diarrhea)
+
+# odd ratios
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
+
+odd_ratio_ob_diar
+```
+
+3. Diabetes type one with headache
+
+```{r diabetes_type_one_headache}
+diabetes_type_one_headache <- glm(diabetes_type_one ~ headache, data = diabetes_type_one_data, family = binomial)
+
+summary(diabetes_type_one_headache)
+
+coef_ob_head <- coef(diabetes_type_one_headache)
+
+odd_ratio_ob_head <- exp(coef_ob_head)
+odd_ratio_ob_head
+```
+
+
+
+4. Diabetes type one with loss of smell and taste
+```{r diabetes_type_one_loss_smell}
+
+diabetes_type_one_loss_smell <- glm(diabetes_type_one ~ loss_smell_taste, data = diabetes_type_one_data, family = binomial)
+
+
+summary(diabetes_type_one_loss_smell)
+
+coef_ob_loss_smell <- coef(diabetes_type_one_loss_smell)
+
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
+
+odd_ratio_ob_los
+```
+ 
+ 5. Diabetes type one with with muscle ache
+
+```{r diabetes_type_one_muscle_ache}
+
+
+diabetes_type_one_muscle_ache <- glm(diabetes_type_one ~ muscle_ache, data = diabetes_type_one_data, family = binomial)
+ 
+summary(diabetes_type_one_muscle_ache)
+
+coef_ob_muscle_ac <- coef(diabetes_type_one_muscle_ache)
+
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
+
+odd_ratio_ob_los
+
+```
+
+6. Diabetes type one with nasal congestion
+```{r diabetes_type_one_nasal_cong}
+
+diabetes_type_one_nasal_cong <- glm(diabetes_type_one ~ nasal_congestion, data = diabetes_type_one_data, family = binomial)
+
+summary(diabetes_type_one_nasal_cong)
+
+
+coef_ob_nas_cong <- coef(diabetes_type_one_nasal_cong)
+
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
+
+odd_ratio_ob_nas_cong
+```
+
+7. Diabetes type one with nausea and vomiting
+```{r diabetes_type_one_nausea_vomitting}
+
+diabetes_type_one_nausea_vomitting <- glm(diabetes_type_one ~ nausea_vomiting, data = diabetes_type_one_data, family = binomial)
+
+summary(diabetes_type_one_nausea_vomitting)
+
+
+coef_ob_naus_vom <- coef(diabetes_type_one_nausea_vomitting)
+
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
+
+odd_ratio_ob_naus_vom
+```
+
+
+8. Diabetest type one with shortness of breath
+```{r diabetes_type_one_short_breath}
+
+diabetes_type_one_short_breath <- glm(diabetes_type_one ~ shortness_breath, data = diabetes_type_one_data, family = binomial)
+
+summary(diabetes_type_one_short_breath)
+
+coef_ob_sh_br <- coef(diabetes_type_one_short_breath)
+
+
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
+
+odd_ratio_ob_sh_br
+```
+
+9. Diabetes type one with sore throat
+
+```{r diabetes_type_one_sore_thr}
+
+diabetes_type_one_sore_thr <- glm(diabetes_type_one ~ sore_throat, data = diabetes_type_one_data, family = binomial)
+
+summary(diabetes_type_one_sore_thr)
+
+coef_ob_sore_thr <- coef(diabetes_type_one_sore_thr)
+
+
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
+
+odd_ratio_ob_sore_thr
+```
+
+
+10. Diabetes type one with sputum 
+
+```{r diabetes_type_one_sputum}
+diabetes_type_one_sputum <- glm(diabetes_type_one ~ sputum, data = diabetes_type_one_data, family = binomial)
+
+
+summary(diabetes_type_one_sputum)
+
+
+coef_ob_sp <- coef(diabetes_type_one_sputum)
+
+odd_ratio_ob_sp <- exp(coef_ob_sp)
+
+odd_ratio_ob_sp
+
+vif(diabetes_type_one_sputum)
+```
+
+11. Diabetes type one with temperature 
+
+```{r diabetes_type_one_temperature}
+diabetes_type_one_temperature <- glm(diabetes_type_one ~ temperature, data = diabetes_type_one_data, family = binomial)
+
+
+summary(diabetes_type_one_temperature)
+
+coef_ob_temp <- coef(diabetes_type_one_temperature)
+
+odd_ratio_ob_temp <- exp(coef_ob_temp)
+
+odd_ratio_ob_temp
+
+vif(diabetes_type_one_temperature)
+```
+ 
+## Multivariate analysis for diabetest type one
+
+When adding all variables that showed an association with the heart disease model, the model shows something different.
+
+When adjusting for all variables,  patients showing covid-19 symptoms/of patients with positive covid test, the results show strong evidence for an association between variables such as headaches and temperature(39.1-41) (p ≤ 0.01) in patients with diabetes type one.  
+When adjusting for all variables,in patients showing covid-19 symptpms/of patients with positive covid test, in respondent with diabetes type one there was: 
+- 54 % decrease in odds of experiencing headaches  compared to those who do not suffer of diabetes type one
+- 406 % increase in temperature compared to those who do not suffer of heart disease
+
+```{r diabetes_type_one_model}
+diabetes_type_one_model <- glm(diabetes_type_one ~ chills + cough + headache + loss_smell_taste + muscle_ache + nausea_vomiting +
+                     temperature, data = diabetes_type_one_data, family = binomial)
+
+summary(diabetes_type_one_model)
+
+```
+
+
+Odd Ratios and 95 % CL for Diabetes Model
+
+```{r}
+# odds ratio and 95% CL
+
+exp(cbind(OR = coef(diabetes_type_one_model), confint(diabetes_type_one_model)))
+
+vif(diabetes_type_one_model)
+```
+
+
+```{r diabetes_type_two_data}
+diabetes_type_two_data <- data_categ_nosev %>%
+  dplyr::select(diabetes_type_two, gender, age, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+```
+
+
+## Univariate analysis for diabetes type one
+Univariate analysis reveal Covid symptoms such as headaches, shortness of breath, sore throat, sputum and temperature are associated wit diabetes type two respondents.
+
+1. Diabetes type two 
+
+```{r diabetes_type_two_chills}
+
+diabetes_type_two_chills <- glm(diabetes_type_two ~ chills, data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_chills)
+
+
+coef_diabetes_type_two_chills <- coef(diabetes_type_two_chills)
+
+# odd ratios 
+odd_ratios_ob_ch <- exp(coef_diabetes_type_two_chills)
+odd_ratios_ob_ch 
+
+```
+
+
+```{r diabetes_type_two_cough,echo=FALSE}
+diabetes_type_two_cough <- glm(diabetes_type_two ~ cough, data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_cough)
+
+
+coef_diabetes_type_two_cough <- coef(diabetes_type_two_cough)
+
+odd_ratios_ob_co <- exp(coef_diabetes_type_two_cough)
+
+odd_ratios_ob_co 
+```
+
+```{r, diabetes_type_two_diarrhea}
+diabetes_type_two_diarrhea <- glm(diabetes_type_two ~ diarrhoea, data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_diarrhea)
+
+
+# get coef
+coef_ob_diarrhea <- coef(diabetes_type_two_diarrhea)
+
+# odd ratios
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
+
+odd_ratio_ob_diar
+```
+
+
+```{r}
+diabetes_type_two_headache <- glm(diabetes_type_two ~ headache, data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_headache)
+
+coef_ob_head <- coef(diabetes_type_two_headache)
+
+odd_ratio_ob_head <- exp(coef_ob_head)
+
+odd_ratio_ob_head
+```
+
+
+
+
+```{r}
+
+diabetes_type_two_loss_smell <- glm(diabetes_type_two ~ loss_smell_taste, data = diabetes_type_two_data, family = binomial)
+
+
+summary(diabetes_type_two_loss_smell)
+
+coef_ob_loss_smell <- coef(diabetes_type_two_loss_smell)
+
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
+
+odd_ratio_ob_los
+```
+
+
+```{r}
+
+
+diabetes_type_two_muscle_ache <- glm(diabetes_type_two ~ muscle_ache, data = diabetes_type_two_data, family = binomial)
+ 
+summary(diabetes_type_two_muscle_ache)
+
+coef_ob_muscle_ac <- coef(diabetes_type_two_muscle_ache)
+
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
+
+odd_ratio_ob_los
+
+```
+
+
+```{r}
+
+diabetes_type_two_nasal_cong <- glm(diabetes_type_two ~ nasal_congestion, data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_nasal_cong)
+
+
+coef_ob_nas_cong <- coef(diabetes_type_two_nasal_cong)
+
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
+
+odd_ratio_ob_nas_cong
+```
+
+
+```{r}
+
+diabetes_type_two_nausea_vomitting <- glm(diabetes_type_two ~ nausea_vomiting, data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_nausea_vomitting)
+
+
+coef_ob_naus_vom <- coef(diabetes_type_two_nausea_vomitting)
+
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
+
+odd_ratio_ob_naus_vom
+```
+
+
+
+```{r}
+
+diabetes_type_two_short_breath <- glm(diabetes_type_two ~ shortness_breath, data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_short_breath)
+
+coef_ob_sh_br <- coef(diabetes_type_two_short_breath)
+
+
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
+
+odd_ratio_ob_sh_br
+```
+
+
+```{r}
+
+diabetes_type_two_sore_thr <- glm(diabetes_type_two ~ sore_throat, data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_sore_thr)
+
+coef_ob_sore_thr <- coef(diabetes_type_two_sore_thr)
+
+
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
+
+odd_ratio_ob_sore_thr
+```
+
+
+```{r}
+diabetes_type_two_sputum <- glm(diabetes_type_two ~ sputum, data = diabetes_type_two_data, family = binomial)
+
+
+summary(diabetes_type_two_sputum)
+
+
+coef_ob_sp <- coef(diabetes_type_two_sputum)
+
+odd_ratio_ob_sp <- exp(coef_ob_sp)
+
+odd_ratio_ob_sp
+
+vif(diabetes_type_two_sputum)
+```
+
+
+```{r}
+diabetes_type_two_temperature <- glm(diabetes_type_two ~ temperature, data = diabetes_type_two_data, family = binomial)
+
+
+summary(diabetes_type_two_temperature)
+
+coef_ob_temp <- coef(diabetes_type_two_temperature)
+
+odd_ratio_ob_temp <- exp(coef_ob_temp)
+
+odd_ratio_ob_temp
+
+vif(diabetes_type_two_temperature)
+```
+
+## Multivariable analysis for diabetes type two
+
+
+Adding all variables that showed an association with diabetes type two variable. 
+
+When adjusting for all variables,  patients showing covid-19 symptoms/of patients with positive covid test, the results show strong evidence for an association between variables such as headache, shortness of breath, sore throat, sputum, temperature age and gender (p ≤ 0.05) in patients with heart disease.  
+When adjusting for all variables,in patients showing covid-19 symptpms/of patients with positive covid test, in patients with diabetes type two there was: 
+- 26 % decrease in odds of experiencing headaches 
+- 21 % decrease in shortness of breath 
+- 28 % decrease in sputum compared to those who do not suffer of patientss of diabetes type two
+- 50 % increase in 37.5-38 temperature compared to those who do not suffer of diabetes type two
+- 87 % increase in 38.1-39 temperature compared to those who do not suffer of diabetes type two
+- 222 % increase ?? in 39.1-41 temperature
+- 79 % for gender ? 
+
+
+```{r}
+diabetes_type_two_model <- glm(diabetes_type_two ~ headache + shortness_breath + sore_throat + sputum + temperature, 
+                               data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_model)
+
+
+```
+
+
+Odd Ratios and 95 % CL for
+
+```{r}
+exp(cbind(OR = coef(diabetes_type_two_model), confint(diabetes_type_two_model)))
+
+vif(diabetes_type_two_model)
+```
+
+
+
+
+```{r}
+diabetes_type_two_data <- data_categ_nosev %>%
+  dplyr::select(diabetes_type_two, gender, age, age_band, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+```
+
+
+## Univariate analysis for diabetes type one
+
+Univariate analysis reveal Covid symptoms such as headaches, shortness of breath, sore throat, sputum and temperature are associated wit diabetes type two respondents.
+
+1. Diabetes type two with chills
+
+```{r}
+
+diabetes_type_two_chills <- glm(diabetes_type_two ~ chills, data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_chills)
+
+
+coef_diabetes_type_two_chills <- coef(diabetes_type_two_chills)
+
+# odd ratios 
+odd_ratios_ob_ch <- exp(coef_diabetes_type_two_chills)
+odd_ratios_ob_ch 
+
+```
+
+2. Diabetes type two with cough
+```{r echo=FALSE}
+diabetes_type_two_cough <- glm(diabetes_type_two ~ cough, data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_cough)
+
+
+coef_diabetes_type_two_cough <- coef(diabetes_type_two_cough)
+
+odd_ratios_ob_co <- exp(coef_diabetes_type_two_cough)
+
+odd_ratios_ob_co 
+```
+
+
+3. Diabetes type two with diarrhea 
+
+```{r}
+diabetes_type_two_diarrhea <- glm(diabetes_type_two ~ diarrhoea, data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_diarrhea)
+
+
+# get coef
+coef_ob_diarrhea <- coef(diabetes_type_two_diarrhea)
+
+# odd ratios
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
+
+odd_ratio_ob_diar
+```
+
+4. Diabetes type two with headache 
+```{r}
+diabetes_type_two_headache <- glm(diabetes_type_two ~ headache, data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_headache)
+
+coef_ob_head <- coef(diabetes_type_two_headache)
+
+odd_ratio_ob_head <- exp(coef_ob_head)
+
+odd_ratio_ob_head
+```
+
+
+
+5. Diabetes type two with loss of smell and taste 
+```{r}
+
+diabetes_type_two_loss_smell <- glm(diabetes_type_two ~ loss_smell_taste, data = diabetes_type_two_data, family = binomial)
+
+
+summary(diabetes_type_two_loss_smell)
+
+coef_ob_loss_smell <- coef(diabetes_type_two_loss_smell)
+
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
+
+odd_ratio_ob_los
+```
+
+6. Diabetes tyoe tow with muscle ache 
+```{r}
+
+
+diabetes_type_two_muscle_ache <- glm(diabetes_type_two ~ muscle_ache, data = diabetes_type_two_data, family = binomial)
+ 
+summary(diabetes_type_two_muscle_ache)
+
+coef_ob_muscle_ac <- coef(diabetes_type_two_muscle_ache)
+
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
+
+odd_ratio_ob_los
+
+```
+
+7. Diabetes type two with nasal congestion 
+```{r}
+
+diabetes_type_two_nasal_cong <- glm(diabetes_type_two ~ nasal_congestion, data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_nasal_cong)
+
+
+coef_ob_nas_cong <- coef(diabetes_type_two_nasal_cong)
+
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
+
+odd_ratio_ob_nas_cong
+```
+
+
+8. Diabetes type two with nausea and vomiting
+```{r}
+
+diabetes_type_two_nausea_vomitting <- glm(diabetes_type_two ~ nausea_vomiting, data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_nausea_vomitting)
+
+
+coef_ob_naus_vom <- coef(diabetes_type_two_nausea_vomitting)
+
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
+
+odd_ratio_ob_naus_vom
+```
+
+
+9. Diabetes type two with shortness of breath 
+```{r}
+
+diabetes_type_two_short_breath <- glm(diabetes_type_two ~ shortness_breath, data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_short_breath)
+
+coef_ob_sh_br <- coef(diabetes_type_two_short_breath)
+
+
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
+
+odd_ratio_ob_sh_br
+```
+
+10. Diabetes type two with sore throat
+```{r}
+
+diabetes_type_two_sore_thr <- glm(diabetes_type_two ~ sore_throat, data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_sore_thr)
+
+coef_ob_sore_thr <- coef(diabetes_type_two_sore_thr)
+
+
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
+
+odd_ratio_ob_sore_thr
+```
+
+11. Diabetes type two with sputum 
+```{r}
+diabetes_type_two_sputum <- glm(diabetes_type_two ~ sputum, data = diabetes_type_two_data, family = binomial)
+
+
+summary(diabetes_type_two_sputum)
+
+
+coef_ob_sp <- coef(diabetes_type_two_sputum)
+
+odd_ratio_ob_sp <- exp(coef_ob_sp)
+
+odd_ratio_ob_sp
+
+vif(diabetes_type_two_sputum)
+```
+
+12. Diabetes type two with temperature
+```{r}
+diabetes_type_two_temperature <- glm(diabetes_type_two ~ temperature, data = diabetes_type_two_data, family = binomial)
+
+
+summary(diabetes_type_two_temperature)
+
+coef_ob_temp <- coef(diabetes_type_two_temperature)
+
+odd_ratio_ob_temp <- exp(coef_ob_temp)
+
+odd_ratio_ob_temp
+
+vif(diabetes_type_two_temperature)
+```
+
+## Multivariable analysis for diabetes type two
+
+
+Adding all variables that showed an association with diabetes type two variable. 
+
+When adjusting for all variables,  patients showing covid-19 symptoms/of patients with positive covid test, the results show strong evidence for an association between variables such as headache, shortness of breath, sore throat, sputum, temperature age and gender (p ≤ 0.05) in patients with heart disease.  
+When adjusting for all variables,in patients showing covid-19 symptpms/of patients with positive covid test, in patients with diabetes type two there was: 
+- 26 % decrease in odds of experiencing headaches 
+- 21 % decrease in shortness of breath 
+- 28 % decrease in sputum compared to those who do not suffer of patientss of diabetes type two
+- 50 % increase in 37.5-38 temperature compared to those who do not suffer of diabetes type two
+- 87 % increase in 38.1-39 temperature compared to those who do not suffer of diabetes type two
+- 222 % increase ?? in 39.1-41 temperature
+- 79 % for gender ? 
+
+
+```{r}
+diabetes_type_two_model <- glm(diabetes_type_two ~ headache + shortness_breath + sore_throat + sputum + temperature, 
+                               data = diabetes_type_two_data, family = binomial)
+
+summary(diabetes_type_two_model)
+
+
+exp(cbind(OR = coef(diabetes_type_two_model), confint(diabetes_type_two_model)))
+vif(diabetes_type_two_model)
+
+
+```
+
+
+
+```{r}
+heart_data <- data_categ_nosev %>%
+  dplyr::select(heart_disease, gender, age, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+```
+
+
+## Univariate analysis
+
+Univariate analysis reveal Covid symptoms such as chills, loss of smell and taste, diarhoea, muscle ache , nausea and vomiting, shortness of breath, sputum and temperature(39.1-41) are associated with heart disease. 
+
+
+1. Heart disease and chills
+```{r }
+
+heart_chills <- glm(heart_disease ~ chills, data = heart_data, family = binomial)
+
+summary(heart_chills)
+
+
+coef_heart_chills <- coef(heart_chills)
+
+# odd ratios 
+odd_ratios_ob_ch <- exp(coef_heart_chills)
+odd_ratios_ob_ch 
+
+```
+
+2. Heart disease and cough
+```{r  echo=FALSE}
+heart_cough <- glm(heart_disease ~ cough, data = heart_data, family = binomial)
+
+summary(heart_cough)
+
+
+coef_heart_cough <- coef(heart_cough)
+
+odd_ratios_ob_co <- exp(coef_heart_cough)
+
+odd_ratios_ob_co 
+```
+
+
+3. Heart disease and diarrhea
+```{r}
+heart_diarrhea <- glm(heart_disease ~ diarrhoea, data = heart_data, family = binomial)
+
+summary(heart_diarrhea)
+
+
+# get coef
+coef_ob_diarrhea <- coef(heart_diarrhea)
+
+# odd ratios
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
+
+odd_ratio_ob_diar
+```
+
+
+
+4. Heart disease and headache 
+
+```{r}
+heart_headache <- glm(heart_disease ~ headache, data = heart_data, family = binomial)
+
+summary(heart_headache)
+
+coef_ob_head <- coef(heart_headache)
+
+odd_ratio_ob_head <- exp(coef_ob_head)
+
+odd_ratio_ob_head
+```
+
+
+5. Heart disease and loss of smell and taste
+
+
+```{r}
+
+heart_loss_smell <- glm(heart_disease ~ loss_smell_taste, data = heart_data, family = binomial)
+
+
+summary(heart_loss_smell)
+
+coef_ob_loss_smell <- coef(heart_loss_smell)
+
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
+
+odd_ratio_ob_los
+```
+
+
+6. Heart disease and muscle ache.
+
+```{r}
+
+
+heart_muscle_ache <- glm(heart_disease ~ muscle_ache, data = heart_data, family = binomial)
+ 
+summary(heart_muscle_ache)
+
+coef_ob_muscle_ac <- coef(heart_muscle_ache)
+
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
+
+odd_ratio_ob_los
+
+```
+
+
+
+7. Heart disease and nasal congestion 
+```{r}
+
+heart_nasal_cong <- glm(heart_disease ~ nasal_congestion, data = heart_data, family = binomial)
+
+summary(heart_nasal_cong)
+
+
+coef_ob_nas_cong <- coef(heart_nasal_cong)
+
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
+
+odd_ratio_ob_nas_cong
+```
+
+
+
+8. Heart disease and nausea and vomiting 
+```{r}
+
+heart_nausea_vomitting <- glm(heart_disease ~ nausea_vomiting, data = heart_data, family = binomial)
+
+summary(heart_nausea_vomitting)
+
+
+coef_ob_naus_vom <- coef(heart_nausea_vomitting)
+
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
+
+odd_ratio_ob_naus_vom
+```
+
+9. Heart disease and shortness of breath
+
+```{r}
+
+heart_short_breath <- glm(heart_disease ~ shortness_breath, data = heart_data, family = binomial)
+
+summary(heart_short_breath)
+
+coef_ob_sh_br <- coef(heart_short_breath)
+
+
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
+
+odd_ratio_ob_sh_br
+```
+
+
+10. Heart disease and sore throat
+
+```{r}
+
+heart_sore_thr <- glm(heart_disease ~ sore_throat, data = heart_data, family = binomial)
+
+summary(heart_sore_thr)
+
+coef_ob_sore_thr <- coef(heart_sore_thr)
+
+
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
+
+odd_ratio_ob_sore_thr
+```
+
+
+11.Heart disease and sputum
+
+```{r}
+heart_sputum <- glm(heart_disease ~ sputum, data = heart_data, family = binomial)
+
+
+summary(heart_sputum)
+
+
+coef_ob_sp <- coef(heart_sputum)
+
+odd_ratio_ob_sp <- exp(coef_ob_sp)
+
+odd_ratio_ob_sp
+
+vif(heart_sputum)
+```
+
+12. Heart disease and temperature
+```{r}
+heart_temperature <- glm(heart_disease ~ temperature, data = heart_data, family = binomial)
+
+
+summary(heart_temperature)
+
+coef_ob_temp <- coef(heart_temperature)
+
+odd_ratio_ob_temp <- exp(coef_ob_temp)
+
+odd_ratio_ob_temp
+
+vif(heart_temperature)
+```
+
+# Multivariate analysis for heart disease 
+
+
+Adding all variables that showed an association with the heart disease model. 
+
+When adjusting for all variables,  patients showing covid-19 symptoms/of patients with positive covid test, the results show strong evidence for an association between variables such as chills, nausea and vomiting, shortness of breath and temperature (38.1-39; 39.1-40) (p ≤ 0.05) in patients with heart disease.  
+
+When adjusting for all variables,in patients showing covid-19 symptpms/of patients with positive covid test, in patients with heart disease there was: 
+- 94 % increase in odds of experiencing chills  compared to those who do not suffer of heart diesease disease
+- 95 % increase in nausea and vomiting compared to those who do not suffer of heart disease
+- 44 % increase in shortness of breath compared to those who do not suffer of heart  disease
+- 7 % increase in 37.5-38 temperature compared to those who do not suffer of heart disease
+- 229 % increase in 39.1-41 temperature
+
+
+```{r}
+heart_model <- glm(heart_disease ~ chills + diarrhoea + loss_smell_taste +muscle_ache + nausea_vomiting + shortness_breath +
+                     temperature + sputum  + shortness_breath, data = heart_data, family = binomial)
+
+summary(heart_model)
+
+exp(cbind(OR = coef(heart_model), confint(heart_model)))
+
+vif(heart_model)
+
+```
+
+
+
+
+
+```{r}
+hypertension_data <- data_categ_nosev %>%
+  dplyr::select(hypertension, gender, age, age_band, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+```
+
+
+
+# Univariate analysis for hypertension and Covid symptoms
+
+Univariate analysis reveal cough, diarrhea, muscle ache, shortness of breath, sputum and temperature (38.1-39) are symptoms associated in patients with hypertension. 
+
+
+1.Hypertension and chills
+
+```{r }
+
+hypertension_chills <- glm(hypertension ~ chills, data = hypertension_data, family = binomial)
+
+summary(hypertension_chills)
+
+
+coef_hypertension_chills <- coef(hypertension_chills)
+
+# odd ratios 
+odd_ratios_ob_ch <- exp(coef_hypertension_chills)
+odd_ratios_ob_ch 
+
+```
+
+
+2. Hypertension and cough 
+```{r  echo=FALSE}
+hypertension_cough <- glm(hypertension ~ cough, data = hypertension_data, family = binomial)
+
+summary(hypertension_cough)
+
+
+coef_hypertension_cough <- coef(hypertension_cough)
+
+odd_ratios_ob_co <- exp(coef_hypertension_cough)
+
+odd_ratios_ob_co 
+```
+
+
+
+
+3. Hypertension and diarrhea 
+```{r}
+hypertension_diarrhea <- glm(hypertension ~ diarrhoea, data = hypertension_data, family = binomial)
+
+summary(hypertension_diarrhea)
+
+
+# get coef
+coef_ob_diarrhea <- coef(hypertension_diarrhea)
+
+# odd ratios
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
+
+odd_ratio_ob_diar
+```
+
+4. Hypertension and headache
+```{r}
+hypertension_headache <- glm(hypertension ~ headache, data = hypertension_data, family = binomial)
+
+summary(hypertension_headache)
+
+coef_ob_head <- coef(hypertension_headache)
+
+odd_ratio_ob_head <- exp(coef_ob_head)
+
+odd_ratio_ob_head
+```
+
+
+5. Hypertension and loss of smell and taste 
+```{r}
+
+hypertension_loss_smell <- glm(hypertension ~ loss_smell_taste, data = hypertension_data, family = binomial)
+
+
+summary(hypertension_loss_smell)
+
+coef_ob_loss_smell <- coef(hypertension_loss_smell)
+
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
+
+odd_ratio_ob_los
+```
+
+6. Hypertension and muscle ache
+
+```{r}
+
+
+hypertension_muscle_ache <- glm(hypertension ~ muscle_ache, data = hypertension_data, family = binomial)
+ 
+summary(hypertension_muscle_ache)
+
+coef_ob_muscle_ac <- coef(hypertension_muscle_ache)
+
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
+
+odd_ratio_ob_los
+
+```
+
+7. Hypertension and nasal congestion
+```{r}
+
+hypertension_nasal_cong <- glm(hypertension ~ nasal_congestion, data = hypertension_data, family = binomial)
+
+summary(hypertension_nasal_cong)
+
+
+coef_ob_nas_cong <- coef(hypertension_nasal_cong)
+
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
+
+odd_ratio_ob_nas_cong
+```
+
+8. Hypertension and nausea and vomiting 
+```{r}
+
+hypertension_nausea_vomitting <- glm(hypertension ~ nausea_vomiting, data = hypertension_data, family = binomial)
+
+summary(hypertension_nausea_vomitting)
+
+
+coef_ob_naus_vom <- coef(hypertension_nausea_vomitting)
+
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
+
+odd_ratio_ob_naus_vom
+```
+
+9. Hypertension and shortness of breath
+
+```{r}
+
+hypertension_short_breath <- glm(hypertension ~ shortness_breath, data = hypertension_data, family = binomial)
+
+summary(hypertension_short_breath)
+
+coef_ob_sh_br <- coef(hypertension_short_breath)
+
+
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
+
+odd_ratio_ob_sh_br
+```
+
+10. Hypertension and sore throat
+```{r}
+
+hypertension_sore_thr <- glm(hypertension ~ sore_throat, data = hypertension_data, family = binomial)
+
+summary(hypertension_sore_thr)
+
+coef_ob_sore_thr <- coef(hypertension_sore_thr)
+
+
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
+
+odd_ratio_ob_sore_thr
+```
+
+11. Hypertension and sputum 
+
+```{r}
+hypertension_sputum <- glm(hypertension ~ sputum, data = hypertension_data, family = binomial)
+
+
+summary(hypertension_sputum)
+
+
+coef_ob_sp <- coef(hypertension_sputum)
+
+odd_ratio_ob_sp <- exp(coef_ob_sp)
+
+odd_ratio_ob_sp
+
+vif(hypertension_sputum)
+```
+
+12. Hypertension and temperature 
+```{r}
+hypertension_temperature <- glm(hypertension ~ temperature, data = hypertension_data, family = binomial)
+
+
+summary(hypertension_temperature)
+
+coef_ob_temp <- coef(hypertension_temperature)
+
+odd_ratio_ob_temp <- exp(coef_ob_temp)
+
+odd_ratio_ob_temp
+
+vif(hypertension_temperature)
+```
+
+
+# Multivariable analysis for hypertension 
+
+
+Adding all variables that showed an association with the hypertension variable. 
+
+When adjusting for all variables,  patients showing covid-19 symptoms/of patients with positive covid test, the results show strong evidence for an association between variables such as cough,  muscle ache, shortness of breath, sputum and temperature (37.1- 38 ; 38.1-39) (p ≤ 0.05) in patients with hypertension.  
+When adjusting for all variables,in patients showing covid-19 symptpms/of patients with positive covid test, in patients with hypertension there was: 
+- 24 % increase in odds of experiencing cough  compared to those who do not suffer of hypertension
+- 15 % increase in diarrhea compared to those who do not suffer of hypertension
+- 12 % increase in muscle ache compared to those who do not suffer of hypertension
+- 5 % increase in sputum compared to those who do not suffer of hypertension
+- 51 % increase in 38.1-39 in temperature to those who do not suffer of hypertension
+- 21 % increase in 39.1-41 in temperature compared to those who do not suffer of hypertension
+
+
+cough, diarrhea, muscle ache, shortness of breath, sputum, temperature
+```{r}
+hypertension_model <- glm(hypertension ~ cough + diarrhoea + muscle_ache + shortness_breath + sputum + temperature,  data = hypertension_data, family = binomial)
+
+summary(hypertension_model)
+
+exp(cbind(OR = coef(hypertension_model), confint(hypertension_model)))
+
+vif(hypertension_model)
+
+
+```
+
+
+```{r}
+liver_data <- data_categ_nosev %>%
+  dplyr::select(liver_disease, gender, age, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+```
+
+
+# Univariate analysis for liver disease and Covid-19 symptoms
+
+Asociated Covid symptoms in respondents with liver disease are: chills, diarhoea, loss of smell and taste, muscle ache, nasal congestion, nausea and vomiting, sputum and temperature
+
+
+1. Liver disease and chills 
+```{r }
+
+liver_chills <- glm(liver_disease ~ chills, data = liver_data, family = binomial)
+
+summary(liver_chills)
+
+
+coef_liver_chills <- coef(liver_chills)
+
+# odd ratios 
+odd_ratios_ob_ch <- exp(coef_liver_chills)
+odd_ratios_ob_ch 
+
+```
+
+2. Liver disease and cough
+
+```{r  echo=FALSE}
+liver_cough <- glm(liver_disease ~ cough, data = liver_data, family = binomial)
+
+summary(liver_cough)
+
+
+coef_liver_cough <- coef(liver_cough)
+
+odd_ratios_ob_co <- exp(coef_liver_cough)
+
+odd_ratios_ob_co 
+```
+
+
+3. Liver disease and diarhoea 
+```{r}
+liver_diarrhea <- glm(liver_disease ~ diarrhoea, data = liver_data, family = binomial)
+
+summary(liver_diarrhea)
+
+
+# get coef
+coef_ob_diarrhea <- coef(liver_diarrhea)
+
+# odd ratios
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
+
+odd_ratio_ob_diar
+```
+
+4. Liver disease and headache 
+
+```{r}
+liver_headache <- glm(liver_disease ~ headache, data = liver_data, family = binomial)
+
+summary(liver_headache)
+
+coef_ob_head <- coef(liver_headache)
+
+odd_ratio_ob_head <- exp(coef_ob_head)
+
+odd_ratio_ob_head
+```
+
+
+5. Liver disease and loss of smell and taste
+
+```{r}
+
+liver_loss_smell <- glm(liver_disease ~ loss_smell_taste, data = liver_data, family = binomial)
+
+
+summary(liver_loss_smell)
+
+coef_ob_loss_smell <- coef(liver_loss_smell)
+
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
+
+odd_ratio_ob_los
+```
+
+6. Liver disease and muscle ache
+```{r}
+
+
+liver_muscle_ache <- glm(liver_disease ~ muscle_ache, data = liver_data, family = binomial)
+ 
+summary(liver_muscle_ache)
+
+coef_ob_muscle_ac <- coef(liver_muscle_ache)
+
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
+
+odd_ratio_ob_los
+
+```
+
+7. Liver disease and nasal congestion
+
+```{r}
+
+liver_nasal_cong <- glm(liver_disease ~ nasal_congestion, data = liver_data, family = binomial)
+
+summary(liver_nasal_cong)
+
+
+coef_ob_nas_cong <- coef(liver_nasal_cong)
+
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
+
+odd_ratio_ob_nas_cong
+```
+
+8. Liver disease and vomiting 
+```{r}
+
+liver_nausea_vomitting <- glm(liver_disease ~ nausea_vomiting, data = liver_data, family = binomial)
+
+summary(liver_nausea_vomitting)
+
+
+coef_ob_naus_vom <- coef(liver_nausea_vomitting)
+
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
+
+odd_ratio_ob_naus_vom
+```
+
+9. Liver disease and shortness of breath
+
+```{r}
+
+liver_short_breath <- glm(liver_disease ~ shortness_breath, data = liver_data, family = binomial)
+
+summary(liver_short_breath)
+
+coef_ob_sh_br <- coef(liver_short_breath)
+
+
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
+
+odd_ratio_ob_sh_br
+```
+
+9. Liver disease and sore throat
+```{r}
+
+liver_sore_thr <- glm(liver_disease ~ sore_throat, data = liver_data, family = binomial)
+
+summary(liver_sore_thr)
+
+coef_ob_sore_thr <- coef(liver_sore_thr)
+
+
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
+
+odd_ratio_ob_sore_thr
+```
+
+
+11. Liver disease and sputum 
+
+```{r}
+liver_sputum <- glm(liver_disease ~ sputum, data = liver_data, family = binomial)
+
+
+summary(liver_sputum)
+
+
+coef_ob_sp <- coef(liver_sputum)
+
+odd_ratio_ob_sp <- exp(coef_ob_sp)
+
+odd_ratio_ob_sp
+
+vif(liver_sputum)
+```
+
+12. Liver disease and temperature 
+```{r}
+liver_temperature <- glm(liver_disease ~ temperature, data = liver_data, family = binomial)
+
+
+summary(liver_temperature)
+
+coef_ob_temp <- coef(liver_temperature)
+
+odd_ratio_ob_temp <- exp(coef_ob_temp)
+
+odd_ratio_ob_temp
+
+vif(liver_temperature)
+```
+
+
+# Multivariate analysis for liver disease   
+        
+When adjusting for the variables, in patients showing covid-19 symptoms/of patients with positive covid test the results show strong evidence for an association between variables such as chills, nausea and vomiting, and temperature (38.1-39; 39.1-40) (p ≤ 0.05) for patients with liver disease.  
+When adjusting for all variables,in patients showing covid-19 symptpms/of patients with positive covid test, in patients with liver disease there was: 
+- 103 % increase in odds of experiencing chills  compared to those who do not suffer of liver disease
+- 13 % increase in loss of smell and taste compared to those who do not suffer of liver disease
+- 15 % increase in muscle ache compred to those who do not suffer of liver disease
+- 272 % increase in nausea and vomiting compared to those who do not suffer of liver disease 
+-17 % increase in nasal congestion compared to those who do not suffer of liver disease
+- 14 % increase in 37.5-38 temperature compared to those who do not suffer of liver disease
+- 98 % increase in 38.1-39 temperature compared to those who do not suffer of liver disease
+- 338 % increase ?? in 39.1-41 temperature
+- 21 % increase in sputum compared to those who do not suffer of liver disease
+
+
+```{r}
+liver_model <- glm(liver_disease ~ chills + diarrhoea + loss_smell_taste + muscle_ache + nausea_vomiting + nasal_congestion + shortness_breath +
+                     temperature + sputum, data = liver_data, family = binomial)
+
+summary(liver_model)
+
+exp(cbind(OR = coef(liver_model), confint(liver_model)))
+
+vif(liver_model)
+
+```
+
+
+
+
+
+```{r}
+lung_condition_data <- data_categ_nosev %>%
+  dplyr::select(lung_condition, gender, age, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+```
+
+
+# Univariate analysis for lung condition and Covid-19 symptoms
+
+
+Univariate logistic regression for lung condition and covid symptoms reveal: 
+- nausea and vomiting, shortness of breath, sputum and 39.1- 41 temperature are statistically significant by looking at p values
+
+
+1. Lung condition and chills
+
+```{r }
+
+lung_condition_chills <- glm(lung_condition ~ chills, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_chills)
+
+
+coef_lung_condition_chills <- coef(lung_condition_chills)
+
+# odd ratios 
+odd_ratios_ob_ch <- exp(coef_lung_condition_chills)
+odd_ratios_ob_ch 
+
+```
+
+
+
+2. Lung condition and cough
+```{r  echo=FALSE}
+lung_condition_cough <- glm(lung_condition ~ cough, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_cough)
+
+
+coef_lung_condition_cough <- coef(lung_condition_cough)
+
+odd_ratios_ob_co <- exp(coef_lung_condition_cough)
+
+odd_ratios_ob_co 
+```
+
+
+3. Lung condition and diarhoea
+```{r}
+lung_condition_diarrhea <- glm(lung_condition ~ diarrhoea, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_diarrhea)
+
+
+# get coef
+coef_ob_diarrhea <- coef(lung_condition_diarrhea)
+
+# odd ratios
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
+
+odd_ratio_ob_diar
+```
+
+
+
+4. Lung condition and headache
+```{r}
+lung_condition_headache <- glm(lung_condition ~ headache, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_headache)
+
+coef_ob_head <- coef(lung_condition_headache)
+
+odd_ratio_ob_head <- exp(coef_ob_head)
+
+odd_ratio_ob_head
+```
+
+
+5. Lung condition and loss of smell and taste
+
+```{r}
+
+lung_condition_loss_smell <- glm(lung_condition ~ loss_smell_taste, data = lung_condition_data, family = binomial)
+
+
+summary(lung_condition_loss_smell)
+
+coef_ob_loss_smell <- coef(lung_condition_loss_smell)
+
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
+
+odd_ratio_ob_los
+```
+
+
+
+
+6. Lung condition and muscle ache
+```{r}
+
+
+lung_condition_muscle_ache <- glm(lung_condition ~ muscle_ache, data = lung_condition_data, family = binomial)
+ 
+summary(lung_condition_muscle_ache)
+
+coef_ob_muscle_ac <- coef(lung_condition_muscle_ache)
+
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
+
+odd_ratio_ob_los
+
+```
+
+
+
+7. Lung condition and nasal congestion
+
+```{r}
+
+lung_condition_nasal_cong <- glm(lung_condition ~ nasal_congestion, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_nasal_cong)
+
+
+coef_ob_nas_cong <- coef(lung_condition_nasal_cong)
+
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
+
+odd_ratio_ob_nas_cong
+```
+
+
+8. Lung condition and nausea and vomiting
+
+```{r}
+
+lung_condition_nausea_vomitting <- glm(lung_condition ~ nausea_vomiting, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_nausea_vomitting)
+
+
+coef_ob_naus_vom <- coef(lung_condition_nausea_vomitting)
+
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
+
+odd_ratio_ob_naus_vom
+```
+
+
+9. Lung condition and shorthness of breath
+```{r}
+
+lung_condition_short_breath <- glm(lung_condition ~ shortness_breath, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_short_breath)
+
+coef_ob_sh_br <- coef(lung_condition_short_breath)
+
+
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
+
+odd_ratio_ob_sh_br
+```
+
+
+
+
+10. Lung condition and sore throat
+```{r}
+
+lung_condition_sore_thr <- glm(lung_condition ~ sore_throat, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_sore_thr)
+
+coef_ob_sore_thr <- coef(lung_condition_sore_thr)
+
+
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
+
+odd_ratio_ob_sore_thr
+```
+
+
+
+11. Lung condition and sputum
+
+
+```{r}
+lung_condition_sputum <- glm(lung_condition ~ sputum, data = lung_condition_data, family = binomial)
+
+
+summary(lung_condition_sputum)
+
+
+coef_ob_sp <- coef(lung_condition_sputum)
+
+odd_ratio_ob_sp <- exp(coef_ob_sp)
+
+odd_ratio_ob_sp
+
+vif(lung_condition_sputum)
+```
+
+
+
+12. Lung condition and temperature
+
+```{r}
+lung_condition_temperature <- glm(lung_condition ~ temperature, data = lung_condition_data, family = binomial)
+
+
+summary(lung_condition_temperature)
+
+coef_ob_temp <- coef(lung_condition_temperature)
+
+odd_ratio_ob_temp <- exp(coef_ob_temp)
+
+odd_ratio_ob_temp
+
+vif(lung_condition_temperature)
+```
+
+
+# Multivariate analysis for lung condition 
+
+
+Adding all variables that showed an association with the lung diseease. 
+
+When adjusting for all variables,  patients showing covid-19 symptoms/of patients with positive covid test, the results show strong evidence for an association between variables such as nausea and vomiting, shortness of breath and temperature (38.1-39; 39.1-40) (p ≤ 0.05) and sputum in patients with lung disease.  
+
+
+When adjusting for the above variables, in patients showing covid-19 symptoms/of patients with positivie covid test, there was:
+- 88 % increase in the odds of experiencing nausea and vomiting compared to those who did not have lung disease; 
+- 63 % increase in odds of experiencing shortness of breath  compared to those who did not have lung disease;
+- 146 % increase in 39.1-41 temperature compared to those who did not have lung disease;
+- 33 % increase in the odds of experiencing sputum in patients with lung disease compared to those who did not have lung disease
+
+
+```{r}
+lung_condition_model <- glm(lung_condition ~  nausea_vomiting +  shortness_breath +
+                     temperature + sputum, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_model)
+
+exp(cbind(OR = coef(lung_condition_model), confint(lung_condition_model)))
+
+
+vif(lung_condition_model)
+
+
+```
+
+
+
+
+```{r}
+kidney_data <- data_categ_nosev %>%
+  dplyr::select(kidney_disease, gender, age,  chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature) %>%
+  tidyr::drop_na()
+```
+
+
+# Univariate analysis for kidney disease and Covid-19 symptoms
+
+The most Covid symptoms that are associated with kidney disease are shorthness and breath and temperature.
+
+
+1. Kidney disease and chills
+
+```{r }
+
+kidney_chills <- glm(kidney_disease ~ chills, data = kidney_data, family = binomial)
+
+summary(kidney_chills)
+
+
+coef_kidney_chills <- coef(kidney_chills)
+
+# odd ratios 
+odd_ratios_ob_ch <- exp(coef_kidney_chills)
+odd_ratios_ob_ch 
+
+```
+
+
+
+2. Kidney disease and cough
+```{r  echo=FALSE}
+kidney_cough <- glm(kidney_disease ~ cough, data = kidney_data, family = binomial)
+
+summary(kidney_cough)
+
+
+coef_kidney_cough <- coef(kidney_cough)
+
+odd_ratios_ob_co <- exp(coef_kidney_cough)
+
+odd_ratios_ob_co 
+```
+
+
+3. Kidney disease and diarrhoea
+```{r}
+kidney_diarrhea <- glm(kidney_disease ~ diarrhoea, data = kidney_data, family = binomial)
+
+summary(kidney_diarrhea)
+
+
+# get coef
+coef_ob_diarrhea <- coef(kidney_diarrhea)
+
+# odd ratios
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
+
+odd_ratio_ob_diar
+```
+
+4. Kidney disease and headache
+
+```{r}
+kidney_headache <- glm(kidney_disease ~ headache, data = kidney_data, family = binomial)
+
+summary(kidney_headache)
+
+coef_ob_head <- coef(kidney_headache)
+
+odd_ratio_ob_head <- exp(coef_ob_head)
+
+odd_ratio_ob_head
+```
+
+
+
+5. Kidney disease and loss of smell and taste
+```{r}
+
+kidney_loss_smell <- glm(kidney_disease ~ loss_smell_taste, data = kidney_data, family = binomial)
+
+
+summary(kidney_loss_smell)
+
+coef_ob_loss_smell <- coef(kidney_loss_smell)
+
+odd_ratio_ob_los <- exp(coef_ob_loss_smell)
+
+odd_ratio_ob_los
+```
+
+
+6. Kidney disease and muscle ache
+
+```{r}
+
+
+kidney_muscle_ache <- glm(kidney_disease ~ muscle_ache, data = kidney_data, family = binomial)
+ 
+summary(kidney_muscle_ache)
+
+coef_ob_muscle_ac <- coef(kidney_muscle_ache)
+
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
+
+odd_ratio_ob_los
+
+```
+
+
+
+7. Kidney disease and nasal congestion
+```{r}
+
+kidney_nasal_cong <- glm(kidney_disease ~ nasal_congestion, data = kidney_data, family = binomial)
+
+summary(kidney_nasal_cong)
+
+
+coef_ob_nas_cong <- coef(kidney_nasal_cong)
+
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
+
+odd_ratio_ob_nas_cong
+```
+
+
+8. Kidney disease and nausea and vomiting
+
+```{r}
+
+kidney_nausea_vomitting <- glm(kidney_disease ~ nausea_vomiting, data = kidney_data, family = binomial)
+
+summary(kidney_nausea_vomitting)
+
+
+coef_ob_naus_vom <- coef(kidney_nausea_vomitting)
+
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
+
+odd_ratio_ob_naus_vom
+```
+
+
+9. Kidney disease and shorthness of breath
+
+```{r}
+
+kidney_short_breath <- glm(kidney_disease ~ shortness_breath, data = kidney_data, family = binomial)
+
+summary(kidney_short_breath)
+
+coef_ob_sh_br <- coef(kidney_short_breath)
+
+
+odd_ratio_ob_sh_br <- exp(coef_ob_sh_br)
+
+odd_ratio_ob_sh_br
+```
+
+
+
+10. Kidney disease and sore throat
+```{r}
+
+kidney_sore_thr <- glm(kidney_disease ~ sore_throat, data = kidney_data, family = binomial)
+
+summary(kidney_sore_thr)
+
+coef_ob_sore_thr <- coef(kidney_sore_thr)
+
+
+odd_ratio_ob_sore_thr <- exp(coef_ob_sore_thr)
+
+odd_ratio_ob_sore_thr
+```
+
+
+
+11. Kidney disease and sputum
+```{r}
+kidney_sputum <- glm(kidney_disease ~ sputum, data = kidney_data, family = binomial)
+
+
+summary(kidney_sputum)
+
+
+coef_ob_sp <- coef(kidney_sputum)
+
+odd_ratio_ob_sp <- exp(coef_ob_sp)
+
+odd_ratio_ob_sp
+
+vif(kidney_sputum)
+```
+
+
+12. Kidney disease and temperature
+```{r}
+kidney_temperature <- glm(kidney_disease ~ temperature, data = kidney_data, family = binomial)
+
+
+summary(kidney_temperature)
+
+coef_ob_temp <- coef(kidney_temperature)
+
+odd_ratio_ob_temp <- exp(coef_ob_temp)
+
+odd_ratio_ob_temp
+
+vif(kidney_temperature)
+```
+
+
+
+# Multivariate analysis for Kidney disease
+
+The selected variables for the final model are: shortness of breath, temperature. 
+
+In patients showing covid-19 symptoms/of patients with a positive covid test,when adjusting for all relevant variables, in respondents with kidney disease there was a: 
+- 64% increase in the odds of experiencing shortness of breaht compared to those who do not have kidney disease 
+- 33 % increase in the odds of experiencing 38.1 -39 temperature compared to those who do not have kidney disease
+- 305 % ?? not sure - increase in odds of experiencing 39.1-41 temperature compared to those who do not have kidney disease
+
+```{r}
+kidney_model <- glm(kidney_disease ~  shortness_breath + temperature, data = kidney_data, family = binomial)
+
+summary(kidney_model)
+
+exp(cbind(OR = coef(kidney_model), confint(kidney_model)))
+vif(kidney_model)
+
+
+```
+
+
+

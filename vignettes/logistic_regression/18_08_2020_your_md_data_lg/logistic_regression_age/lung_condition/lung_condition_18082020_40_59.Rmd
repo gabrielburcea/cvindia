@@ -1,0 +1,965 @@
+---
+title: "lung_condition_18082020_40_59"
+author: "Gabriel Burcea"
+date: "14/09/2020"
+output: word_document
+---
+
+```{r  include=FALSE, echo=TRUE}
+
+library(tidyverse)
+library(tidymodels)
+library(readr)
+library(dplyr)
+library(corrr)
+library(tidyverse)
+library(conflicted)
+library(tidymodels)
+library(ggrepel)
+library(corrplot)
+library(dplyr)
+library(corrr) 
+library(themis)
+library(rsample)
+library(caret)
+library(forcats)
+library(rcompanion)
+library(MASS)
+library(pROC)
+library(ROCR)
+library(data.table)
+library(ggplot2)
+library(qgraph)
+library(report)
+library(corrplot)
+library(rms)
+
+conflict_prefer("step", "stats")
+
+### ML for Mixed - categorical and numerica data ####
+
+```
+
+
+
+```{r sympt-pos}
+
+data_categ_nosev <- readr::read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_18_08_2020_fully_cleaned_uniq_comorb.csv")
+
+
+covid_tested_levels <- c("positive" = "showing symptoms")
+
+data_age_band <- data_categ_nosev %>%
+   dplyr::mutate(age_band = dplyr::case_when(
+     age == 0 | age <= 19 ~ '0-19',
+     age == 20 | age <= 39 ~ '20-39',
+     age == 40 | age <= 59 ~ '40-59',
+     age >= 60 ~ "60+")) %>%
+  dplyr::filter(number_morbidities <= 1) %>%
+  dplyr::mutate(covid_tested = forcats::fct_recode(covid_tested, !!!covid_tested_levels))
+
+
+data_covid_only <- data_age_band %>%
+#dplyr::filter(number_morbidities <= 1) %>% # added this line on the 09/09/2020 as I want to check the analysis - do I get a different output, See report delivered  ...  compare this with the previous report generated on the date ....
+  dplyr::select(id, age, gender, covid_tested, chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, muscle_ache,
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature, loss_appetite, chest_pain, itchy_eyes, joint_pain, 
+                asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension, heart_disease, lung_condition, liver_disease, kidney_disease, age_band, number_morbidities)%>% 
+  dplyr::filter(covid_tested != "negative") %>%
+  tidyr::drop_na()
+
+
+data_age <- data_covid_only %>% 
+  dplyr::filter(age_band == "40-59")
+
+
+data_categ_covid <- data_age %>%
+  #dplyr::filter(number_morbidities <= 1) %>% # added this line on the 09/09/2020 as I want to check the analysis - do I get a different output, See report delivered  ...  compare this with the previous report generated on the date ....
+ dplyr::select(id, age, gender, covid_tested, chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature, loss_appetite, chest_pain, itchy_eyes, joint_pain, 
+                asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension, heart_disease, lung_condition, liver_disease, kidney_disease) %>%
+  dplyr::filter(covid_tested != "negative") %>%
+  tidyr::drop_na()
+
+
+```
+
+
+
+```{r}
+data_categ_covid$country <- NULL
+data_categ_covid$location <- NULL
+data_categ_covid$date_completed <- NULL
+data_categ_covid$covid_tested <- NULL 
+data_categ_covid$age_band <- NULL
+data_categ_covid$status_cv <- NULL
+data_categ_covid$sneezing <- NULL
+
+
+###########################################################################################
+### Transforming variables in factor format ###############################################
+#data_categ_covid$country <- as.factor(data_categ_covid$country)
+data_categ_covid$chills <- as.factor(data_categ_covid$chills)
+data_categ_covid$cough  <- as.factor(data_categ_covid$cough)
+data_categ_covid$gender <- as.factor(data_categ_covid$gender)
+#data_categ_covid$covid_tested <- as.factor(data_categ_covid$covid_tested)
+data_categ_covid$diarrhoea  <- as.factor(data_categ_covid$diarrhoea)
+data_categ_covid$fatigue  <- as.factor(data_categ_covid$fatigue)
+data_categ_covid$headache   <- as.factor(data_categ_covid$headache)
+data_categ_covid$loss_smell_taste   <- as.factor(data_categ_covid$loss_smell_taste)
+data_categ_covid$muscle_ache  <- as.factor(data_categ_covid$muscle_ache)
+data_categ_covid$nasal_congestion <- as.factor(data_categ_covid$nasal_congestion)
+data_categ_covid$nausea_vomiting  <- as.factor(data_categ_covid$nausea_vomiting)
+#data_categ_covid$self_diagnosis <- as.factor(data_categ_covid$self_diagnosis)
+data_categ_covid$shortness_breath <- as.factor(data_categ_covid$shortness_breath)
+data_categ_covid$sore_throat <- as.factor(data_categ_covid$sore_throat)
+data_categ_covid$sputum <- as.factor(data_categ_covid$sputum)
+data_categ_covid$temperature  <- as.factor(data_categ_covid$temperature)
+data_categ_covid$loss_appetite <- as.factor(data_categ_covid$loss_appetite)
+data_categ_covid$chest_pain <- as.factor(data_categ_covid$chest_pain)
+data_categ_covid$itchy_eyes <- as.factor(data_categ_covid$itchy_eyes)
+data_categ_covid$joint_pain <- as.factor(data_categ_covid$joint_pain)
+
+
+### Transforming variables in numerical format  #########################################################
+data_categ_covid$asthma   <- as.factor(data_categ_covid$asthma)
+data_categ_covid$diabetes_type_two <- as.factor(data_categ_covid$diabetes_type_two)
+data_categ_covid$obesity <- as.factor(data_categ_covid$obesity)
+data_categ_covid$hypertension  <- as.factor(data_categ_covid$hypertension)
+data_categ_covid$heart_disease  <- as.factor(data_categ_covid$heart_disease)
+data_categ_covid$kidney_disease <- as.factor(data_categ_covid$kidney_disease)
+data_categ_covid$lung_condition <- as.factor(data_categ_covid$lung_condition)
+data_categ_covid$liver_disease <- as.factor(data_categ_covid$liver_disease)
+data_categ_covid$diabetes_type_one <- as.factor(data_categ_covid$diabetes_type_one)
+#data_categ_covid$covid_tested <- as.factor(data_categ_nose)
+```
+
+
+
+
+```{r}
+lung_condition_data <- data_categ_covid %>%
+  dplyr::select(lung_condition, chills, cough, diarrhoea, headache, loss_smell_taste, muscle_ache, 
+                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature,  joint_pain, chest_pain, itchy_eyes, loss_appetite) %>%
+  tidyr::drop_na()
+```
+
+
+
+```{r}
+lung_count <- lung_condition_data %>%
+  tidyr::pivot_longer(cols = 2:17, 
+                      names_to = "symptoms", 
+                      values_to = "yes_no") %>%
+  dplyr::filter(lung_condition== "Yes" & yes_no == "Yes") %>%
+  dplyr::group_by(symptoms) %>%
+  dplyr::tally() %>%
+  dplyr::mutate(Percentage = n/sum(n)) %>%
+  dplyr::arrange(desc(n))
+
+start_date = as.Date("2020-04-09", tz = "Europe/London")
+end_date = as.Date("2020-08-18")
+title_stub <- "Age Group 40-59: Lung condition across symptoms\n"
+start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+
+plot_lung_sympt <-
+  ggplot2::ggplot(lung_count, ggplot2::aes(x = reorder(symptoms, - Percentage), y = n, fill = n)) +
+  ggplot2::coord_flip() +
+  ggplot2::geom_bar(stat = "identity", position = "dodge") +
+  ggplot2::scale_fill_viridis_c(option = "magma", direction = -1) +
+  ggplot2::scale_x_discrete(limits = unique(lung_count$symptoms)) +
+  #ggplot2::theme(legend.position = "bottom") +
+  #ggplot2::guides(fill = ggplot2::guide_legend(nrow = 3)) +
+  ggplot2::theme_minimal() +
+  ggplot2::labs( title = chart_title,
+                 subtitle = "Counts of patients with comorbidities accross symptoms",
+                 y = "Counts",
+                 x = "Symptoms",
+                 caption = "Source: Dataset - Your.md Dataset") +
+  ggplot2::theme(
+    axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+      t = 0,
+      r = 21,
+      b = 0,
+      l = 0
+    )),
+    plot.title = ggplot2::element_text(size = 10, face = "bold"),
+    plot.subtitle = ggplot2::element_text(size = 9),
+    axis.text.x = ggplot2::element_text(angle = 55, hjust = 1)
+  )
+
+plot_lung_sympt
+```
+
+
+# Univariate analysis for lung condition and Covid-19 symptoms
+
+
+Univariate logistic regression for lung condition and covid symptoms reveal: 
+- nausea and vomiting, shortness of breath, sputum and 39.1- 41 temperature are statistically significant by looking at p values
+
+
+1. Lung condition and chills
+```{r}
+
+
+lung_condition_data$lung_condition <- as.factor(lung_condition_data$lung_condition)
+lung_condition_chills <- glm(lung_condition ~ chills, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_chills)
+```
+
+```{r}
+coef_lung_condition_chills <- coef(lung_condition_chills)
+
+
+```
+
+```{r}
+lung_condition_chills_or_ci <- exp(cbind(OR = coef(lung_condition_chills), confint(lung_condition_chills)))
+```
+
+P-values adjusted 
+
+```{r}
+lung_condition_chills_pval <- summary(lung_condition_chills)$coefficients[,4]
+
+lung_condition_chills_pval <- lung_condition_chills_pval[-1]
+
+lung_condition_chills_padj <- p.adjust(lung_condition_chills_pval, method = "bonferroni")
+
+lung_condition_chills_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_chills_or_ci_pval <- cbind(lung_condition_chills_or_ci, data.frame(pvalues = lung_condition_chills_padj))
+
+knitr::kable(lung_condition_chills_or_ci_pval)
+```
+
+
+
+```{r pressure, echo=FALSE}
+lung_condition_cough <- glm(lung_condition ~ cough, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_cough)
+
+
+coef_lung_condition_cough <- coef(lung_condition_cough)
+
+odd_ratios_ob_co <- exp(coef_lung_condition_cough)
+
+odd_ratios_ob_co 
+```
+
+
+```{r}
+lung_condition_cough_or_ci <- exp(cbind(OR = coef(lung_condition_cough), confint(lung_condition_cough)))
+```
+
+P-values adjusted 
+
+```{r}
+lung_condition_cough_pval <- summary(lung_condition_cough)$coefficients[,4]
+
+lung_condition_cough_pval <- lung_condition_cough_pval[-1]
+
+lung_condition_cough_padj <- p.adjust(lung_condition_cough_pval, method = "bonferroni")
+
+lung_condition_cough_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_cough_or_ci_pval <- cbind(lung_condition_cough_or_ci, data.frame(pvalues = lung_condition_cough_padj))
+
+knitr::kable(lung_condition_cough_or_ci_pval)
+```
+
+```{r}
+lung_condition_diarrhea <- glm(lung_condition ~ diarrhoea, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_diarrhea)
+
+
+# get coef
+coef_ob_diarrhea <- coef(lung_condition_diarrhea)
+
+# odd ratios
+odd_ratio_ob_diar <- exp(coef_ob_diarrhea)
+
+odd_ratio_ob_diar
+```
+
+
+```{r}
+lung_condition_diarrhea_or_ci <- exp(cbind(OR = coef(lung_condition_diarrhea), confint(lung_condition_diarrhea)))
+```
+P-values adjusted 
+
+```{r}
+lung_condition_diarrhea_pval <- summary(lung_condition_diarrhea)$coefficients[,4]
+
+lung_condition_diarrhea_pval <- lung_condition_diarrhea_pval[-1]
+
+lung_condition_diarrhea_padj <- p.adjust(lung_condition_diarrhea_pval, method = "bonferroni")
+
+lung_condition_diarrhea_padj
+```
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_diarrhea_or_ci_pval <- cbind(lung_condition_diarrhea_or_ci, data.frame(pvalues = lung_condition_diarrhea_padj))
+
+knitr::kable(lung_condition_diarrhea_or_ci_pval)
+```
+
+
+```{r}
+lung_condition_headache <- glm(lung_condition ~ headache, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_headache)
+
+```
+
+OR and CI 
+```{r}
+lung_condition_headache_or_ci <- exp(cbind(OR = coef(lung_condition_headache), confint(lung_condition_headache)))
+
+```
+
+
+
+P-values adjusted 
+
+```{r}
+lung_condition_headache_pval <- summary(lung_condition_headache)$coefficients[,4]
+
+lung_condition_headache_pval <- lung_condition_headache_pval[-1]
+
+lung_condition_headache_padj <- p.adjust(lung_condition_headache_pval, method = "bonferroni")
+
+lung_condition_headache_padj 
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_headache_or_ci_pval <- cbind(lung_condition_headache_or_ci, data.frame(pvalues = lung_condition_headache_padj))
+
+knitr::kable(lung_condition_headache_or_ci_pval)
+
+```
+
+
+
+
+
+
+```{r}
+
+lung_condition_loss_smell <- glm(lung_condition ~ loss_smell_taste, data = lung_condition_data, family = binomial)
+
+
+summary(lung_condition_loss_smell)
+
+
+
+```
+
+
+OR and CI 
+```{r}
+lung_condition_loss_smell_or_ci <-    exp(cbind(OR = coef(lung_condition_loss_smell), confint(lung_condition_loss_smell)))
+
+```
+
+
+
+
+
+```{r}
+lung_condition_loss_smell_pval <- summary(lung_condition_loss_smell)$coefficients[,4]
+
+lung_condition_loss_smell_pval <- lung_condition_loss_smell_pval[-1]
+
+lung_condition_loss_smell_padj <- p.adjust(lung_condition_loss_smell_pval, method = "bonferroni")
+
+lung_condition_loss_smell_padj
+
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_loss_smell_or_ci_pval <- cbind(lung_condition_loss_smell_or_ci, data.frame(pvalues = lung_condition_loss_smell_padj))
+
+knitr::kable(lung_condition_loss_smell_or_ci_pval)
+
+```
+
+
+
+
+
+```{r}
+library(fmsb)
+
+lung_condition_muscle_ache <- glm(lung_condition ~ muscle_ache, data = lung_condition_data, family = binomial)
+ 
+summary(lung_condition_muscle_ache)
+
+
+
+
+coef_ob_muscle_ac <- coef(lung_condition_muscle_ache)
+
+odd_ratio_ob_los <- exp(coef_ob_muscle_ac)
+
+odd_ratio_ob_los
+
+
+```
+
+
+OR and CI 
+```{r}
+lung_condition_muscle_ache_or_ci <- exp(cbind(OR = coef(lung_condition_muscle_ache), confint(lung_condition_muscle_ache)))
+
+```
+
+
+
+
+```{r}
+lung_condition_muscle_ache_pval <- summary(lung_condition_muscle_ache)$coefficients[,4]
+
+lung_condition_muscle_ache_pval <- lung_condition_muscle_ache_pval[-1]
+
+lung_condition_muscle_ache_padj <- p.adjust(lung_condition_muscle_ache_pval, method = "bonferroni")
+
+lung_condition_muscle_ache_padj
+
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_muscle_ache_or_ci_pval <- cbind(lung_condition_muscle_ache_or_ci, data.frame(pvalues = lung_condition_muscle_ache_padj))
+
+knitr::kable(lung_condition_muscle_ache_or_ci_pval)
+
+```
+
+
+
+```{r}
+
+lung_condition_nasal_cong <- glm(lung_condition ~ nasal_congestion, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_nasal_cong)
+
+
+coef_ob_nas_cong <- coef(lung_condition_nasal_cong)
+
+odd_ratio_ob_nas_cong <- exp(coef_ob_nas_cong)
+
+odd_ratio_ob_nas_cong
+
+```
+
+
+
+OR and CI 
+```{r}
+lung_condition_nasal_cong_or_ci <- exp(cbind(OR = coef(lung_condition_nasal_cong), confint(lung_condition_nasal_cong)))
+
+```
+
+
+
+```{r}
+lung_condition_nasal_cong_pval <- summary(lung_condition_nasal_cong)$coefficients[,4]
+
+lung_condition_nasal_cong_pval <- lung_condition_nasal_cong_pval[-1]
+
+lung_condition_nasal_cong_padj <- p.adjust(lung_condition_nasal_cong_pval, method = "bonferroni")
+
+lung_condition_nasal_cong_padj
+
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_nasal_cong_or_ci_pval <- cbind(lung_condition_nasal_cong_or_ci, data.frame(pvalues = lung_condition_nasal_cong_padj))
+
+knitr::kable(lung_condition_nasal_cong_or_ci_pval)
+
+```
+
+
+
+
+```{r}
+
+lung_condition_nausea_vomitting <- glm(lung_condition ~ nausea_vomiting, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_nausea_vomitting)
+
+
+coef_ob_naus_vom <- coef(lung_condition_nausea_vomitting)
+
+odd_ratio_ob_naus_vom <- exp(coef_ob_naus_vom)
+
+
+odd_ratio_ob_naus_vom
+```
+
+
+OR and CI 
+```{r}
+lung_condition_nausea_vomitting_or_ci <- exp(cbind(OR = coef(lung_condition_nausea_vomitting), confint(lung_condition_nausea_vomitting)))
+
+```
+
+
+
+```{r}
+lung_condition_nausea_vomitting_pval <- summary(lung_condition_nausea_vomitting)$coefficients[,4]
+
+lung_condition_nausea_vomitting_pval <- lung_condition_nausea_vomitting_pval[-1]
+
+lung_condition_nausea_vomitting_padj <- p.adjust(lung_condition_nausea_vomitting_pval, method = "bonferroni")
+
+lung_condition_nausea_vomitting_padj
+
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_nausea_vomitting_or_ci_pval <- cbind(lung_condition_nausea_vomitting_or_ci, data.frame(pvalues = lung_condition_nausea_vomitting_padj))
+
+knitr::kable(lung_condition_nausea_vomitting_or_ci_pval)
+
+```
+
+
+
+
+
+```{r}
+
+lung_condition_short_breath <- glm(lung_condition ~ shortness_breath, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_short_breath)
+
+
+
+```
+
+
+OR and CI 
+```{r}
+lung_condition_short_breath_or_ci <- exp(cbind(OR = coef(lung_condition_short_breath), confint(lung_condition_short_breath)))
+
+```
+
+
+
+
+```{r}
+lung_condition_short_breath_pval <- summary(lung_condition_short_breath)$coefficients[,4]
+
+lung_condition_short_breath_pval <- lung_condition_short_breath_pval[-1]
+
+lung_condition_short_breath_padj <- p.adjust(lung_condition_short_breath_pval, method = "bonferroni")
+
+lung_condition_short_breath_padj
+```
+
+
+
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_short_breath_or_ci_pval <- cbind(lung_condition_short_breath_or_ci, data.frame(pvalues = lung_condition_short_breath_padj))
+
+knitr::kable(lung_condition_short_breath_or_ci_pval)
+
+```
+
+
+
+
+
+
+
+```{r}
+
+lung_condition_sore_thr <- glm(lung_condition ~ sore_throat, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_sore_thr)
+
+
+```
+
+
+
+OR and CI 
+```{r}
+lung_condition_sore_thr_or_ci <- exp(cbind(OR = coef(lung_condition_sore_thr), confint(lung_condition_sore_thr)))
+```
+
+
+
+
+
+```{r}
+lung_condition_sore_thr_pval <- summary(lung_condition_sore_thr)$coefficients[,4]
+
+lung_condition_sore_thr_pval <- lung_condition_sore_thr_pval[-1]
+
+lung_condition_sore_thr_padj <- p.adjust(lung_condition_sore_thr_pval, method = "bonferroni")
+
+lung_condition_sore_thr_padj
+
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_sore_thr_or_ci_pval <- cbind(lung_condition_sore_thr_or_ci, data.frame(pvalues = lung_condition_sore_thr_padj))
+
+knitr::kable(lung_condition_sore_thr_or_ci_pval)
+
+```
+
+
+
+
+
+
+```{r}
+lung_condition_sputum <- glm(lung_condition ~ sputum, data = lung_condition_data, family = binomial)
+
+
+summary(lung_condition_sputum)
+
+
+
+```
+
+
+
+OR and CI 
+```{r}
+lung_condition_sputum_or_ci <- exp(cbind(OR = coef(lung_condition_sputum), confint(lung_condition_sputum)))
+```
+
+
+
+
+```{r}
+lung_condition_sputum_pval <- summary(lung_condition_sputum)$coefficients[,4]
+
+lung_condition_sputum_pval <- lung_condition_sputum_pval[-1]
+
+lung_condition_sputum_padj <- p.adjust(lung_condition_sputum_pval, method = "bonferroni")
+
+lung_condition_sputum_padj
+
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_sputum_or_ci_pval <- cbind(lung_condition_sputum_or_ci, data.frame(pvalues = lung_condition_sputum_padj))
+
+knitr::kable(lung_condition_sputum_or_ci_pval)
+```
+
+
+
+```{r}
+lung_condition_temperature <- glm(lung_condition ~ temperature, data = lung_condition_data, family = binomial)
+
+
+summary(lung_condition_temperature)
+
+
+
+```
+
+
+
+OR and CI 
+```{r}
+lung_condition_temperature_or_ci <- exp(cbind(OR = coef(lung_condition_temperature), confint(lung_condition_temperature)))
+
+```
+
+
+
+
+```{r}
+lung_condition_temperature_pval <- summary(lung_condition_temperature)$coefficients[,4]
+
+lung_condition_temperature_pval <- lung_condition_temperature_pval[-1]
+
+lung_condition_temperature_padj <- p.adjust(lung_condition_temperature_pval, method = "bonferroni")
+
+lung_condition_temperature_padj
+
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_temperature_or_ci_pval <- cbind(lung_condition_temperature_or_ci, data.frame(pvalues = lung_condition_temperature_padj))
+
+knitr::kable(lung_condition_temperature_or_ci_pval)
+
+```
+
+
+
+```{r, itchy_eyes}
+lung_condition_itchy_eyes <- glm(lung_condition ~ itchy_eyes, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_itchy_eyes)
+
+
+```
+
+
+
+OR and CI 
+```{r}
+lung_condition_itchy_eyes_or_ci <- exp(cbind(OR = coef(lung_condition_itchy_eyes), confint(lung_condition_itchy_eyes)))
+
+```
+
+
+
+```{r}
+lung_condition_itchy_eyes_pval <- summary(lung_condition_itchy_eyes)$coefficients[,4]
+
+lung_condition_itchy_eyes_pval <- lung_condition_itchy_eyes_pval[-1]
+
+lung_condition_itchy_eyes_padj <- p.adjust(lung_condition_itchy_eyes_pval, method = "bonferroni")
+
+lung_condition_itchy_eyes_padj
+
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_itchy_eyes_or_ci_pval <- cbind(lung_condition_itchy_eyes_or_ci, data.frame(pvalues = lung_condition_itchy_eyes_padj))
+
+knitr::kable(lung_condition_itchy_eyes_or_ci_pval)
+
+```
+
+
+
+```{r, chest_pain}
+lung_condition_chest_pain <- glm(lung_condition ~ chest_pain, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_chest_pain)
+
+```
+
+OR and CI 
+```{r}
+lung_condition_chest_pain_or_ci <- exp(cbind(OR = coef(lung_condition_chest_pain), confint(lung_condition_chest_pain)))
+
+```
+
+
+
+
+```{r}
+lung_condition_chest_pain_pval <- summary(lung_condition_chest_pain)$coefficients[,4]
+
+lung_condition_chest_pain_pval <- lung_condition_chest_pain_pval[-1]
+
+lung_condition_chest_pain_padj <- p.adjust(lung_condition_chest_pain_pval, method = "bonferroni")
+
+lung_condition_chest_pain_padj
+
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_chest_pain_or_ci_pval <- cbind(lung_condition_chest_pain_or_ci, data.frame(pvalues = lung_condition_chest_pain_padj))
+
+knitr::kable(lung_condition_chest_pain_or_ci_pval)
+
+```
+
+
+
+```{r}
+lung_condition_loss_appetite <- glm(lung_condition ~ loss_appetite, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_loss_appetite)
+
+```
+
+
+OR and CI 
+```{r}
+lung_condition_loss_appetite_or_ci <- exp(cbind(OR = coef(lung_condition_loss_appetite), confint(lung_condition_loss_appetite)))
+
+```
+
+
+```{r}
+lung_condition_loss_appetite_pval <- summary(lung_condition_loss_appetite)$coefficients[,4]
+
+lung_condition_loss_appetite_pval <- lung_condition_loss_appetite_pval[-1]
+
+lung_condition_loss_appetite_padj <- p.adjust(lung_condition_loss_appetite_pval, method = "bonferroni")
+
+lung_condition_loss_appetite_padj
+
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_loss_appetite_or_ci_pval <- cbind(lung_condition_loss_appetite_or_ci, data.frame(pvalues = lung_condition_loss_appetite_padj))
+
+knitr::kable(lung_condition_loss_appetite_or_ci_pval)
+
+```
+
+
+
+```{r, joint_pain}
+lung_condition_joint_pain <- glm(lung_condition ~ joint_pain, data = lung_condition_data, family = binomial)
+
+
+summary(lung_condition_joint_pain)
+
+```
+
+
+OR and CI 
+```{r}
+lung_condition_joint_pain_or_ci <- exp(cbind(OR = coef(lung_condition_joint_pain), confint(lung_condition_joint_pain)))
+
+```
+
+
+
+```{r}
+lung_condition_joint_pain_pval <- summary(lung_condition_joint_pain)$coefficients[,4]
+
+lung_condition_joint_pain_pval <- lung_condition_joint_pain_pval[-1]
+
+lung_condition_joint_pain_padj <- p.adjust(lung_condition_joint_pain_pval, method = "bonferroni")
+
+lung_condition_joint_pain_padj
+
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_joint_pain_or_ci_pval <- cbind(lung_condition_joint_pain_or_ci, data.frame(pvalues = lung_condition_joint_pain_padj))
+
+knitr::kable(lung_condition_joint_pain_or_ci_pval)
+
+```
+
+
+
+# Multivariate analysis for lung condition 
+
+
+Adding all variables that showed an association with the lung diseease. 
+
+When adjusting for all variables,  patients showing covid-19 symptoms/of patients with positive covid test, the results show strong evidence for an association between variables such as nausea and vomiting, shortness of breath and temperature (38.1-39; 39.1-40) (p ≤ 0.05) and sputum in patients with lung disease.  
+
+
+When adjusting for the above variables, in patients showing covid-19 symptoms/of patients with positivie covid test, there was:
+- 88 % increase in the odds of experiencing nausea and vomiting compared to those who did not have lung disease; 
+- 63 % increase in odds of experiencing shortness of breath  compared to those who did not have lung disease;
+- 146 % increase in 39.1-41 temperature compared to those who did not have lung disease;
+- 33 % increase in the odds of experiencing sputum in patients with lung disease compared to those who did not have lung disease
+
+
+```{r}
+lung_condition_model <- glm(lung_condition ~   chills + cough + loss_smell_taste +  shortness_breath +
+                              sputum + chest_pain, data = lung_condition_data, family = binomial)
+
+summary(lung_condition_model)
+
+exp(cbind(OR = coef(lung_condition_model), confint(lung_condition_model)))
+
+
+vif(lung_condition_model)
+```
+
+
+
+```{r}
+# odds ratio and 95% CL
+
+lung_condition_model_or_ci <- exp(cbind(OR = coef(lung_condition_model), confint(lung_condition_model)))
+
+lung_condition_model_or_ci
+```
+
+
+
+```{r}
+lung_condition_model_pval <- summary(lung_condition_model)$coefficients[,4]
+
+
+
+lung_condition_model_padj <- p.adjust(lung_condition_model_pval, method = "bonferroni")
+
+lung_condition_model_padj
+```
+
+
+OR, CI and pval adjusted  
+```{r}
+
+lung_condition_model_or_ci_pval <- cbind(lung_condition_model_or_ci, data.frame(pvalues = lung_condition_model_padj))
+
+knitr::kable(lung_condition_model_or_ci_pval)
+```
+
+
+Multicolinearity 
+
+```{r}
+vif(lung_condition_model)
+```
+
+

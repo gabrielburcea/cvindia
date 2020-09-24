@@ -1,0 +1,58 @@
+---
+title: "22092020_descriptives"
+author: "Gabriel Burcea"
+date: "24/09/2020"
+output: powerpoint_presentation
+---
+
+
+
+```{r}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+
+library(magrittr)
+library(tidyverse)
+
+```
+
+
+```{r}
+data <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020.csv")
+```
+
+
+
+
+```{r, symptoms_positive_plot}
+
+sympt_pos_age_band <- cvindia::sympt_positive_age_band(data = data, start_date= as.Date("2020-04-09"), end_date = as.Date("2020-09-01"), plot_chart = TRUE)
+
+
+sympt_pos_age_band
+```
+
+
+```{r, symptoms_positive_numbers}
+
+sympt_pos_age_band <- cvindia::sympt_positive_age_band(data = data, start_date= as.Date("2020-04-09"), end_date = as.Date("2020-09-01"), 
+                                                       plot_chart = FALSE )
+
+
+sympt_pos_age_band %>% arrange(desc(percentage)) %>% top_n(10)
+```
+
+
+```{r, symptoms_negative_age_band}
+sympt_neg_age_band <- cvindia::sympt_negative_age_band(data = data, start_date= as.Date("2020-04-09"), end_date = as.Date("2020-09-01"), plot_chart = TRUE)
+
+
+sympt_neg_age_band
+
+```
+

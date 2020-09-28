@@ -1,11 +1,10 @@
-# Get the frequecies and means and standard deviation
-# age, how unwell, gender, number_days_symptoms_showing, number_morbidities
-library(tidyverse)
-library(stargazer)
-library(psych)
-conflict_prefer("filter", "stats")
-cleaned_data <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020.csv")
-
+# library(tidyverse)
+# library(stargazer)
+# library(psych)
+# conflict_prefer("filter", "stats")
+#
+#
+cleaned_data <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/uk_data_22092020.csv")
 unique(cleaned_data$number_days_symptom_showing)
 na_strings <- c( "0 0" , "7 7", "4 4", "5 5", "9 9","6 6", "21 ?? ???? ??", "42 ?? ????", "21 ?????? ?????")
 data <- cleaned_data %>%
@@ -16,15 +15,16 @@ sympt_show_t <- table(data$number_days_symptom_showing)
 sympt_show_t
 
 number_days_symptom_showing <- c(
-  
- "21" = "More than 21", 
- "21" = "More than 42", 
- "21" = "Plus de 21"
-  
+
+  "21" = "More than 21",
+  "42" = "More than 42",
+  "21" = "Plus de 21"
+
 )
 
+data$number_days_symptom_showing <- numeric(data$number_days_symptom_showing)
 
-data <- data %>% 
+data <- data %>%
   dplyr::mutate(number_days_symptom_showing = forcats::fct_recode(number_days_symptom_showing, !!!number_days_symptom_showing))
 
 
@@ -42,8 +42,8 @@ number_d_sympt_covid_pos <- number_days_symptoms_showing %>%
 numb_days_sympt_cov_pos <- as.data.frame(number_d_sympt_covid_pos)
 psych::describe(numb_days_sympt_cov_pos, skew = FALSE)
 
-
 # showing symptoms
+
 numb_d_show_sympt_cov <- number_days_symptoms_showing %>%
   dplyr::filter(covid_tested == "showing symptoms") %>%
   dplyr::select(-covid_tested) %>%
@@ -58,10 +58,13 @@ negative_tested_symptom_show <- as.data.frame(negative_tested_symptom)
 psych::describe(negative_tested_symptom_show, skew = FALSE)
 # age
 data <- cleaned_data %>% mutate(Age = replace(age, age > 100, NA_real_))
+
 data_num_age_groups <- data %>%
   dplyr::group_by(Age, covid_tested) %>%
-  tally()
-# covid_positive by age - mean and standard deviation
+  tally() %>%
+  drop_na()
+
+#covid_positive by age - mean and standard deviation
 covid_positive_age_mean_std <- data_num_age_groups %>%
   dplyr::filter(covid_tested == "positive") %>%
   drop_na() %>%
@@ -83,35 +86,60 @@ covid_negative_age_mean_std <- data_num_age_groups %>%
 covid_negat_age_mean_std <- as.data.frame(covid_negative_age_mean_std)
 psych::describe(covid_negat_age_mean_std, skew = FALSE)
 
+#
+
+
 # Covid tested counts
 
 data %>%
+  drop_na() %>%
   dplyr::group_by(covid_tested) %>%
   tally()
 
 
-# Cre home worker -
+# Care home worker -
 na_strings_care_home_worker <- c("Age", "Care Home Worker")
 data <- data %>%
-    mutate(across(starts_with('care_home_worker'),
-           ~ replace(., . %in% na_strings_care_home_worker, NA)))
+  mutate(across(starts_with('care_home_worker'),
+                ~ replace(., . %in% na_strings_care_home_worker, NA)))
 care_home_worker <- data %>%
   dplyr::select(covid_tested, care_home_worker) %>%
   drop_na() %>%
   dplyr::group_by(covid_tested, care_home_worker) %>%
   tally() %>%
   dplyr::mutate(Percentage = n/sum(n)*100)
+
+care_home_worker
+
+data %>%
+  drop_na() %>%
+  dplyr::group_by(covid_tested, gender) %>%
+  tally() %>%
+  dplyr::mutate(Percentage = n/sum(n)*100)
+  
+
+  
+
 # health care worker - percentanges
 na_strings_health_care_worker <- c("Chills", "Healthcare Worker")
 data <- data %>%
-   mutate(across(starts_with('health_care_worker'),
-                 ~ replace(., . %in%  na_strings_health_care_worker, NA)))
-
-health_care_worker <- data %>%
+  mutate(across(starts_with('health_care_worker'),
+                ~ replace(., . %in%  na_strings_health_care_worker, NA)))
+#health care worker
+data %>%
   dplyr::group_by(covid_tested, health_care_worker) %>%
   drop_na() %>%
   tally() %>%
   dplyr::mutate(Percentage = n/sum(n)*100)
+
+#gender
+
+data %>%
+  dplyr::group_by(covid_tested, gender) %>%
+  drop_na() %>%
+  tally() %>%
+  dplyr::mutate(Percentage = n/sum(n)*100)
+
 # loss of smell taste
 data %>%
   drop_na() %>%
@@ -125,10 +153,6 @@ data %>%
   dplyr::tally() %>%
   dplyr::mutate(Percentage = n/sum(n) *100)
 #cough
-na_strings_cough<- c("Location")
-data <- data %>%
-  mutate(across(starts_with('cough'),
-                ~ replace(., . %in%  na_strings_cough, NA)))
 data %>%
   dplyr::group_by(covid_tested, cough) %>%
   drop_na() %>%
@@ -212,8 +236,9 @@ data %>%
   dplyr::group_by(covid_tested, chest_pain) %>%
   dplyr::tally() %>%
   dplyr::mutate(Perc = n/sum(n)*100)
-# chest_pain
+# itchy eyes
 data %>%
+  drop_na() %>%
   dplyr::group_by(covid_tested, itchy_eyes) %>%
   dplyr::tally() %>%
   dplyr::mutate(Perc = n/sum(n)*100)
@@ -232,7 +257,18 @@ data %>%
   dplyr::tally() %>%
   dplyr::mutate(Percentage = n/sum(n)*100)
 
+
+# temperature
+
+data %>%
+  drop_na() %>%
+  dplyr::group_by(covid_tested, temperature) %>%
+  dplyr::tally() %>%
+  dplyr::mutate(Percentage = n/sum(n)*100)
+
 # Comorbidities
+
+#asthma
 data %>%
   drop_na() %>%
   dplyr::group_by(covid_tested, asthma) %>%
@@ -286,10 +322,7 @@ data %>%
   dplyr::group_by(covid_tested, obesity) %>%
   dplyr::tally() %>%
   dplyr::mutate(Percentage = n/sum(n)*100)
-na_strings_gender <- c("Gender")
-data <- data %>%
-  mutate(across(starts_with('gender'),
-                ~ replace(., . %in% na_strings_gender, NA)))
+
 # female
 data %>%
   dplyr::group_by(covid_tested, gender) %>%
@@ -300,7 +333,7 @@ data %>%
 na_strings_pregnant <- c("Loss of smell and taste", "Pregnant")
 data <- data %>%
   dplyr::mutate(across(starts_with('pregnant'),
-                ~ replace(.,. %in% na_strings_pregnant, NA)))
+                       ~ replace(.,. %in% na_strings_pregnant, NA)))
 female_pregnant <- data %>%
   dplyr::select(covid_tested, gender, pregnant) %>%
   dplyr::filter(gender == "Female")
@@ -358,4 +391,3 @@ pregnant_gender <- data %>%
   dplyr::mutate(Percentage = n/sum(n)*100)
 
 pregnant_gender
-# #write.csv(data, file = "/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_18_08_2020_fully_cleaned_uniq_comorb.csv", row.names = FALSE)

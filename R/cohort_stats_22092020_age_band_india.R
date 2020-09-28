@@ -4,7 +4,7 @@
 # library(stargazer)
 # library(psych)
 # conflict_prefer("filter", "stats")
-# cleaned_data <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020.csv")
+# cleaned_data <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/indian_data_22092020.csv")
 # 
 # 
 # table(cleaned_data$age)
@@ -14,7 +14,7 @@
 # data <- cleaned_data %>%
 #   mutate(across(starts_with('number_days_symptom_show'),
 #                 ~ replace(., . %in% na_strings, NA)))
-# sympt_show_t <- table(data$number_days_symptom_showing) 
+# sympt_show_t <- table(data$number_days_symptom_showing)
 # 
 # sympt_show_t <- as.data.frame(sympt_show_t) %>% arrange(desc(Var1))
 # 
@@ -69,46 +69,41 @@
 # covid_negat_age_mean_std <- as.data.frame(covid_negative_age_mean_std)
 # psych::describe(covid_negat_age_mean_std, skew = FALSE)
 # 
-# data <- data %>%
-#   dplyr::mutate(age_clean = replace(age, age > 100, NA_real_))
 # 
-# data <- data %>%
-#   dplyr::mutate(age_band = dplyr::case_when(
-#     age == 0 | age <= 19 ~ '0-19',
-#     age == 20 | age <= 39 ~ '20-39',
-#     age == 40 | age <= 59 ~ '40-59',
-#     age >= 60 ~ "60+"))
-# 
+# # age band 
 # unique(data$age_band)
 # 
+# #gender
 # data %>%
-#   dplyr::group_by(age_band, gender) %>% 
-#   dplyr::tally() %>% 
+#   dplyr::group_by(age_band, gender) %>%
+#   dplyr::filter(age_band != "0-19") %>%
+#   dplyr::tally() %>%
 #   dplyr::mutate(percent = n/sum(n)*100)
-# # Covid tested counts 
+# 
+# # counts of persons responding
+# data %>% 
+#   dplyr::group_by(age_band) %>% 
+#   dplyr::filter(age_band != "0-19") %>%
+#   tally()
+# # Covid tested counts
 # 
 # data %>%
-#   dplyr::group_by(age_band) %>% 
+#   dplyr::group_by(age_band) %>%
 #   tally() %>%
 #   dplyr::mutate(Percentage = n/sum(n)*100)
+# 
+# 
 # # Care home worker -
-# na_strings_care_home_worker <- c("Age", "Care Home Worker")
-# data <- data %>%
-#   mutate(across(starts_with('care_home_worker'),
-#                 ~ replace(., . %in% na_strings_care_home_worker, NA)))
-# care_home_worker <- data %>%
+# data %>%
 #   dplyr::select(age_band, care_home_worker) %>%
 #   drop_na() %>%
 #   dplyr::group_by(age_band, care_home_worker) %>%
 #   tally() %>%
 #   dplyr::mutate(Percentage = n/sum(n)*100)
-# # health care worker - percentanges
-# na_strings_health_care_worker <- c("Chills", "Healthcare Worker")
-# data <- data %>%
-#   mutate(across(starts_with('health_care_worker'),
-#                 ~ replace(., . %in%  na_strings_health_care_worker, NA)))
 # 
-# health_care_worker <- data %>%
+# 
+# # health care worker - percentanges
+# data %>%
 #   dplyr::group_by(age_band, health_care_worker) %>%
 #   drop_na() %>%
 #   tally() %>%
@@ -123,6 +118,7 @@
 #   dplyr::group_by(age_band, loss_smell_taste) %>%
 #   dplyr::tally() %>%
 #   dplyr::mutate(Percentage = n/sum(n) *100)
+# 
 # #muscle ache
 # data %>%
 #   drop_na() %>%
@@ -130,11 +126,8 @@
 #   dplyr::group_by(age_band, muscle_ache) %>%
 #   dplyr::tally() %>%
 #   dplyr::mutate(Percentage = n/sum(n) *100)
+# 
 # #cough
-# na_strings_cough<- c("Location")
-# data <- data %>%
-#   mutate(across(starts_with('cough'),
-#                 ~ replace(., . %in%  na_strings_cough, NA)))
 # data %>%
 #   drop_na() %>%
 #   dplyr::filter(age_band != "0-19") %>%
@@ -403,6 +396,3 @@
 #   dplyr::group_by(age_band, pregnant) %>%
 #   tally() %>%
 #   dplyr::mutate(Percentage = n/sum(n)*100)
-# 
-# pregnant_gender
-# #write.csv(data, file = "/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_18_08_2020_fully_cleaned_uniq_comorb.csv", row.names = FALSE)

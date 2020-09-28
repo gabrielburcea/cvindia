@@ -20,17 +20,17 @@ comorbidities_covid_status <- function(data, start_date = as.Date("2020-04-19"),
   options(digits = 2)
   
   gather_divided <- comborbidities_covid_status  %>%
-    tidyr::pivot_longer(cols= 3:11, names_to="comorbidities", values_to="yes_no") %>%
-    dplyr::filter(yes_no !="No") %>%
-    dplyr::group_by(covid_tested, comorbidities) %>%
+    tidyr::pivot_longer(cols= 3:11, names_to="comorbidities", values_to= "yes_no") %>%
+    dplyr::group_by(covid_tested, comorbidities, yes_no) %>%
     dplyr::summarise(count=n()) %>%
-    dplyr::mutate(percentage=  count/sum(count) *100)
-  
+    dplyr::mutate(percentage=  count/sum(count) *100) %>%
+    dplyr::arrange(desc(percentage)) %>%
+    dplyr::filter(yes_no !="No")
+    
   gather_divided$covid_tested <- as.factor(gather_divided$covid_tested)
   gather_divided$comorbidities <- as.factor(gather_divided$comorbidities)
   
-  start_date = as.Date("2020-04-19") 
-  end_date = as.Date("2020-09-01")
+
   
   title_stub <- "Comorbidities and covid status\n"
   start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
@@ -39,15 +39,15 @@ comorbidities_covid_status <- function(data, start_date = as.Date("2020-04-19"),
   
   
   comorbidities_covid_status <- 
-    ggplot2::ggplot(gather_divided, ggplot2::aes(x = reorder(comorbidities, - percentage), percentage, fill = covid_tested)) +
+    ggplot2::ggplot(gather_divided, ggplot2::aes(x = reorder(comorbidities, - count), count, fill = covid_tested)) +
     ggplot2::geom_col(ggplot2::aes(colour = covid_tested), width = 0.9) +
-    #geom_text(aes(label = percentage, group = comorbidities)) +
+    #geom_text(aes(label = count, group = comorbidities)) +
     ggplot2::coord_flip() + 
     ggplot2::scale_fill_brewer(palette = 'Greens')  +
     ggplot2::theme_bw() +
     ggplot2::labs(title = chart_title,
                   subtitle = "Responders with comorbidities and covid status",
-                  y = "Percentage", x = "Comorbidities", caption = "Source: Your.md Dataset") +
+                  y = "Count", x = "Comorbidities", caption = "Source: Your.md Dataset") +
     ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 21, b = 0, l = 0)),
                    plot.title = ggplot2::element_text(size = 10, face = "bold"),
                    plot.subtitle = ggplot2::element_text(size = 9),
@@ -67,6 +67,7 @@ comorbidities_covid_status <- function(data, start_date = as.Date("2020-04-19"),
       dplyr::arrange(desc(count))
     
     gather_divided_numbers
+    
   }
   
 }

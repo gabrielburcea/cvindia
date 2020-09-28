@@ -19,11 +19,12 @@ sympt_positive_age_band <- function(data, start_date = as.Date("2020-04-19"), en
   
   gather_divided <- symptoms_cov_age_band %>%
     tidyr::pivot_longer(cols= 4:20, names_to="symptoms", values_to="yes_no") %>%
-    dplyr::filter(yes_no !="No") %>%
     dplyr::filter(age_band != "0-19")  %>%
-    dplyr::group_by(age_band, symptoms) %>%
+    dplyr::group_by(age_band, symptoms, yes_no) %>%
     dplyr::summarise(count=n()) %>%
-    dplyr::mutate(percentage=  count/sum(count) *100)
+    dplyr::mutate(percentage=  count/sum(count) *100) %>%
+    dplyr::filter(yes_no !="No") %>%
+    dplyr::arrange(desc(percentage))
   
   gather_divided$age_band <- as.factor(gather_divided$age_band)
   gather_divided$symptoms <- as.factor(gather_divided$symptoms)
@@ -38,14 +39,14 @@ sympt_positive_age_band <- function(data, start_date = as.Date("2020-04-19"), en
 
   
   sympt_show_age_band <- 
-    ggplot2::ggplot(gather_divided, ggplot2::aes(x = symptoms, percentage, fill = age_band)) +
-    ggplot2::geom_col(ggplot2::aes(colour = age_band)) +
+    ggplot2::ggplot(gather_divided, ggplot2::aes(x = reorder(symptoms, - count), count, fill = age_band)) +
+    ggplot2::geom_col(ggplot2::aes(colour = age_band), width = 0.9 ) +
     ggplot2::coord_flip() + 
     ggplot2::scale_fill_brewer(palette = 'Reds')  +
     ggplot2::theme_bw() +
     ggplot2::labs(title = chart_title,
                   subtitle = "Symptoms accross age band",
-                  y = "Percentage", x = "Symptoms", caption = "Source: Your.md Dataset, Global Digital Health") +
+                  y = "Count", x = "Symptoms", caption = "Source: Your.md Dataset, Global Digital Health") +
     ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 21, b = 0, l = 0)),
                    plot.title = ggplot2::element_text(size = 10, face = "bold"),
                    plot.subtitle = ggplot2::element_text(size = 9),

@@ -100,7 +100,7 @@ age_adjusted_sympt_dst <- function(data, country_select, sympt, table = TRUE) {
   
   if(table == TRUE){ 
     
-    dt_total_expected_standard_pop %>% rename(!!whole_title := standardised_existing_sympt_rate)
+    dt_total_expected_standard_pop
     
   }else{
     

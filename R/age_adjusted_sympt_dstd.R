@@ -13,7 +13,7 @@ age_adjusted_sympt_dst <- function(data, country_select, sympt, table = TRUE) {
   
   data_select <- data %>%
     dplyr::select(id, age, Country, chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, muscle_ache, nasal_congestion, 
-                  nausea_vomiting, shortness_breath, sore_throat, sputum, temperature, loss_appetite, sneezing, chest_pain, itchy_eyes, joint_pain, covid_tested) %>%
+                  nausea_vomiting, shortness_breath, sore_throat, sputum, temperature, loss_appetite, covid_tested) %>%
     dplyr::mutate(age_recoded = replace(age, age > 100, NA_real_)) %>%
     dplyr::rename(country = Country) %>%
     dplyr::filter(covid_tested == "positive")

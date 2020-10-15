@@ -34,7 +34,7 @@ plot_adjusted_preexisting_rates <- function(data, title = "Exampele", plot_chart
   
   cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#CC6600")
   
-  
+  title <- "Adjusted rates for top 5 countries"
   plot_adjusted_rates <- ggplot2::ggplot(adjusted_comorbididity_rates_select, 
                                          ggplot2::aes(country, standardised_existing_cond_rate)) +
     ggplot2::coord_flip() +
@@ -42,13 +42,14 @@ plot_adjusted_preexisting_rates <- function(data, title = "Exampele", plot_chart
                             position = position_dodge(width = 0.5), stat = "identity") +
     ggplot2::scale_fill_manual(values = cbbPalette) + 
     ggplot2::labs(title = title,
-                  subtitle = "Adjusted age rates for pre-existing conditions in %",
-                  x = "Countries/Adjusted Rates", y = "Percentage", caption = "Source: Your.md data") +
+                  subtitle = "\nNote: Adjusted rates for pre-existing conditions in %",
+                  x = "Pre-existing conditions/Countries", y = "Percentage", caption = "Source: Your.md Data") +
     ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 21, b = 0, l = 0)),
                    plot.title = ggplot2::element_text(size = 12, face = "bold"),
                    plot.subtitle = ggplot2::element_text(size = 10),
                    legend.position = "bottom" , legend.box = "horizontal") +
     ggplot2::theme_bw()
+  
   
   plot_adjusted_rates
   

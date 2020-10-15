@@ -11,7 +11,7 @@
 #' @examples
 age_adjusted_sympt_dst <- function(data, country_select, sympt, table = TRUE) {
   
-  data_select <- data %>%
+  data_select <- cleaned_data_22092020 %>%
     dplyr::select(id, age, Country, chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, muscle_ache, nasal_congestion, 
                   nausea_vomiting, shortness_breath, sore_throat, sputum, temperature, loss_appetite, covid_tested) %>%
     dplyr::mutate(age_recoded = replace(age, age > 100, NA_real_)) %>%
@@ -38,7 +38,7 @@ age_adjusted_sympt_dst <- function(data, country_select, sympt, table = TRUE) {
   # get the country age_recoded_bands and specific pre-existing condition 
   # 1.use pivot_loger to get comorbidities as rows 
   age_band_symptoms_pv <- data_age_band %>%
-    tidyr::pivot_longer(cols = 4:21, 
+    tidyr::pivot_longer(cols = 4:17, 
                         names_to = "symptoms", 
                         values_to = "Bolean") %>%
     dplyr::filter(Bolean != "No")
@@ -50,6 +50,7 @@ age_adjusted_sympt_dst <- function(data, country_select, sympt, table = TRUE) {
     dplyr::group_by(age_recoded_band, country, symptoms) %>%
     dplyr::summarise(count_study_pop_sympt = dplyr::n()) %>%
     tidyr::drop_na()
+  
   
   # join the data country age band and age band comorbidities
   dt_study_pop_age_sympt <- dplyr::left_join(data_country_age_band, cnt_country_age_band_symptoms) %>% 

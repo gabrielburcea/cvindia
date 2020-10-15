@@ -1,3 +1,5 @@
+# library(tidyverse)
+# 
 # data_rec <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/csvdata_22092020.csv")
 # nrow(distinct(data_rec))
 # data_rename <- data_rec %>%
@@ -239,7 +241,8 @@
 #     liver_disease,
 #     kidney_disease,
 #     number_morbidities,
-#     covid_tested
+#     covid_tested,
+#     number_morbidities
 #   )
 # ## chills
 # unique(data_sel$'chills')
@@ -359,11 +362,28 @@
 #                 sore_throat = forcats::fct_recode(sore_throat, !!!level_key_sore_throat),
 #                 sputum = forcats::fct_recode(sputum, !!!level_key_sputum),
 #                 temperature = forcats::fct_recode(temperature, !!!level_key_temperature))
-# csvdata_22092020 <- data_categ_nosev %>%
+# 
+# csvdata2209202 <- data_categ_nosev %>%
 #   dplyr::mutate(age_band = dplyr::case_when(
 #     age == 0 | age <= 19 ~ '0-19',
 #     age == 20 | age <= 39 ~ '20-39',
 #     age == 40 | age <= 59 ~ '40-59',
 #     age >= 60 ~ "60+"))
-#write.csv(csvdata_22092020, file = "/Users/gabrielburcea/Rprojects/data/your.md/cleaned_data_22092020.csv", row.names = FALSE)
-
+# 
+# country_levels <- c("United Kingdom" = "Great Britain", 
+#                     "USA" = "United States of America")
+# 
+# csvdata_22092020 <- csvdata2209202 %>%
+#   dplyr::mutate(Country = forcats::fct_recode(country, !!!country_levels))
+# 
+# country_unique <- as.data.frame(unique(csvdata_22092020$Country))
+# 
+# write.csv(csvdata_22092020, file = "/Users/gabrielburcea/Rprojects/data/your.md/cleaned_data_22092020.csv", row.names = FALSE)
+# 
+# # # uplead the cleaned data into global environment and then get rid of the responders with multiple comorbidities
+# # cleaned_data_22092020 <- cleaned_data_22092020 %>%
+# #   dplyr::filter(number_morbidities <= 1)
+# # 
+# # # save the unique comorbidities dataseyt 
+# cleaned_data_unique_22092020 <- cleaned_data_22092020
+# write.csv(cleaned_data_unique_22092020, file = "/Users/gabrielburcea/Rprojects/data/your.md/cleaned_data_unique_22092020.csv", row.names = FALSE)

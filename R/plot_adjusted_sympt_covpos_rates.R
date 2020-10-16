@@ -44,7 +44,7 @@ plot_adjusted_sympt_covpos_rates <- function(data, title = "Exampele", plot_char
     ggplot2::scale_fill_manual(values = cbbPalette) + 
     ggplot2::labs(title = title,
                   subtitle = "\nNote: Adjusted rates for symptoms in responders tested covid positive  in %",
-                  x = "Symptoms in covid positive/Countries", y = "Percentage", caption = "Source: Your.md Data") +
+                  x = "Symptoms in covid positive", y = "Percentage", caption = "Source: Your.md Data") +
     ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 21, b = 0, l = 0)),
                    plot.title = ggplot2::element_text(size = 12, face = "bold"),
                    plot.subtitle = ggplot2::element_text(size = 10), 

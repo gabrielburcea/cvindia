@@ -12,7 +12,7 @@ plot_adjusted_preexisting_rates <- function(data, title = "Exampele", plot_chart
   
   
   adjusted_comorbididity_rates_select <- adjusted_comorbidity_rates %>%
-    dplyr::filter(age_recoded_band == "20-39") %>%
+    #dplyr::filter(age_recoded_band == "20-39") %>%
     dplyr::select(country, comorbidities, standardised_existing_cond_rate) 
     
   
@@ -36,14 +36,14 @@ plot_adjusted_preexisting_rates <- function(data, title = "Exampele", plot_chart
   
   title <- "Adjusted rates for top 5 countries"
   plot_adjusted_rates <- ggplot2::ggplot(adjusted_comorbididity_rates_select, 
-                                         ggplot2::aes(country, standardised_existing_cond_rate)) +
+                                         ggplot2::aes(comorbidities, standardised_existing_cond_rate, country)) +
     ggplot2::coord_flip() +
-    ggplot2::geom_bar(ggplot2::aes(fill = comorbidities), width = 0.4,
+    ggplot2::geom_bar(ggplot2::aes(fill = country), width = 0.4,
                             position = position_dodge(width = 0.5), stat = "identity") +
     ggplot2::scale_fill_manual(values = cbbPalette) + 
     ggplot2::labs(title = title,
                   subtitle = "\nNote: Adjusted rates for pre-existing conditions in %",
-                  x = "Pre-existing conditions/Countries", y = "Percentage", caption = "Source: Your.md Data") +
+                  x = "Pre-existing conditions", y = "Percentage", caption = "Source: Your.md Data") +
     ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 21, b = 0, l = 0)),
                    plot.title = ggplot2::element_text(size = 12, face = "bold"),
                    plot.subtitle = ggplot2::element_text(size = 10),

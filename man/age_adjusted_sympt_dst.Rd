@@ -4,7 +4,7 @@
 \alias{age_adjusted_sympt_dst}
 \title{age_adjusted_sympt_dst}
 \usage{
-age_adjusted_sympt_dst(data, country_select, sympt, table = TRUE)
+age_adjusted_sympt_dst(data, country_select, sympt, table_gen = TRUE)
 }
 \arguments{
 \item{data}{}

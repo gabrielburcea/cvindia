@@ -4,7 +4,7 @@
 \alias{age_adjusted_comorb_dst}
 \title{age_adjusted_comorb_dst}
 \usage{
-age_adjusted_comorb_dst(data, country_select, comorb, table = TRUE)
+age_adjusted_comorb_dst(data, country_select, comorb, table_gen = TRUE)
 }
 \arguments{
 \item{data}{}

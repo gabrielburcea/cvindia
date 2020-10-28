@@ -1,4 +1,4 @@
-#' adjusr_age_comorbidity
+#' adjusr_age_comorbidity'
 #'
 #' @param data - contains id, pre-existing conditions, countries
 #' @param comorb - preexisting conditions such as : asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension, heart_disease, lung_condition, liver_disease, kidney_disease; 
@@ -13,9 +13,10 @@
 adjust_age_comorbidity <- function(data, comorb, country_select, table = TRUE){
   
   data_select <- data %>%
-    dplyr::select(id, age, country, asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension, heart_disease, lung_condition, 
+    dplyr::select(id, age, Country, asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension, heart_disease, lung_condition, 
                   liver_disease, kidney_disease) %>%
-    dplyr::mutate(age_recoded = replace(age, age > 100, NA_real_))
+    dplyr::mutate(age_recoded = replace(age, age > 100, NA_real_)) %>%
+    dplyr::rename(country = Country)
   
   #get the age bands
   data_age_band <- data_select %>%
@@ -24,6 +25,8 @@ adjust_age_comorbidity <- function(data, comorb, country_select, table = TRUE){
       age_recoded == 20 | age_recoded <= 39 ~ '20-39',
       age_recoded == 40 | age_recoded <= 59 ~ '40-59',
       age_recoded >= 60 ~ "60+"))
+  
+  world_wide_pop <- readr::read_csv("/Users/gabrielburcea/rprojects/cvindia/data/world_wide_pop_2020.csv")
   
   # get the counts of respondents by age band in the study population
   dt_cnt_age_band_resp <- data_age_band %>%
@@ -36,7 +39,7 @@ adjust_age_comorbidity <- function(data, comorb, country_select, table = TRUE){
                         values_to = "Bolean") %>%
     dplyr::filter(Bolean != "No")
   
-  comorb = "asthma"
+
   
   # use the study population to get the asthma counts -> this will help get my standard pop
   all_age_struct_comorb <- age_band_comorbidities_pv %>%
@@ -55,7 +58,6 @@ adjust_age_comorbidity <- function(data, comorb, country_select, table = TRUE){
   fnl_stand_pop <- dt_standard_pop %>%
     dplyr::mutate(standard_pop_rate = standard_pop_comorb/standard_population_age_band)
   
-  country_select <- "India"
   # get the age group per country -> add them to the fnl_stand_pop 
   country_data <- age_band_comorbidities_pv  %>%
     dplyr::select(id, age_recoded_band, country) %>%
@@ -83,7 +85,7 @@ adjust_age_comorbidity <- function(data, comorb, country_select, table = TRUE){
   
   
   # attach pop rate (country/comorbidity) to country_expected_comorbidity
-  final_adj_comorbid_rate <- dplyr::left_join(country_expct_comorbidity, study_pop_rate)
+  final_adj_comorbid_rate <- dplyr::left_join(country_expct_comorbidity, study_pop_rate) %>% drop_na()
   
   # get the standardised comorbidity rate
   # get the total number number of a comorbidity across age group in a certain country 
@@ -109,15 +111,16 @@ adjust_age_comorbidity <- function(data, comorb, country_select, table = TRUE){
   whole_title <- paste(title, add_to_title, add_last_word, country)
   
   whole_title
-  dt_select_final
+
+  
   
   if(table == TRUE){ 
     
-    dt_total_sum_comorbidit_study_pop
+    dt_total_sum_comorbidit_study_pop %>% rename(!!whole_title := standardised_existing_cond_rate)
     
   }else{
       
-    dt_select_final
+    dt_select_final %>% rename(!!whole_title := standardised_existing_cond_rate)
     
     }
   

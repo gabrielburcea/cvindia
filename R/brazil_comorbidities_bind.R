@@ -1,0 +1,22 @@
+# brazil_asthma <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "asthma", table_gen  = TRUE)
+# brazil_diabetes_type_one <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "diabetes_type_one", table_gen  = TRUE)
+# brazil_diabetes_type_two <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "diabetes_type_two", table_gen  = TRUE)
+# brazil_heart_disease <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "heart_disease", table_gen  = TRUE)
+# brazil_obesity <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "obesity", table_gen  = TRUE)
+# brazil_hypertension <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "hypertension", table_gen  = TRUE)
+# brazil_lung_condition <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "lung_condition", table_gen  = TRUE)
+# brazil_liver_disease <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "liver_disease", table_gen  = TRUE)
+# brazil_kidney_disease <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "kidney_disease", table_gen  = TRUE)
+# 
+# brazil_prexisting_cond_rates <- bind_rows(brazil_asthma, brazil_diabetes_type_one, brazil_diabetes_type_two, brazil_heart_disease, brazil_obesity, brazil_hypertension, 
+#                                           brazil_lung_condition, brazil_liver_disease, brazil_kidney_disease)
+# 
+# brazil_asthma_robust <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "asthma", table_gen = FALSE)
+# brazil_diabetes_type_one_robust <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "diabetes_type_one", table_gen  = FALSE)
+# brazil_diabetes_type_two_robust <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "diabetes_type_two", table_gen  = FALSE)
+# brazil_heart_disease_robust <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "heart_disease", table_gen  = FALSE)
+# brazil_obesity_robust <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "obesity", table_gen  = FALSE)
+# brazil_hypertension_robust <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "hypertension", table_gen  = FALSE)
+# brazil_lung_condition_robust <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "lung_condition", table_gen  = FALSE)
+# brazil_liver_disease_robust <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "liver_disease", table_gen  = FALSE)
+# brazil_kidney_disease_robust <- cvindia::age_adjusted_comorb_dst(data = cleaned_data_22092020, country_select = "Brazil", comorb = "kidney_disease", table_gen  = FALSE)

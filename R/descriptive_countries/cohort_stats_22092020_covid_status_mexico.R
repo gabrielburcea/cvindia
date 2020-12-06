@@ -4,7 +4,12 @@
 # conflict_prefer("filter", "stats")
 # 
 # 
-# cleaned_data <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/mexico_data_22092020.csv")
+# cleaned_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020.csv")
+# 
+# cleaned_data <- cleaned_data_22092020 %>%
+#   dplyr::filter(country == "Mexico")
+# 
+# cleaned_data %>% dplyr::group_by(covid_tested) %>% tally()
 # unique(cleaned_data$number_days_symptom_showing)
 # 
 # na_strings <- c( "0 0" , "7 7", "4 4", "5 5", "9 9","6 6", "21 ?? ???? ??", "42 ?? ????", "21 ?????? ?????")
@@ -17,8 +22,8 @@
 # 
 # number_days_symptom_showing <- c(
 # 
-#   "21" = "More than 21",
-#   "42" = "More than 42"
+#   "22" = "More than 21",
+#   "43" = "More than 42"
 # 
 # )
 # 
@@ -28,6 +33,7 @@
 #   dplyr::mutate(number_days_symptom_showing = forcats::fct_recode(number_days_symptom_showing, !!!number_days_symptom_showing))
 # 
 # data %>%
+#   drop_na() %>%
 #   dplyr::group_by(covid_tested) %>%
 #   tally()
 # 

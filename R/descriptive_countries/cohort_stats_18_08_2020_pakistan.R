@@ -4,17 +4,36 @@
 # library(stargazer)
 # library(psych)
 # conflict_prefer("filter", "stats")
-# cleaned_data <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/pakistan_data_22092020.csv")
-# na_strings <- c( "More than 42",  "43+",  "Number Of Days Symptoms Showing", "No",
-#                  "Yes", "Long Standing Health Issues",  "More than 21", "4 4","6 6", "7 7", "0 0", "5 5",  "9 9", "Plus de 21","21 ?? ???? ??", "42 ?? ????", "21 ?????? ?????")
+# cleaned_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020.csv")
 # 
+# cleaned_data <- cleaned_data_22092020 %>%
+#   dplyr::filter(country == "Pakistan")
+# 
+# cleaned_data %>% dplyr::group_by(covid_tested) %>% tally()
+# unique(cleaned_data$number_days_symptom_showing)
+# 
+# na_strings <- c( "Number Of Days Symptoms Showing", "No",
+#                  "Yes", "Long Standing Health Issues",   "4 4","6 6", "7 7", "0 0", "5 5",  "9 9","21 ?? ???? ??", "42 ?? ????", "21 ?????? ?????")
+# 
+# number_days_symptom_show_levels <- 
+#   c( "43" = "More than 42",
+#     "44" = "43+",
+#     "22" = "More than 21")
 # 
 # 
 # data <- cleaned_data %>%
 #   mutate(across(starts_with('number_days_symptom_show'),
 #                 ~ replace(., . %in% na_strings, NA)))
+# 
+# 
+# data <- data %>%
+#   dplyr::mutate(number_days_symptom_showing = forcats::fct_recode(number_days_symptom_showing, !!!number_days_symptom_show_levels))
+# 
 # sympt_show_t <- table(data$number_days_symptom_showing)
 # data$number_days_symptom_showing <- as.numeric(data$number_days_symptom_showing)
+# 
+# 
+# 
 # #number_days_symptom_showing
 # number_days_symptoms_showing <- data %>%
 #   dplyr::select(covid_tested, number_days_symptom_showing) %>%
@@ -38,7 +57,7 @@
 # negative_tested_symptom_show <- as.data.frame(negative_tested_symptom)
 # psych::describe(negative_tested_symptom_show, skew = FALSE)
 # # age
-# data <- cleaned_data %>% mutate(Age = replace(age, age > 100, NA_real_))
+# data <- data %>% mutate(Age = replace(age, age > 100, NA_real_))
 # data_num_age_groups <- data %>%
 #   dplyr::group_by(Age, covid_tested) %>%
 #   tally()
@@ -95,7 +114,7 @@
 # data %>%
 #   dplyr::select(id, covid_tested) %>%
 #   dplyr::group_by(covid_tested) %>%
-#   tally() %>% 
+#   tally() %>%
 #   drop_na()
 # 
 # 
@@ -198,7 +217,7 @@
 #   drop_na() %>%
 #   dplyr::tally() %>%
 #   dplyr::mutate(Perc = n/sum(n)*100)
-# # chest_pain
+# # itchy eyes
 # data %>%
 #   dplyr::group_by(covid_tested, itchy_eyes) %>%
 #   drop_na() %>%
@@ -316,8 +335,6 @@
 #   dplyr::group_by(covid_tested) %>%
 #   tally() %>%
 #   dplyr::mutate(Percentage = n/sum(n)*100)
-# 
-# 
 # # answered questions on comorbidities
 # data %>%
 #   dplyr::select(id, covid_tested, asthma, obesity, diabetes_type_one, diabetes_type_two,

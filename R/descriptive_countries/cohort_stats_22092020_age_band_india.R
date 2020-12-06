@@ -7,6 +7,7 @@
 # cleaned_data <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/indian_data_22092020.csv")
 # 
 # 
+# cleaned_data %>% dplyr::group_by(covid_tested) %>% tally()
 # table(cleaned_data$age)
 # 
 # unique(cleaned_data$number_days_symptom_showing)

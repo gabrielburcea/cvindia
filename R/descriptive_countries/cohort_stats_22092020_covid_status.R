@@ -13,7 +13,24 @@
 # cleaned_data <- cleaned_data %>%
 #   dplyr::mutate(country = forcats::fct_recode(country, !!!country_uniq_levels))
 # 
+# cleaned_data$number_morbidities <- as.numeric(cleaned_data$number_morbidities)
 # 
+# cleaned_data %>%
+#   dplyr::select(id, covid_tested, number_morbidities) %>%
+#   dplyr::mutate(comorbidities = dplyr::case_when(
+#     number_morbidities == 0 ~ '0',  
+#     number_morbidities == 1 ~ '1', 
+#     number_morbidities == 2 ~ '2', 
+#     number_morbidities >= 3 ~ "3+")) %>%
+#   dplyr::group_by(covid_tested, comorbidities) %>%
+#   dplyr::tally() %>%
+#   tidyr::drop_na() %>% 
+#   dplyr::group_by(covid_tested) %>%
+#   dplyr::mutate("Perecentage" = n/sum(n) *100)
+# 
+# five_countries <- cleaned_data %>%
+#   dplyr::select(id, covid_tested, country) %>%
+#   dplyr::filter(country == "Brazil" | country == "United Kingdom" | country == "India" | country == "Mexico" | country == "Pakistan")
 # unique(cleaned_data$number_days_symptom_showing)
 # na_strings <- c( "0 0" , "7 7", "4 4", "5 5", "9 9","6 6", "21 ?? ???? ??", "42 ?? ????", "21 ?????? ?????")
 # data <- cleaned_data %>%

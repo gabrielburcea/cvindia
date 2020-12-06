@@ -4,10 +4,22 @@
 # library(stargazer)
 # library(psych)
 # conflict_prefer("filter", "stats")
-# cleaned_data <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/uk_data_22092020.csv")
+# cleaned_data <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020.csv")
+# # 
+# 
+# country_levels <- c(
+#   "United Kingdom" = "Great Britain"
+# )
 # 
 # 
+# cleaned_data <- cleaned_data %>% 
+#   dplyr::mutate(Country = forcats::fct_recode(country, !!!country_levels))
 # 
+# uk_data <- cleaned_data %>%
+#   dplyr::filter(Country == "United Kingdom")
+# 
+# 
+# uk_data %>% dplyr::group_by(covid_tested) %>% tally() 
 # table(cleaned_data$age)
 # 
 # unique(cleaned_data$number_days_symptom_showing)

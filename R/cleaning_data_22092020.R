@@ -1,6 +1,5 @@
 # library(tidyverse)
-# 
-# data_rec <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/csvdata_22092020.csv")
+# data_rec <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/PivotMapper.csv")
 # nrow(distinct(data_rec))
 # data_rename <- data_rec %>%
 #   dplyr::rename(
@@ -46,9 +45,12 @@
 #                            pattern = "None|Diabetes Type 2|Asthma \\(managed with an inhaler\\)|Obesity|High Blood Pressure \\(hypertension\\)|Long-Standing Lung Condition|Long-Standing Liver Disease|Long-Standing Heart Disease|Long-Standing Kidney Disease|Diabetes Type 1 \\(controlled by insulin\\)"),
 #          health_condition =  paste(health_condition, collapse = ","))
 # data_com$health_condition <- sub("^$", "None", data_com$health_condition)
-# #unique(data_com$reason_for_help)
+# unique(data_com$reason_for_help)
 # reason_for_help_levels <- c(
 #     "negative" = "None",
+#     "negative" =  "Showing Symptoms But Not Tested,Curious,Self-Isolating With No Symptoms",
+#     "negative" = "Tested Negative But Have Symptoms,Self-Isolating With No Symptoms",
+#      "negative" = "Tested Positive,Showing Symptoms But Not Tested",
 #     "showing symptoms" =  "Showing Symptoms But Not Tested",
 #     "negative" =  "Self-Isolating With No Symptoms" ,
 #     "positive" = "Tested Positive" ,
@@ -72,29 +74,26 @@
 #     "negative"  =   "Live With Someone With Coronavirus,Curious,Self-Isolating With No Symptoms",
 #     "showing symptoms" =   "Showing Symptoms But Not Tested,Live With Someone With Coronavirus,Recovered But Have New Symptoms",
 #     "showing symptoms" =  "Showing Symptoms But Not Tested,Recovered But Have New Symptoms,Curious",
-#     "showing symptoms" =   "Recovered But Have New Symptoms,Self-Isolating With No Symptoms",
-#     "showing symptoms"  =   "Recovered But Have New Symptoms,Curious,Self-Isolating With No Symptoms",
 #     "showing symptoms" =  "Showing Symptoms But Not Tested,Live With Someone With Coronavirus,Curious",
-#     "showing symptoms" =  "Tested Negative But Have Symptoms,Showing Symptoms But Not Tested,Recovered But Have New Symptoms,Curious,Self-Isolating With No Symptoms",
 #     "showing symptoms" =  "Showing Symptoms But Not Tested,Live With Someone With Coronavirus",
 #     "positive"  = "Tested Positive,Recovered But Have New Symptoms,Curious",
-#     "showing symptoms"  =  "Tested Negative But Have Symptoms,Live With Someone With Coronavirus,Recovered But Have New Symptoms",
-#     "showing symptoms" =  "Tested Negative But Have Symptoms,Showing Symptoms But Not Tested,Curious"
+#     "showing symptoms"  =  "Tested Negative But Have Symptoms,Live With Someone With Coronavirus,Recovered But Have New Symptoms"
+# 
 #   )
 # na_strings_reason_for_help <- c(
-#   "Showing Symptoms But Not Tested,Curious,Self-Isolating With No Symptoms",
-#   "Tested Negative But Have Symptoms,Self-Isolating With No Symptoms",
+# 
 #   "Tested Positive,Tested Negative But Have Symptoms,Showing Symptoms But Not Tested",
 #   "Showing Symptoms But Not Tested,Self-Isolating With No Symptoms",
 #   "Tested Positive,Tested Negative But Have Symptoms,Showing Symptoms But Not Tested,Recovered But Have New Symptoms,Curious,Self-Isolating With No Symptoms",
-#   "Tested Positive,Showing Symptoms But Not Tested",
 #   "Tested Positive,Tested Negative But Have Symptoms,Recovered But Have New Symptoms",
 #   "Tested Positive,Tested Negative But Have Symptoms,Showing Symptoms But Not Tested,Live With Someone With Coronavirus,Recovered But Have New Symptoms,Curious,Self-Isolating With No Symptoms",
 #   "Tested Positive,Tested Negative But Have Symptoms,Showing Symptoms But Not Tested,Curious",
 #   "Tested Positive,Tested Negative But Have Symptoms",
-#   "Tested Negative But Have Symptoms,Curious,Self-Isolating With No Symptoms"
-# 
-# )
+#   "Tested Negative But Have Symptoms,Curious,Self-Isolating With No Symptoms",
+#   "Recovered But Have New Symptoms,Self-Isolating With No Symptoms",
+#   "Recovered But Have New Symptoms,Curious,Self-Isolating With No Symptoms",
+#   "Tested Negative But Have Symptoms,Showing Symptoms But Not Tested,Recovered But Have New Symptoms,Curious,Self-Isolating With No Symptoms",
+#   "Tested Negative But Have Symptoms,Showing Symptoms But Not Tested,Curious")
 # data_comorb <- data_com %>%
 #   tidyr::separate(
 #     health_condition,
@@ -121,10 +120,10 @@
 # data_comorb %>% distinct(Comorbidity_eight)
 # data_comorb %>% distinct(Comorbidity_nine)
 # df_unique <- distinct(data_comorb, id, .keep_all = TRUE)
-# ###########################################################
-# ### Get patients without multiple comorbidities but also count the number of patients
-# ### make sure count on unique number of patients  #########
-# ##########################################################
+# # ###########################################################
+# # ### Get patients without multiple comorbidities but also count the number of patients
+# # ### make sure count on unique number of patients  #########
+# # ##########################################################
 # data_c <- df_unique %>%
 #   tidyr::pivot_longer(cols = starts_with('Comorbidity'),
 #                       names_to = 'Comorbidity_count',
@@ -144,9 +143,9 @@
 #   dplyr::mutate(Condition = 'Yes') %>%
 #   tidyr::pivot_wider(id_cols = -c(Comorbidity, Condition), names_from = Comorbidity, values_from = Condition, values_fill = list(Condition = 'No')) %>%
 #   dplyr::select(-Comorbidity_one)
-# # # # # #################################################
-# # # # # ######### Get a numeric dataset #################
-# # # # # #################################################
+# # # # # # #################################################
+# # # # # # ######### Get a numeric dataset #################
+# # # # # # #################################################
 # data_cov <- data_multiple_comorb %>% # here make sure the dataset is ritght - either patients with multiple comorbidities or patients without multitple comorbidties
 #   dplyr::mutate(covid_tested = forcats::fct_recode(reason_for_help, !!!reason_for_help_levels))
 # 
@@ -156,6 +155,9 @@
 # count_cov <- data_na %>%
 #   dplyr::group_by(covid_tested) %>%
 #   dplyr::tally()
+# 
+# count_cov
+# 
 # data_na$gender <- as.factor(data_na$gender)
 # data_na$country <- as.factor(data_na$country)
 # data_na$chills <- as.factor(data_na$chills)
@@ -196,7 +198,7 @@
 # data_na$chest_pain <- as.factor(data_na$chest_pain)
 # data_na$itchy_eyes <- as.factor(data_na$itchy_eyes)
 # data_na$joint_pain <- as.factor(data_na$joint_pain)
-# # # #### Refactor the levels ##################################################
+# # # # #### Refactor the levels ##################################################
 # data_sel <- data_na %>% # here make sure the dataset is ritght - either patients with multiple comorbidities or patients without multitple comorbidties
 #   dplyr::select(
 #     id,
@@ -242,15 +244,16 @@
 #     kidney_disease,
 #     number_morbidities,
 #     covid_tested,
-#     number_morbidities
+#     number_morbidities,
+#     reason_for_help
 #   )
-# ## chills
+# # ## chills
 # unique(data_sel$'chills')
 # level_key_chills <-
 #   c( 'Yes' = "Mild",
 #      'Yes' = "Moderate",
 #      'Yes' = "Severe")
-# # Cough #
+# # # Cough #
 # unique(data_sel$cough)
 # level_key_cough <-
 #   c( 'Yes' = "Mild",
@@ -363,23 +366,50 @@
 #                 sputum = forcats::fct_recode(sputum, !!!level_key_sputum),
 #                 temperature = forcats::fct_recode(temperature, !!!level_key_temperature))
 # 
+# 
 # csvdata2209202 <- data_categ_nosev %>%
 #   dplyr::mutate(age_band = dplyr::case_when(
 #     age == 0 | age <= 19 ~ '0-19',
 #     age == 20 | age <= 39 ~ '20-39',
 #     age == 40 | age <= 59 ~ '40-59',
 #     age >= 60 ~ "60+"))
-# 
-# country_levels <- c("United Kingdom" = "Great Britain", 
+# #
+# country_levels <- c("United Kingdom" = "Great Britain",
 #                     "USA" = "United States of America")
+# 
+# 
+# # "Congo" = "Zair",
+# # "France" = "Wallis & Futana Is",
+# # "USA"    = "Virgin Islands (USA)",
+# # "British Oversease Territory" = "Virgin Islands (Brit)",
+# # "British Oversease Territory" = "Tuvalu",
+# # "British Overseas Territory" = "Turks & Caicos Is",
+# # "New Zeeland" = "Tokelau",
+# # "Grenada" = "St Vincent & Grenadines"
+# # "Netherlands" "St Maarten",
+# # "British Overseas Territory"= "St Lucia",
+# # "Pitcairn Island" =  "British Overseas Territory"  =  "St Helena",
+# # "Netherlands" = "St Eustatius",
+# # "British Overseas Territory"
+# # "USA" =  "Saipan",
+# # "USA" = "Palau Island"
+# # "Nevis", "Nauru",
+# # "British Overseas Territory" = "Montserrat"
 # 
 # csvdata_22092020 <- csvdata2209202 %>%
 #   dplyr::mutate(Country = forcats::fct_recode(country, !!!country_levels))
-# 
+# #
 # country_unique <- as.data.frame(unique(csvdata_22092020$Country))
 # 
-# write.csv(csvdata_22092020, file = "/Users/gabrielburcea/Rprojects/data/your.md/cleaned_data_22092020.csv", row.names = FALSE)
+# count_contries <- csvdata_22092020 %>%
+#   dplyr::group_by(country) %>%
+#   tally() %>%
+#   dplyr::mutate(Perc = n/sum(n)*100)
 # 
+# count_contries
+# 
+# write.csv(csvdata_22092020, file = "/Users/gabrielburcea/Rprojects/data/your.md/cleaned_data_22092020.csv", row.names = FALSE)
+
 # # # uplead the cleaned data into global environment and then get rid of the responders with multiple comorbidities
 # # cleaned_data_22092020 <- cleaned_data_22092020 %>%
 # #   dplyr::filter(number_morbidities <= 1)

@@ -22,7 +22,7 @@ library(tidyverse)
 
 ```{r}
 
-data_bar_charts <- readr::read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_23092020.csv")
+data_bar_charts <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020.csv")
 
 country_levels <- c("United Kingdom" = "Great Britain", 
                     "USA" = "United States of America")
@@ -44,10 +44,9 @@ count_country <- data_bar_charts %>%
   dplyr::group_by(country) %>%
   tally()  %>% 
   dplyr::mutate(Percent = n/sum(n)*100) %>%
-  dplyr::arrange(desc(n)) #%>%
-  dplyr::top_n(10)
+  dplyr::arrange(desc(n))
 
-knitr::kable(count_country)
+count_country
 ```
 
 ```{r, 1,  fig.height=5, fig.width=9}

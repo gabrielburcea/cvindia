@@ -19,42 +19,47 @@ sympt_positive_age_band <- function(data, start_date = as.Date("2020-04-19"), en
   
   gather_divided <- symptoms_cov_age_band %>%
     tidyr::pivot_longer(cols= 4:20, names_to="symptoms", values_to="yes_no") %>%
-    dplyr::filter(age_band != "0-19")  %>%
-    dplyr::group_by(age_band, symptoms, yes_no) %>%
+    dplyr::filter(age_band != "0-19" & covid_tested != "negative") %>%
+    dplyr::group_by(age_band, symptoms, covid_tested, yes_no) %>%
     dplyr::summarise(count=n()) %>%
     dplyr::mutate(percentage=  count/sum(count) *100) %>%
+    
     dplyr::filter(yes_no !="No") %>%
     dplyr::arrange(desc(percentage))
   
   gather_divided$age_band <- as.factor(gather_divided$age_band)
   gather_divided$symptoms <- as.factor(gather_divided$symptoms)
+  gather_divided$covid_tested <- as.factor(gather_divided$covid_tested)
+  gather_divided$percentage <- round(gather_divided$percentage, digits = 1)
+  
+  gather_divided$yes_no <- NULL
   
   start_date = as.Date("2020-04-19") 
   end_date = as.Date("2020-09-01")
   
-  title_stub <- "SARS-Covid-19 symptoms across age band\n"
-  start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
-  end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
-  chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
-
-  
-  sympt_show_age_band <- 
-    ggplot2::ggplot(gather_divided, ggplot2::aes(x = reorder(symptoms, - count), count, fill = age_band)) +
-    ggplot2::geom_col(ggplot2::aes(colour = age_band), width = 0.9 ) +
-    ggplot2::coord_flip() + 
-    ggplot2::scale_fill_brewer(palette = 'Reds')  +
-    ggplot2::theme_bw() +
-    ggplot2::labs(title = chart_title,
-                  subtitle = "Symptoms accross age band",
-                  y = "Count", x = "Symptoms", caption = "Source: Your.md Dataset, Global Digital Health") +
-    ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 21, b = 0, l = 0)),
-                   plot.title = ggplot2::element_text(size = 10, face = "bold"),
-                   plot.subtitle = ggplot2::element_text(size = 9),
-                   legend.position = "bottom", legend.box = "horizontal",
-                   axis.text.x = ggplot2::element_text(angle = 55, hjust = 1))
-  
-  
-  sympt_show_age_band
+  # title_stub <- "SARS-Covid-19 symptoms across age band\n"
+  # start_date_title <- format(as.Date(start_date), format = "%d %B %Y")
+  # end_date_title <- format(as.Date(end_date), format = "%d %B %Y")
+  # chart_title <- paste0(title_stub, start_date_title, " to ", end_date_title)
+  # 
+  # 
+  # sympt_show_age_band <- 
+  #   ggplot2::ggplot(gather_divided, ggplot2::aes(x = reorder(symptoms, - count), count, fill = age_band)) +
+  #   ggplot2::geom_col(ggplot2::aes(colour = age_band), width = 0.9 ) +
+  #   ggplot2::coord_flip() + 
+  #   ggplot2::scale_fill_brewer(palette = 'Reds')  +
+  #   ggplot2::theme_bw() +
+  #   ggplot2::labs(title = chart_title,
+  #                 subtitle = "Symptoms accross age band",
+  #                 y = "Count", x = "Symptoms", caption = "Source: Your.md Dataset, Global Digital Health") +
+  #   ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 21, b = 0, l = 0)),
+  #                  plot.title = ggplot2::element_text(size = 10, face = "bold"),
+  #                  plot.subtitle = ggplot2::element_text(size = 9),
+  #                  legend.position = "bottom", legend.box = "horizontal",
+  #                  axis.text.x = ggplot2::element_text(angle = 55, hjust = 1))
+  # 
+  # 
+  # sympt_show_age_band
   
   if(plot_chart == TRUE){
     

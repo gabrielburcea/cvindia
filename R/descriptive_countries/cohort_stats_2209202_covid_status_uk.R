@@ -3,11 +3,27 @@
 # library(psych)
 # conflict_prefer("filter", "stats")
 # 
+# cleaned_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020.csv")
 # 
-# cleaned_data <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/uk_data_22092020.csv")
+# 
+# uk_country_levels <- c(
+#   "United Kingdom" = "Great Britain"
+# )
+# 
+# 
+# cleaned_data <- cleaned_data_22092020 %>%
+#   dplyr::mutate(Country = forcats::fct_recode(country, !!!uk_country_levels))
+# 
+# cleaned_data <- cleaned_data %>%
+#   dplyr::filter(Country == 'United Kingdom')
+# 
+# cleaned_data %>%
+#   dplyr::group_by(covid_tested) %>%
+#   tally()
+# 
 # unique(cleaned_data$number_days_symptom_showing)
 # na_strings <- c( "0 0" , "7 7", "4 4", "5 5", "9 9","6 6", "21 ?? ???? ??", "42 ?? ????", "21 ?????? ?????")
-# data <- cleaned_data %>%
+# data <- cleaned_data%>%
 #   mutate(across(starts_with('number_days_symptom_show'),
 #                 ~ replace(., . %in% na_strings, NA)))
 # sympt_show_t <- table(data$number_days_symptom_showing)
@@ -16,8 +32,8 @@
 # 
 # number_days_symptom_showing <- c(
 # 
-#   "21" = "More than 21",
-#   "42" = "More than 42"
+#   "22" = "More than 21",
+#   "43" = "More than 42"
 # 
 # )
 # 
@@ -42,7 +58,6 @@
 # psych::describe(numb_days_sympt_cov_pos, skew = FALSE)
 # 
 # # showing symptoms
-# 
 # numb_d_show_sympt_cov <- number_days_symptoms_showing %>%
 #   dplyr::filter(covid_tested == "showing symptoms") %>%
 #   dplyr::select(-covid_tested) %>%
@@ -91,7 +106,6 @@
 # # Covid tested counts
 # 
 # data %>%
-#   drop_na() %>%
 #   dplyr::group_by(covid_tested) %>%
 #   tally()
 # 
@@ -115,9 +129,6 @@
 #   dplyr::group_by(covid_tested, gender) %>%
 #   tally() %>%
 #   dplyr::mutate(Percentage = n/sum(n)*100)
-# 
-# 
-# 
 # 
 # # health care worker - percentanges
 # na_strings_health_care_worker <- c("Chills", "Healthcare Worker")

@@ -31,42 +31,54 @@ library(EnsCat)
 
 data_cluster <-  read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020.csv")
 
-
 data_select <- data_cluster %>%
   dplyr::select(id, covid_tested, age, gender, number_morbidities, chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, muscle_ache, 
                 nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature, loss_appetite, chest_pain, itchy_eyes, joint_pain, 
                 asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension, heart_disease, lung_condition, liver_disease, kidney_disease) %>%
-  dplyr::filter(covid_tested == "positive") 
+  dplyr::filter(covid_tested == "positive") %>%
+  dplyr::filter(number_morbidities <= 1) %>%
+  drop_na()
 
-
+# data_select <- dplyr::mutate(data_select,
+#                             n_cmdt =  ifelse(number_morbidities %in% 0:1, "1 morbidity",
+#                                       ifelse(number_morbidities %in% 2 , "2 comorbidities",
+#                                       ifelse(number_morbidities %in% 3:99, ">3 comorbidites", NA)))) %>%
+#   dplyr::select(-number_morbidities)
 # covid_tested_levels <- c("positive" = "showing symptoms")
 
 # data_transf <- data_select %>% 
 #   dplyr::mutate(covid_tested = forcats::fct_recode(covid_tested, !!!covid_tested_levels))
 
+# data_piv <- data_select %>%
+#   pivot_longer(cols = 23:31, 
+#                names_to = "comorbidities",
+#                values_to = "bolean") #%>%
+# 
+# bolean_levels <- c("healthy" = "No")
 
-data_piv<- data_select %>%
-  pivot_longer(cols = 23:31, 
-               names_to = "comorbidities",
-               values_to = "Bolean") %>%
-  dplyr::filter(Bolean != "No")
+# data_piv <- data_piv %>%
+#   dplyr::mutate(bolean = forcats::fct_recode(bolean, !!!bolean_levels)) %>%
+#   mutate(
+#     b = as.character(bolean), 
+#     unhealthy = b != "healthy", 
+#     comorbidities = replace(b, unhealthy, comorbidities[unhealthy]), 
+#     b = NULL, unhealthy = NULL
+#   )
 
+# data_piv <- data_piv %>%
+#   distinct()
 #data_piv_id <- dplyr::mutate(data_piv, respondents_id = rownames(data_piv))
 
 
-data_clean <- data_piv %>%
-  dplyr::select(respondents_id, comorbidities, chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, muscle_ache, 
-                nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature, loss_appetite, chest_pain, itchy_eyes, joint_pain) %>%
-  drop_na()
+# data_select <- data_piv %>%
+#   dplyr::select(id, comorbidities, chills, cough, diarrhoea, fatigue, headache, loss_smell_taste, muscle_ache, 
+#                 nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature, loss_appetite, chest_pain, itchy_eyes, joint_pain) %>%
+#   drop_na()
   
 
-# data_clean <- dplyr::mutate(data_clean, 
-#                             n_cmdt =  ifelse(number_morbidities %in% 0:1, "1 morbidity", 
-#                                       ifelse(number_morbidities %in% 2 , "2 comorbidities",        
-#                                       ifelse(number_morbidities %in% 3:99, ">3 comorbidites", NA)))) %>%
-#   dplyr::select(-number_morbidities)
+
 #   
-# data_clean <- data_clean %>%
+# data_select <- data_select %>%
 #   dplyr::mutate(age_band = case_when(age == 0 | age <= 19 ~ '0-19',
 #                                      age == 20 | age <= 20 ~ '20-29',
 #                                      age == 30 | age <= 39 ~ '30-39',
@@ -78,74 +90,48 @@ data_clean <- data_piv %>%
 #                                      age >= 90  ~ '90+')) %>%
 #   dplyr::select(-age)
 
-                                   
-
-
+                                  
 #data_rec <- ifelse(data_piv_id[,3:19] == "Yes", 1,0)
-#data_clean <- cbind(data_piv_id[,1:2], data_rec)
-data_clean$gender <- as.factor(data_clean$gender)
-data_clean$age_band <- as.factor(data_clean$age_band)
-data_clean$comorbidities <- as.factor(data_clean$comorbidities)
-data_clean$n_cmdt <- as.factor(data_clean$n_cmdt)
-data_clean$chills <- as.factor(data_clean$chills)
-data_clean$cough <- as.factor(data_clean$cough)
-data_clean$diarrhoea <- as.factor(data_clean$diarrhoea)
-data_clean$fatigue <- as.factor(data_clean$fatigue)
-data_clean$headache <- as.factor(data_clean$headache)
-data_clean$loss_smell_taste <- as.factor(data_clean$loss_smell_taste)
-data_clean$muscle_ache <- as.factor(data_clean$muscle_ache)
-data_clean$ nasal_congestion <- as.factor(data_clean$ nasal_congestion)
-data_clean$nausea_vomiting <- as.factor(data_clean$nausea_vomiting)
-data_clean$shortness_breath <- as.factor(data_clean$shortness_breath)
-data_clean$sore_throat <- as.factor(data_clean$sore_throat)
-data_clean$sputum <- as.factor(data_clean$sputum)
-data_clean$temperature <- as.factor(data_clean$temperature)
-data_clean$loss_appetite <- as.factor(data_clean$loss_appetite)
-data_clean$chest_pain <- as.factor(data_clean$chest_pain)
-data_clean$itchy_eyes <- as.factor(data_clean$itchy_eyes)
-data_clean$joint_pain <- as.factor(data_clean$joint_pain)
-data_clean <- as.data.frame(data_clean)
+#data_select <- cbind(data_piv_id[,1:2], data_rec)
+data_select$gender <- as.factor(data_select$gender)
+#data_select$age_band <- as.factor(data_select$age_band)
+# data_select$comorbidities <- as.factor(data_select$comorbidities)
+# data_select$n_cmdt <- as.factor(data_select$n_cmdt)
+data_select$chills <- as.factor(data_select$chills)
+data_select$cough <- as.factor(data_select$cough)
+data_select$diarrhoea <- as.factor(data_select$diarrhoea)
+data_select$fatigue <- as.factor(data_select$fatigue)
+data_select$headache <- as.factor(data_select$headache)
+data_select$loss_smell_taste <- as.factor(data_select$loss_smell_taste)
+data_select$muscle_ache <- as.factor(data_select$muscle_ache)
+data_select$ nasal_congestion <- as.factor(data_select$ nasal_congestion)
+data_select$nausea_vomiting <- as.factor(data_select$nausea_vomiting)
+data_select$shortness_breath <- as.factor(data_select$shortness_breath)
+data_select$sore_throat <- as.factor(data_select$sore_throat)
+data_select$sputum <- as.factor(data_select$sputum)
+data_select$temperature <- as.factor(data_select$temperature)
+data_select$loss_appetite <- as.factor(data_select$loss_appetite)
+data_select$chest_pain <- as.factor(data_select$chest_pain)
+data_select$itchy_eyes <- as.factor(data_select$itchy_eyes)
+data_select$joint_pain <- as.factor(data_select$joint_pain)
 
 
-#data_test <- head(data_clean, 5000)
+data_select <- as.data.frame(data_select)
+
+
+#data_test <- head(data_select, 5000)
 
 
 #rownames(data_test) <- data_test$respondents_id
 
-rownames(data_clean) <- data_clean$respondents_id
+rownames(data_select) <- data_select$respondents_id
 
 my.seed <- set.seed(22)
 
-gower_distance <- cluster::daisy(data_clean[,2:19], metric = "gower")
+gower_distance <- cluster::daisy(data_select[,6:22], metric = "gower")
 
 ```
 
-```{r}
-snippet_data <- head(data_clean, 10)
-
-write.csv(snippet_data, file = "/Users/gabrielburcea/rprojects/data/snippet_data.csv", row.names = FALSE)
-
-```
-
-
-```{r}
-comorbid_counts_positive <- data_clean %>%
-  dplyr::group_by(comorbidities) %>%
-  tally() %>%
-  dplyr::mutate(Percentage = n/sum(n) *100)
-
-write.csv(comorbid_counts_positive, file = "/Users/gabrielburcea/rprojects/data/comorbid_counts_positive.csv", row.names = FALSE)
-
-symptoms_counts_positive <- data_clean %>%
-  tidyr::pivot_longer(cols = 3:19, 
-                      names_to = "symptoms", 
-                      values_to = "binary_yes_no") %>%
-  dplyr::group_by(symptoms, binary_yes_no) %>%
-  tally() %>%
-  dplyr::mutate(Percentage = n/sum(n) *100)
-
-write.csv(symptoms_counts_positive, file = "/Users/gabrielburcea/rprojects/data/symptoms_counts_positive.csv", row.names = FALSE)
-```
 
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
@@ -166,7 +152,7 @@ plot(hc_complete_gower, cex = 0.6, hang = -31)
 
 ```{r}
 # Compute with agnes 
-hc_agnes <- agnes(data_clean[,2:19], method = "complete")
+hc_agnes <- agnes(data_select[,6:22], method = "ward")
 
 # Agglomerative coeffiecient 
 hc_agnes$ac
@@ -183,7 +169,7 @@ pltree(hc_agnes, cex = 0.6, hang = -1, main = "Dendrogram of agnes")
 
 ```{r}
 # compute divisive hierarchical clustering 
-hc_diana <- diana(data_clean[,2:19])
+hc_diana <- diana(data_select[,6:22])
 
 # Divisive coefficient; amount of clustering structure found 
 hc_diana$dc
@@ -299,7 +285,7 @@ knitr::kable(stats_agglomerative)
 ```{r}
 elb_div <-
   ggplot(data = data.frame(t(
-    cstats.table(gower_distance, hc_diana, 7)
+    cstats.table(gower_distance, hc_diana, 15)
   )),
   aes(x = cluster.number, y = within.cluster.ss)) +
   geom_point() +
@@ -317,7 +303,7 @@ elb_div
 ```{r}
 sil_div <-
   ggplot(data = data.frame(t(
-    cstats.table(gower_distance, hc_diana , 7)
+    cstats.table(gower_distance, hc_diana , 15)
   )),
   aes(x = cluster.number, y = avg.silwidth)) +
   geom_point() +
@@ -345,29 +331,40 @@ sil_div
 
 ```{r}
 
-hc_agness_tree <- as.data.frame(cutree(hc_agnes, k=3)) 
+hc_diana_tree <- as.data.frame(cutree(hc_diana, k=4)) 
 
-data_clustered <- cbind(hc_agness_tree, data_clean)
+data_clustered_1<- cbind(hc_diana_tree, data_select)
 
-write.csv(data_clustered, file = "/Users/gabrielburcea/rprojects/data/addded_clusters.csv")
+write.csv(data_clustered_1, file = "/Users/gabrielburcea/rprojects/data/addded_clusters_1.csv")
 
 ```
 
 
 ```{r}
-table <- data_clustered %>%
-  pivot_longer(cols = 4:20, 
-               names_to = "symptoms", 
+table <- data_clustered_1 %>%
+  pivot_longer(cols = 24:32, 
+               names_to = "comorbidities", 
                values_to = "bolean_yes_no") %>%
-  filter(bolean_yes_no == "Yes")
+  mutate(comorbidities_2 = case_when(bolean_yes_no == "No" ~ "healthy", 
+                              TRUE ~ comorbidities))
 
-final_results_comorbidities <- table %>%
-  dplyr::rename(cluster = "cutree(hc_agnes, k = 3)") %>%
-  dplyr::group_by(cluster, comorbidities) %>%
+
+ 
+table_2 <- table %>%
+  group_by(id) %>% 
+  mutate(morbidity_healthy = case_when(bolean_yes_no == 'Yes' ~ comorbidities, (!any(bolean_yes_no == 'Yes')) & row_number()==1 ~ 'healthy')) %>%
+  select(-comorbidities, -comorbidities_2, bolean_yes_no) %>%
+  drop_na()
+
+
+final_results_symptoms_all <- table_2 %>%
+  dplyr::rename(cluster = "cutree(hc_diana, k = 4)") %>%
+  dplyr::group_by(cluster, morbidity_healthy) %>%
   tally() %>%
   dplyr::mutate(Percentage = n/sum(n) * 100)
 
-write.csv(final_results_comorbidities, file = "/Users/gabrielburcea/rprojects/data/final_results_comorbidities.csv", row.names = FALSE)
+write.csv(table_2, file = "/Users/gabrielburcea/rprojects/data/table_clusters_added.csv", row.names = FALSE)
+write.csv(final_results_symptoms_all, file = "/Users/gabrielburcea/rprojects/data/final_results_symptoms_all.csv", row.names = FALSE)
 
 
 

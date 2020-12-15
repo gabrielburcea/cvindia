@@ -1,4 +1,8 @@
-cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020.csv")
+cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020_2nd_dataset.csv")
+
+cohort_data_22092020 <- cohort_data_22092020 %>%
+  dplyr::group_by(covid_tested) %>%
+  tidyr::drop_na()
 
 cohort_data_22092020_top_five <- cohort_data_22092020  %>%
   dplyr::filter(country == "Brazil" | country == "United Kingdom" | country == "India" | country == "Mexico" | country == "Pakistan")
@@ -257,6 +261,8 @@ adj_sympt_forcats <- adjusted_sympt_rates_final %>%
 
 symptom_levels <- c(
   "muscle ache" = "muscle_ache",
+  "shortness of breath" = "shortness_breath", 
+  "loss smell taste" = "loss_smell_taste",
   "nasal congestion" = "nasal_congestion",
   "nausea and vomiting" = "nausea_vomiting",
   "sore throat" = "sore_throat",
@@ -280,15 +286,25 @@ plot_adjusted_rates <- ggplot2::ggplot(adj_sympt_forcats,
   ggplot2::coord_flip() +
   ggplot2::geom_bar(ggplot2::aes(fill = country), width = 0.4,
                     position = position_dodge(width = 0.5), stat = "identity") +
-  ggplot2::scale_fill_manual(values = cbbPalette) +
-  ggplot2::labs(title = title,
-                subtitle = "\nNote: i) date period between 04/09/20202 - 22/09/2020",
-                x = "SARS-Covid-19 Symptoms", y = "Percentage", caption = "Source: Your.md Data") +
-  ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 0.9, b = 0, l = 0)),
-                 plot.title = ggplot2::element_text(size = 0.9, face = "bold"),
-                 plot.subtitle = ggplot2::element_text(size = 0.9),
-                 legend.position = "bottom" , legend.box = "horizontal") +
-  ggplot2::theme_bw()
+  ggplot2::scale_fill_manual(values = cbbPalette,
+                             guide = guide_legend(reverse = TRUE), name = "Country" ) +
+  ggplot2::labs(x = "SARS-Covid-19 Symptoms", y = "Percentage") +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(
+    axis.text = element_text(size = 14),
+    axis.title = element_text(size = 14),
+    axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+      t = 0,
+      r = 10,
+      b = 0,
+      l = 0
+    )),
+    plot.title = ggplot2::element_text(size = 9, face = "bold"),
+    plot.subtitle = ggplot2::element_text(size = 10),
+    legend.box = "horizontal", 
+    legend.title = element_text(size = 14), 
+    legend.text = element_text(size = 10)
+  ) 
 
 
 plot_adjusted_rates

@@ -1,4 +1,9 @@
-cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020.csv")
+cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020_2nd_dataset.csv")
+
+
+cohort_data_22092020 <- cohort_data_22092020 %>%
+  dplyr::group_by(covid_tested) %>%
+  tidyr::drop_na()
 
 cohort_data_22092020_top_five <- cohort_data_22092020  %>%
   dplyr::filter(country == "Brazil" | country == "United Kingdom" | country == "India" | country == "Mexico" | country == "Pakistan")
@@ -24,19 +29,20 @@ age_std_data_no_comorb <- cohort_data_22092020_top_five %>%
 age_std_data_with_comorb <-  cohort_data_22092020_top_five %>%
   dplyr::select(id, country, age_band, asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension, heart_disease, lung_condition,
                 liver_disease, kidney_disease) %>%
-  tidyr::pivot_longer(cols = 4:12,
+  tidyr::pivot_longer(cols = 5:13,
                       names_to = "comorbidities",
                       values_to = "binary_comorb") %>%
   dplyr::filter(binary_comorb == "Yes") %>%
   dplyr::group_by(country, age_band, comorbidities) %>%
   dplyr::summarise(count_country_age_band_with_comorb = dplyr::n())
 
+
 comorb_data <- left_join(age_std_data_no_comorb, age_std_data_with_comorb)
 
 study_pop_comorb_data <- comorb_data %>%
   dplyr::mutate(study_pop_comorb = count_country_age_band_with_comorb/count_country_age_band_no_comorb)
 
-
+library(readxl)
 ### Deal with world-wide population - get the worldwide population by age group
 ### Deal with world-wide population - get the worldwide population by age group
 world_wide_pop <- read_excel("/Users/gabrielburcea/rprojects/cvindia/data/world_wide_pop.xlsx")
@@ -117,7 +123,7 @@ age_standard_rate_comorb <- sum_expected_comorb %>%
 
 
 # ########### Standardisation for all countries ##############################
-cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020.csv")
+cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020_2nd_dataset.csv")
 
 # age_std_data_covid_positive <- cohort_data_22092020 %>%
 #   dplyr::select(id, Country, age_band, count_country_age_band_comorbidities, standard_pop) %>%
@@ -234,7 +240,8 @@ adjusted_comorbididity_rates_select_all_countries <- age_standard_rate_comorb_al
   dplyr::select(comorbidities,  age_standardise_rate_in_comorb) %>%
   dplyr::distinct() %>%
   add_column(country = c("All Countries")) %>%
-  dplyr::select(country, comorbidities, age_standardise_rate_in_comorb)
+  dplyr::select(country, comorbidities, age_standardise_rate_in_comorb) %>%
+  arrange(country)
 
 
 adjusted_comorbididity_rates_select <- age_standard_rate_comorb %>%
@@ -245,51 +252,57 @@ adjusted_comorbididity_rates_final <- bind_rows(adjusted_comorbididity_rates_sel
 
 
 
-pre_existing_levels <- c(
 
+#write.csv(adj_comorb_forcats, file = "/Users/gabrielburcea/rprojects/data/your.md/age_standard_rate_comorb_2910_2020.csv", row.names = FALSE)
+
+
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#CC6600")
+
+pre_existing_levels <- c(
+  
   "diabetes type two" = "diabetes_type_two",
   "diabetes type one" = "diabetes_type_one",
   "heart disease" = "heart_disease",
   "lung condidition" = "lung_condition",
   "liver disease" = "liver_disease",
   "kidney disease" = "kidney_disease"
-
+  
 )
-
 
 adj_comorb_forcats <- adjusted_comorbididity_rates_final %>%
   dplyr::mutate(comorbidities = forcats::fct_recode(comorbidities, !!!pre_existing_levels)) %>%
   dplyr::mutate(age_standardise_rate_in_comorb = round(age_standardise_rate_in_comorb, 2))
 
-write.csv(adj_comorb_forcats, file = "/Users/gabrielburcea/rprojects/data/your.md/age_standard_rate_comorb_2910_2020.csv", row.names = FALSE)
-
-
-
-cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#CC6600")
-
-
-
-#adj_comorb_forcats$country <- factor(adj_comorb_forcats$country , levels = rev(levels(adj_comorb_forcats$country)))
-
-
-
-title <- "Figure 5: Adjusted rates for pre-existing conditions for top 5 countries vs. all countries"
+ 
+cols <- c("#000000", "#E69F00", "#56B4E9", "#009E73", 
+  "#F0E442", "#0072B2")
+#title <- "Figure 5: Adjusted rates for pre-existing conditions for top 5 countries vs. all countries"
 plot_adjusted_rates <- ggplot2::ggplot(adj_comorb_forcats,
-                                       ggplot2::aes(comorbidities,  age_standardise_rate_in_comorb, country)) +
+                                       ggplot2::aes(comorbidities, age_standardise_rate_in_comorb,  country)) +
   ggplot2::coord_flip() +
   ggplot2::geom_bar(ggplot2::aes(fill = country), width = 0.4,
                     position = position_dodge(width = 0.5), stat = "identity") +
-  ggplot2::scale_fill_manual(values = c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#CC6600")) +
-  ggplot2::labs(title = title,
-                subtitle = "\nNote: i) date period between 04/09/20202 - 22/09/2020", 
-                x = "Pre-existing conditions", y = "Percentage", caption = "Source: Your.md Data") +
-  ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 21, b = 0, l = 0)),
-                 plot.title = ggplot2::element_text(size = 12, face = "bold"),
-                 plot.subtitle = ggplot2::element_text(size = 10),
-                 legend.position = "bottom" , legend.box = "horizontal") +
-  ggplot2::theme_bw()
-
-
+  ggplot2::scale_fill_manual(values = cols,
+    
+    guide = guide_legend(reverse = TRUE), name = "Country" ) +
+  ggplot2::labs(
+                x = "Pre-existing conditions", y = "Percentage") +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(
+    axis.text = element_text(size = 14),
+    axis.title = element_text(size = 14),
+    axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+      t = 0,
+      r = 10,
+      b = 0,
+      l = 0
+    )),
+    plot.title = ggplot2::element_text(size = 9, face = "bold"),
+    plot.subtitle = ggplot2::element_text(size = 10),
+    legend.box = "horizontal", 
+    legend.title = element_text(size = 14), 
+    legend.text = element_text(size = 10)
+  )
 
 plot_adjusted_rates
 

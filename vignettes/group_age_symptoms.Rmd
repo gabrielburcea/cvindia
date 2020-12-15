@@ -5,6 +5,9 @@ date: "25/09/2020"
 output: word_document
 ---
 
+```{r}
+data <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020.csv")
+```
 
 
 ```{r}

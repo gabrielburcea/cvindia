@@ -1,8 +1,0 @@
-# brazil_data <- bind_rows(brazil_asthma, brazil_diabetes_type_two)
-# brazil_data <- bind_rows(brazil_data, brazil_diabetes_type_one)
-# brazil_data <- bind_rows(brazil_data, brazil_hypertension)
-# brazil_data <- bind_rows(brazil_data, brazil_heart_disease)
-# brazil_data <- bind_rows(brazil_data, brazil_kidney_disease)
-# brazil_data <- bind_rows(brazil_data, brazil_liver_disease)
-# brazil_data <- bind_rows(brazil_data, brazil_lung_condition)
-# brazil_data <- bind_rows(brazil_data, brazil_obesity)

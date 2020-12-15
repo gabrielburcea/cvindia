@@ -17,7 +17,8 @@ Suggests:
     vdiffr,
     memisc,
     ggthemes,
-    maps
+    maps,
+    jcolors
 Imports: 
     tidyverse,
     lubridate,

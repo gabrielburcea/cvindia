@@ -47,7 +47,7 @@ count_map_world <- function(data, item = "world",start_date = "2020-04-09", end_
       fill = count
     )) +
     # ggplot2::geom_sf(aes(fill  = region, geometry = region)) +
-    ggthemes::scale_fill_gradient2_tableau(palette = "Orange-Blue Diverging")  +
+    ggthemes::scale_fill_gradient2_tableau(palette = "Reds")  +
     #scale_fill_gradient(low = "#132B43", high = "#56B1F7") +
     ggplot2::labs(title = title,
                   y = "lat", x = "long") +

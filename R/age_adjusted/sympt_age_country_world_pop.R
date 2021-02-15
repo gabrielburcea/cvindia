@@ -1,12 +1,17 @@
+# Age adjusted Covid-19 symptoms 
+
+
 cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020_2nd_dataset.csv")
 
 cohort_data_22092020 <- cohort_data_22092020 %>%
   dplyr::group_by(covid_tested) %>%
   tidyr::drop_na()
 
+# Select only the targeted countries
 cohort_data_22092020_top_five <- cohort_data_22092020  %>%
   dplyr::filter(country == "Brazil" | country == "United Kingdom" | country == "India" | country == "Mexico" | country == "Pakistan")
 
+# get the positive tested only 
 age_std_data_no_sympt <- cohort_data_22092020_top_five %>%
   dplyr::select(id, country, age_band, chills, cough, diarrhoea, fatigue, headache, muscle_ache,
                 nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature,
@@ -122,11 +127,17 @@ adjusted_symptoms_rates_select <- age_standard_rate_sympt %>%
 
 
 
-
-
-
 ########### Standardisation for all countries ##############################
-cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020.csv")
+cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020_2nd_dataset.csv")
+
+cohort_data_22092020 <- cohort_data_22092020 %>%
+  dplyr::group_by(covid_tested) %>%
+  tidyr::drop_na() %>%
+  dplyr::filter(Country != "Brazil" ) %>%
+  dplyr::filter(Country != "India") %>%
+  dplyr::filter(Country != "Pakistan") %>%
+  dplyr::filter(Country != "Mexico") %>%
+  dplyr::filter(Country != "United Kingdom") 
 
 # age_std_data_covid_positive <- cohort_data_22092020 %>%
 #   dplyr::select(id, Country, age_band, count_country_age_band_comorbidities, standard_pop) %>%
@@ -139,7 +150,7 @@ cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cl
 #   dplyr::select(id, country, age_band, comorbidities, standard_pop, count_country_age_band_comorbidities)
 
 age_std_data_no_sympt_all_countries <- cohort_data_22092020 %>%
-  dplyr::select(id, age_band, chills, cough, diarrhoea, fatigue, headache, muscle_ache,
+  dplyr::select(id, Country, age_band, chills, cough, diarrhoea, fatigue, headache, muscle_ache,
                 nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature,
                 loss_appetite, loss_smell_taste, chest_pain, itchy_eyes, joint_pain, covid_tested) %>%
   dplyr::filter(covid_tested == "positive") %>%
@@ -148,11 +159,16 @@ age_std_data_no_sympt_all_countries <- cohort_data_22092020 %>%
 
 
 age_std_data_with_sympt_all_countries <-  cohort_data_22092020 %>%
-  dplyr::select(id, age_band, chills, cough, diarrhoea, fatigue, headache, muscle_ache,
+  dplyr::select(id, Country, age_band, chills, cough, diarrhoea, fatigue, headache, muscle_ache,
                 nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature,
                 loss_appetite, loss_smell_taste, chest_pain, itchy_eyes, joint_pain, covid_tested) %>%
+  dplyr::filter(Country != "Brazil" ) %>%
+  dplyr::filter(Country != "India") %>%
+  dplyr::filter(Country != "Pakistan") %>%
+  dplyr::filter(Country != "Mexico") %>%
+  dplyr::filter(Country != "United Kingdom") %>%
   dplyr::filter(covid_tested == "positive") %>%
-  tidyr::pivot_longer(cols = 3:19,
+  tidyr::pivot_longer(cols = 4:20,
                       names_to = "symptoms",
                       values_to = "binary_sympt") %>%
   dplyr::filter(binary_sympt == "Yes") %>%
@@ -221,7 +237,6 @@ sum_world_wide_pop_age_group_total <- data_rec %>%
   dplyr::summarise(standard_pop = sum(Value)) %>%
   dplyr::mutate(total_worldwide_pop = sum(standard_pop))
 
-
 sympt_data_study_pop_world_wide_pop <- left_join(study_pop_sympt_data_all_countries, sum_world_wide_pop_age_group_total, by = c("age_band" = "age_recoded_band"))
 
 
@@ -245,7 +260,7 @@ adjusted_sympt_rates_select_all_countries <- age_standard_rate_sympt_all_countri
   #dplyr::filter(age_recoded_band == "20-39") %>%
   dplyr::select(symptoms,  age_standardise_rate_in_sympt) %>%
   dplyr::distinct() %>%
-  add_column(country = c("All Countries")) %>%
+  add_column(country = c("All other countries")) %>%
   dplyr::select(country, symptoms, age_standardise_rate_in_sympt)
 
 
@@ -313,11 +328,17 @@ plot_adjusted_rates
 
 # DO the same for responders with showing symptoms 
 
-cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020.csv")
+cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020_2nd_dataset.csv")
 
+cohort_data_22092020 <- cohort_data_22092020 %>%
+  dplyr::group_by(covid_tested) %>%
+  tidyr::drop_na()
+
+# Select only the targeted countries
 cohort_data_22092020_top_five <- cohort_data_22092020  %>%
   dplyr::filter(country == "Brazil" | country == "United Kingdom" | country == "India" | country == "Mexico" | country == "Pakistan")
 
+# get the positive tested only 
 age_std_data_no_sympt <- cohort_data_22092020_top_five %>%
   dplyr::select(id, country, age_band, chills, cough, diarrhoea, fatigue, headache, muscle_ache,
                 nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature,
@@ -433,11 +454,17 @@ adjusted_symptoms_rates_select <- age_standard_rate_sympt %>%
 
 
 
-
-
-
 ########### Standardisation for all countries ##############################
-cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020.csv")
+cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020_2nd_dataset.csv")
+
+cohort_data_22092020 <- cohort_data_22092020 %>%
+  dplyr::group_by(covid_tested) %>%
+  tidyr::drop_na() %>%
+  dplyr::filter(Country != "Brazil" ) %>%
+  dplyr::filter(Country != "India") %>%
+  dplyr::filter(Country != "Pakistan") %>%
+  dplyr::filter(Country != "Mexico") %>%
+  dplyr::filter(Country != "United Kingdom") 
 
 # age_std_data_covid_positive <- cohort_data_22092020 %>%
 #   dplyr::select(id, Country, age_band, count_country_age_band_comorbidities, standard_pop) %>%
@@ -450,20 +477,20 @@ cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cl
 #   dplyr::select(id, country, age_band, comorbidities, standard_pop, count_country_age_band_comorbidities)
 
 age_std_data_no_sympt_all_countries <- cohort_data_22092020 %>%
-  dplyr::select(id, age_band, chills, cough, diarrhoea, fatigue, headache, muscle_ache,
+  dplyr::select(id, Country, age_band, chills, cough, diarrhoea, fatigue, headache, muscle_ache,
                 nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature,
                 loss_appetite, loss_smell_taste, chest_pain, itchy_eyes, joint_pain, covid_tested) %>%
-  dplyr::filter(covid_tested == "showing symptoms") %>%
+  dplyr::filter(covid_tested ==  "showing symptoms") %>%
   dplyr::group_by(age_band) %>%
   dplyr::summarise(count_all_countries_age_band_no_sympt = dplyr::n())
 
 
 age_std_data_with_sympt_all_countries <-  cohort_data_22092020 %>%
-  dplyr::select(id, age_band, chills, cough, diarrhoea, fatigue, headache, muscle_ache,
+  dplyr::select(id, Country, age_band, chills, cough, diarrhoea, fatigue, headache, muscle_ache,
                 nasal_congestion, nausea_vomiting, shortness_breath, sore_throat, sputum, temperature,
                 loss_appetite, loss_smell_taste, chest_pain, itchy_eyes, joint_pain, covid_tested) %>%
   dplyr::filter(covid_tested == "showing symptoms") %>%
-  tidyr::pivot_longer(cols = 3:19,
+  tidyr::pivot_longer(cols = 4:20,
                       names_to = "symptoms",
                       values_to = "binary_sympt") %>%
   dplyr::filter(binary_sympt == "Yes") %>%
@@ -532,7 +559,6 @@ sum_world_wide_pop_age_group_total <- data_rec %>%
   dplyr::summarise(standard_pop = sum(Value)) %>%
   dplyr::mutate(total_worldwide_pop = sum(standard_pop))
 
-
 sympt_data_study_pop_world_wide_pop <- left_join(study_pop_sympt_data_all_countries, sum_world_wide_pop_age_group_total, by = c("age_band" = "age_recoded_band"))
 
 
@@ -556,7 +582,7 @@ adjusted_sympt_rates_select_all_countries <- age_standard_rate_sympt_all_countri
   #dplyr::filter(age_recoded_band == "20-39") %>%
   dplyr::select(symptoms,  age_standardise_rate_in_sympt) %>%
   dplyr::distinct() %>%
-  add_column(country = c("All Countries")) %>%
+  add_column(country = c("All other countries")) %>%
   dplyr::select(country, symptoms, age_standardise_rate_in_sympt)
 
 
@@ -567,10 +593,13 @@ adjusted_sympt_rates_select <- age_standard_rate_sympt %>%
 adjusted_sympt_rates_final <- bind_rows(adjusted_sympt_rates_select, adjusted_sympt_rates_select_all_countries)
 
 adj_sympt_forcats <- adjusted_sympt_rates_final %>%
-  dplyr::mutate(age_standardise_rate_in_sympt = round(age_standardise_rate_in_sympt, 2))
+  dplyr::mutate(age_standardise_rate_in_sympt = round(age_standardise_rate_in_sympt, 2)) %>%
+  dplyr::arrange(country)
 
 symptom_levels <- c(
   "muscle ache" = "muscle_ache",
+  "shortness of breath" = "shortness_breath", 
+  "loss smell taste" = "loss_smell_taste",
   "nasal congestion" = "nasal_congestion",
   "nausea and vomiting" = "nausea_vomiting",
   "sore throat" = "sore_throat",
@@ -584,42 +613,40 @@ symptom_levels <- c(
 adj_sympt_forcats <- adj_sympt_forcats %>% 
   dplyr::mutate(symptoms = forcats::fct_recode(symptoms, !!!symptom_levels))
 
-adj_sympt_tables_covpos <- adj_sympt_forcats %>%
-  dplyr::distinct(country, symptoms, age_standardise_rate_in_sympt) %>%
-  tidyr::pivot_wider(names_from = "country", 
-                     values_from = "age_standardise_rate_in_sympt")
-
-
-write.csv(adj_sympt_tables_covpos, file = "/Users/gabrielburcea/rprojects/data/your.md/adj_sympt_tables_covpos_2910_2020.csv", row.names = FALSE)
+#write.csv(adj_sympt_forcats, file = "/Users/gabrielburcea/rprojects/data/your.md/age_standard_rate_sympt_2910_2020.csv", row.names = FALSE)
 
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#CC6600")
 
-title <- "Figure 5: Adjusted SARS-Covid-19 symptom rates for showing symptoms group, for top 5 countries vs. all countries"
-plot_adjusted_rates_show_symptoms <- ggplot2::ggplot(adj_sympt_forcats,
+title <- "Figure 4: Adjusted SARS-Covid-19 symptom rates for group with Covid-19 tested positive, for top 5 countries vs. all countries"
+plot_adjusted_rates <- ggplot2::ggplot(adj_sympt_forcats,
                                        ggplot2::aes(symptoms,  age_standardise_rate_in_sympt, country)) +
   ggplot2::coord_flip() +
-  ggplot2::geom_bar(ggplot2::aes(fill = symptoms), width = 0.4,
+  ggplot2::geom_bar(ggplot2::aes(fill = country), width = 0.4,
                     position = position_dodge(width = 0.5), stat = "identity") +
-  ggplot2::scale_fill_manual(values = cbbPalette) +
-  ggplot2::labs(title = title,
-                subtitle = "\nNote: i) Adjusted rates are not including those who responded they have been tested positive;  ii) date period between 04/09/20202 - 22/09/2020",
-                x = "SARS-Covid-19 Symptoms", y = "Percentage", caption = "Source: Your.md Data") +
-  ggplot2::theme(axis.title.y = ggplot2::element_text(margin = ggplot2::margin(t = 0, r = 10, b = 0, l = 0)),
-                 plot.title = ggplot2::element_text(size = 9, face = "bold"),
-                 plot.subtitle = ggplot2::element_text(size = 10),
-                 legend.position = "bottom" , legend.box = "horizontal") +
-  ggplot2::theme_bw()
+  ggplot2::scale_fill_manual(values = cbbPalette,
+                             guide = guide_legend(reverse = TRUE), name = "Country" ) +
+  ggplot2::labs(x = "SARS-Covid-19 Symptoms", y = "Percentage") +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(
+    axis.text = element_text(size = 14),
+    axis.title = element_text(size = 14),
+    axis.title.y = ggplot2::element_text(margin = ggplot2::margin(
+      t = 0,
+      r = 10,
+      b = 0,
+      l = 0
+    )),
+    plot.title = ggplot2::element_text(size = 9, face = "bold"),
+    plot.subtitle = ggplot2::element_text(size = 10),
+    legend.box = "horizontal", 
+    legend.title = element_text(size = 14), 
+    legend.text = element_text(size = 10)
+  ) 
 
 
-plot_adjusted_rates_show_symptoms 
+plot_adjusted_rates
 
 
-
-library(patchwork)
-
-library(ggpubr)
-
-ggpubr::ggarrange(plot_adjusted_rates, plot_adjusted_rates_show_symptoms)
 
 
 

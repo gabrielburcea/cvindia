@@ -61,7 +61,10 @@ count_symptoms_positive_all_countries <- cleaned_data_22092020  %>%
   dplyr::mutate(Percent = Count/sum(Count) *100) %>%
   dplyr::select(country, Symptoms, country, Count, Percent)
 
+
 count_symptoms_positive_add <- full_join(count_symptoms_positive_all_countries, count_symptoms_positive)
+
+write.csv(count_symptoms_positive_add, file = "/Users/gabrielburcea/rprojects/data/stack_overflow/count_symptoms_showing_symptoms_add.csv")
 
 
 symptom_levels <- c(
@@ -84,8 +87,7 @@ sympt_count_plot <- ggplot2::ggplot(count_symptoms_positive_add, ggplot2::aes(x 
   ggplot2::scale_x_discrete(limits = c( "0-9", "10-19", "20-29", "30-39", "40-49", "50-59", 
                                         "60+"), expand = c(0, 0)) +
   ggplot2::scale_fill_viridis_d() +
-  ggplot2::scale_y_continuous( breaks = c(0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000
-                )) +
+  #ggplot2::scale_y_continuous(breaks = c(seq(0,1000,by=100),seq(2100,3000,by=100))) +
   ggplot2::labs(#title = "% of responders across countries",
     y = "Count", x = "Age band") +
   theme(
@@ -95,10 +97,10 @@ sympt_count_plot <- ggplot2::ggplot(count_symptoms_positive_add, ggplot2::aes(x 
     plot.subtitle = ggplot2::element_text(size = 17),
     axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
     strip.background = element_blank(),
-    strip.text = element_text(size = 10, face = "bold", hjust = 0), 
-    legend.title = element_text(size = 16), 
+    strip.text = element_text(size = 10, face = "bold", hjust = 0),
+    legend.title = element_text(size = 16),
     legend.text = element_text(size = 13)) +
-  ggplot2::facet_wrap(~country, ncol = 1)
+  ggplot2::facet_wrap(~country, ncol = 1, scale = "free_y")
 
 sympt_count_plot
 
@@ -165,11 +167,11 @@ count_comorbidities_positive_add <- count_comorbidities_positive_add %>%
 # sympt_percent_plot
 
 
-comorb_count_plot <- ggplot2::ggplot(count_comorbidities_positive_add, ggplot2::aes(age_band, Count, group = Comorbidities, fill = Comorbidities), color = "white") +
+comorb_count_plot <- ggplot2::ggplot(count_comorbidities_positive_add, ggplot2::aes(age_band, Count, group = Comorbidities, fill = Comorbidities)) +
   ggplot2::geom_area( color = "white") +
   scale_x_discrete(limits = c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", 
                               "60+"), expand = c(0, 0)) +
-    ggplot2::scale_y_continuous(breaks = c(0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000)) +
+  #ggplot2::scale_y_continuous(breaks = c(0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000)) +
   scale_fill_brewer(palette = "Set1") +
   ggplot2::labs(#title = "% of responders across countries",
     y = "Count", x = "Age band") +
@@ -183,7 +185,7 @@ comorb_count_plot <- ggplot2::ggplot(count_comorbidities_positive_add, ggplot2::
     strip.text = element_text(size = 10, face = "bold", hjust = 0), 
     legend.title = element_text(size = 16), 
     legend.text = element_text(size = 13)) +
-  ggplot2::facet_wrap(~country, ncol = 1) 
+  ggplot2::facet_wrap(~country, ncol = 1, scale = "free_y") 
 
 
 comorb_count_plot
@@ -210,8 +212,8 @@ plot_sympt_comorb <-  sympt_count_plot + theme(legend.position = "none") +
 
 plot_sympt_comorb
 
-plot_comorb <- comorb_count_plot + theme(legend.position = "none") +
-  comorb_percent_plot + theme(legend.position = "none")
+plot_comorb <- sympt_count_plot + theme(legend.position = "none") +
+  comorb_count_plot + theme(legend.position = "none") 
 
 plot_legend <- wrap_plots(
   cowplot::get_legend(sympt_count_plot),

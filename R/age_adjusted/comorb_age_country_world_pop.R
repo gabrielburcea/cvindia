@@ -8,7 +8,6 @@ cohort_data_22092020 <- cohort_data_22092020 %>%
 cohort_data_22092020_top_five <- cohort_data_22092020  %>%
   dplyr::filter(country == "Brazil" | country == "United Kingdom" | country == "India" | country == "Mexico" | country == "Pakistan")
 
-
 # age_std_data_covid_positive <- cohort_data_22092020 %>%
 #   dplyr::select(id, Country, age_band, count_country_age_band_comorbidities, standard_pop) %>%
 #   dplyr::rename(country = Country) %>%
@@ -125,6 +124,17 @@ age_standard_rate_comorb <- sum_expected_comorb %>%
 # ########### Standardisation for all countries ##############################
 cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cleaned_data_22092020_2nd_dataset.csv")
 
+cohort_data_22092020 <- cohort_data_22092020 %>%
+  dplyr::group_by(covid_tested) %>%
+  tidyr::drop_na() %>%
+  dplyr::filter(Country != "Brazil" ) %>%
+  dplyr::filter(Country != "India") %>%
+  dplyr::filter(Country != "Pakistan") %>%
+  dplyr::filter(Country != "Mexico") %>%
+  dplyr::filter(Country != "United Kingdom") 
+
+
+
 # age_std_data_covid_positive <- cohort_data_22092020 %>%
 #   dplyr::select(id, Country, age_band, count_country_age_band_comorbidities, standard_pop) %>%
 #   dplyr::rename(country = Country) %>%
@@ -136,7 +146,7 @@ cohort_data_22092020 <- read_csv("/Users/gabrielburcea/rprojects/data/your.md/cl
 #   dplyr::select(id, country, age_band, comorbidities, standard_pop, count_country_age_band_comorbidities)
 
 age_std_data_no_comorb_all_countries <- cohort_data_22092020 %>%
-  dplyr::select(id,age_band, asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension, heart_disease, lung_condition,
+  dplyr::select(id, age_band, asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension, heart_disease, lung_condition,
                 liver_disease, kidney_disease, covid_tested) %>%
   dplyr::group_by(age_band) %>%
   dplyr::summarise(count_all_countries_age_band_no_comorb = dplyr::n())
@@ -145,7 +155,7 @@ age_std_data_no_comorb_all_countries <- cohort_data_22092020 %>%
 age_std_data_with_comorb_all_countries <-  cohort_data_22092020 %>%
   dplyr::select(id, age_band, asthma, diabetes_type_one, diabetes_type_two, obesity, hypertension, heart_disease, lung_condition,
                 liver_disease, kidney_disease) %>%
-  tidyr::pivot_longer(cols = 3:11,
+  tidyr::pivot_longer(cols = 4:11,
                       names_to = "comorbidities",
                       values_to = "binary_comorb") %>%
   dplyr::filter(binary_comorb == "Yes") %>%
@@ -239,7 +249,7 @@ adjusted_comorbididity_rates_select_all_countries <- age_standard_rate_comorb_al
   #dplyr::filter(age_recoded_band == "20-39") %>%
   dplyr::select(comorbidities,  age_standardise_rate_in_comorb) %>%
   dplyr::distinct() %>%
-  add_column(country = c("All Countries")) %>%
+  add_column(country = c("All other countries")) %>%
   dplyr::select(country, comorbidities, age_standardise_rate_in_comorb) %>%
   arrange(country)
 
@@ -283,7 +293,6 @@ plot_adjusted_rates <- ggplot2::ggplot(adj_comorb_forcats,
   ggplot2::geom_bar(ggplot2::aes(fill = country), width = 0.4,
                     position = position_dodge(width = 0.5), stat = "identity") +
   ggplot2::scale_fill_manual(values = cols,
-    
     guide = guide_legend(reverse = TRUE), name = "Country" ) +
   ggplot2::labs(
                 x = "Pre-existing conditions", y = "Percentage") +
